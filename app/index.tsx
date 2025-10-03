@@ -1,4 +1,4 @@
-//onbarding screen after splash screen. can make it as a splash screen later if needed
+// onbarding screen after splash screen. can make it as a splash screen later if needed
 
 
 import { View, Text, Image, TouchableOpacity } from 'react-native'
@@ -84,3 +84,4 @@ const onBoarding = () => {
 }
 
 export default onBoarding
+
