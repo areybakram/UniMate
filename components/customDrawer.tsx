@@ -119,7 +119,7 @@
 //           logoutPress();
 //         }}
 //       >
-//         <Text allowFontScaling={false} style={styles.logOutText}>
+// <Text allowFontScaling={false} style={styles.logOutText}>
 //           Sign-out
 //         </Text>
 //         <AntDesign
@@ -191,24 +191,180 @@
 
 // export default CustomDrawer;
 
-import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
-import React from "react";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import AntDesign from "@expo/vector-icons/AntDesign";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-import { Colors } from "@/utils/Constants";
-import { RFValue } from "react-native-responsive-fontsize";
+// import { useDrawer } from "@/Context/DrawerContext";
+// import { Colors } from "@/utils/Constants";
+// import AntDesign from "@expo/vector-icons/AntDesign";
+// import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+// import Ionicons from "@expo/vector-icons/Ionicons";
+// import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+// import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+// import { router } from "expo-router";
+// import { useContext, useEffect, useState } from "react";
+// import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+// import { RFValue } from "react-native-responsive-fontsize";
+// import { AuthContext } from "../Context/AuthContext";
+// import AsyncStorage from "@react-native-async-storage/async-storage";
+
+// const CustomDrawer = ({ active }: any) => {
+//   const { closeDrawer } = useDrawer();
+//   const { user, signOut } = useContext(AuthContext);
+//   const [ User, setUser] = useState(AuthContext)
+
+//   const { user, isLoading } = useContext(AuthContext);
+//   useEffect(() => {
+//     if (!isLoading) {
+//       if (!user) {
+//         router.replace("/(auth)/StudentSignIn"); // redirect to login if not authenticated
+//       }
+//     }
+//   }, [user, isLoading]);
+
+//   const logout = async () => {
+//     setUser(null);
+//     await AsyncStorage.removeItem("user");
+//     router.replace("/(auth)/StudentSignIn"); // navigate back to login/register
+//   };
+
+//   // const logoutPress = () => {
+//   //   active.value = false;
+//   //   closeDrawer();
+//   //   // router.push("/(auth)/StudentSignIn");
+//   // };
+
+//   return (
+//     <View style={styles.container}>
+//       <View style={styles.contentContainer}>
+//         <TouchableOpacity style={styles.lablecontainer}>
+//           <FontAwesome5 name="user-circle" size={24} color={Colors.texttwo} />
+//           <Text style={styles.textName}>Profile</Text>
+//         </TouchableOpacity>
+
+//         <TouchableOpacity style={styles.lablecontainer}>
+//           <MaterialCommunityIcons
+//             name="map-marker"
+//             size={25}
+//             color={Colors.texttwo}
+//           />
+//           <Text style={styles.textName}>Navigation</Text>
+//         </TouchableOpacity>
+
+//         <TouchableOpacity style={styles.lablecontainer}>
+//           <MaterialIcons name="local-offer" size={24} color={Colors.texttwo} />
+//           <Text style={styles.textName}>Emergency</Text>
+//         </TouchableOpacity>
+
+//         <TouchableOpacity
+//           style={styles.lablecontainer}
+//           onPress={() => router.push("/(screens)/about")}>
+//           <Ionicons
+//             name="document-text-outline"
+//             size={24}
+//             color={Colors.texttwo}
+//           />
+//           <Text style={styles.textName}>About</Text>
+//         </TouchableOpacity>
+
+//         <TouchableOpacity style={styles.lablecontainer}>
+//           <MaterialCommunityIcons
+//             name="security"
+//             size={24}
+//             color={Colors.texttwo}
+//           />
+//           <Text style={styles.textName}>Support</Text>
+//         </TouchableOpacity>
+//       </View>
+
+//       <TouchableOpacity style={styles.containerdeleted} onPress={logoutPress}>
+//         <Text style={styles.logOutText}>Sign-out</Text>
+//         <AntDesign
+//           name="arrowright"
+//           size={24}
+//           color={Colors.texttwo}
+//           style={{ paddingTop: "1%" }}
+//         />
+//       </TouchableOpacity>
+//     </View>
+//   );
+// };
+
+// const styles = StyleSheet.create({
+//   container: {
+//     ...StyleSheet.absoluteFillObject,
+//     backgroundColor: Colors.primary,
+//     paddingTop: "20%",
+//     paddingHorizontal: 16,
+//   },
+//   contentContainer: {
+//     flex: 0.89,
+//     maxWidth: 200,
+//   },
+//   lablecontainer: {
+//     flexDirection: "row",
+//     gap: 14,
+//     alignItems: "center",
+//     borderBottomWidth: 1,
+//     borderBottomColor: "#F4F4F8",
+//     paddingVertical: 12,
+//   },
+//   textName: {
+//     fontSize: RFValue(16),
+//     fontWeight: "400",
+//     color: Colors.texttwo,
+//   },
+//   containerdeleted: {
+//     flexDirection: "row",
+//     alignItems: "center",
+//     gap: 14,
+//     marginTop: 20,
+//   },
+//   logOutText: {
+//     fontSize: RFValue(16),
+//     fontWeight: "400",
+//     color: Colors.texttwo,
+//   },
+// });
+
+// export default CustomDrawer;
+
+
 import { useDrawer } from "@/Context/DrawerContext";
+import { Colors } from "@/utils/Constants";
+import AntDesign from "@expo/vector-icons/AntDesign";
+import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { router } from "expo-router";
+import React, { useContext, useEffect, useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { RFValue } from "react-native-responsive-fontsize";
+import { AuthContext } from "../Context/AuthContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const CustomDrawer = ({ active }: any) => {
   const { closeDrawer } = useDrawer();
+  const { user, isLoading } = useContext(AuthContext);
+  const [currentUser, setCurrentUser] = useState(user);
 
+  // Redirect if not logged in
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.replace("/(auth)/StudentSignIn");
+    }
+  }, [user, isLoading]);
+
+  // Logout function
+  const logout = async () => {
+    setCurrentUser(null);
+    await AsyncStorage.removeItem("user");
+    router.replace("/(auth)/StudentSignIn");
+  };
+
+  // Logout button press handler
   const logoutPress = () => {
     active.value = false;
     closeDrawer();
-    // router.push("/(auth)/StudentSignIn");
+    logout();
   };
 
   return (
@@ -233,13 +389,16 @@ const CustomDrawer = ({ active }: any) => {
           <Text style={styles.textName}>Emergency</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.lablecontainer}>
+        <TouchableOpacity
+          style={styles.lablecontainer}
+          onPress={() => router.push("/(screens)/about")}
+        >
           <Ionicons
             name="document-text-outline"
             size={24}
             color={Colors.texttwo}
           />
-          <Text style={styles.textName}>Privacy Policy</Text>
+          <Text style={styles.textName}>About</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.lablecontainer}>
@@ -252,10 +411,7 @@ const CustomDrawer = ({ active }: any) => {
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity
-        style={styles.containerdeleted}
-        onPress={logoutPress}
-      >
+      <TouchableOpacity style={styles.containerdeleted} onPress={logoutPress}>
         <Text style={styles.logOutText}>Sign-out</Text>
         <AntDesign
           name="arrowright"

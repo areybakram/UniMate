@@ -325,6 +325,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: 16,
+    marginTop: '10%',
   },
   title: {
     fontSize: 20,

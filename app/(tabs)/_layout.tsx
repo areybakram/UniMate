@@ -188,6 +188,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
+    // marginTop:'15%'
   },
   chatbotButton: {
     position: 'absolute',

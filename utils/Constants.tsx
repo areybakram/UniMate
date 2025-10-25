@@ -10,7 +10,7 @@ export enum Colors {
   text = "#292D32",
   textone = "#1D1D1D",
   tertiary = "#F7F7F7",
-  secondary_light = "#FFF2F5",
+  secondary_light = "white",
   otpColor = "#6A798A",
   splashbackground = "#D71A45",
   texttwo = "#fff",
