@@ -11,11 +11,10 @@
 
 // const styles = StyleSheet.create({})
 
-
-import React, { useEffect, useContext } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
-import { AuthContext } from '../Context/AuthContext'; // 👈 adjust this path if needed
+import { useRouter } from "expo-router";
+import { useContext, useEffect } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { AuthContext } from "../../Context/AuthContext"; // 👈 adjust this path if needed
 
 export default function Chatbot() {
   const router = useRouter();
@@ -24,7 +23,7 @@ export default function Chatbot() {
   useEffect(() => {
     // Redirect if no user is logged in
     if (!user) {
-      router.replace('/StudentSignIn');
+      router.replace("/StudentSignIn");
     }
   }, [user]);
 
@@ -38,8 +37,8 @@ export default function Chatbot() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   text: {
     fontSize: 18,

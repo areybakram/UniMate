@@ -370,12 +370,14 @@ const CustomDrawer = ({ active }: any) => {
   return (
     <View style={styles.container}>
       <View style={styles.contentContainer}>
-        <TouchableOpacity style={styles.lablecontainer}>
+        <TouchableOpacity style={styles.lablecontainer}
+        onPress={()=>router.push('/(tabs)/Profile')}>
           <FontAwesome5 name="user-circle" size={24} color={Colors.texttwo} />
           <Text style={styles.textName}>Profile</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.lablecontainer}>
+        <TouchableOpacity style={styles.lablecontainer}
+        onPress={() => router.push("/Modules/Tagging")} >
           <MaterialCommunityIcons
             name="map-marker"
             size={25}
@@ -384,7 +386,8 @@ const CustomDrawer = ({ active }: any) => {
           <Text style={styles.textName}>Navigation</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.lablecontainer}>
+        <TouchableOpacity style={styles.lablecontainer}
+        onPress={()=>router.push('/(screens)/emergency')}>
           <MaterialIcons name="local-offer" size={24} color={Colors.texttwo} />
           <Text style={styles.textName}>Emergency</Text>
         </TouchableOpacity>
@@ -414,7 +417,7 @@ const CustomDrawer = ({ active }: any) => {
       <TouchableOpacity style={styles.containerdeleted} onPress={logoutPress}>
         <Text style={styles.logOutText}>Sign-out</Text>
         <AntDesign
-          name="arrowright"
+          // name="arrowright"
           size={24}
           color={Colors.texttwo}
           style={{ paddingTop: "1%" }}

@@ -16,7 +16,7 @@ const { width, height } = Dimensions.get("screen");
 import Svg, { Path } from "react-native-svg";
 
 const _color = "#1E40AF";
-// const _color = "#D71A45";
+
 const _size = 100;
 
 const WaveThingy = () => {
@@ -74,7 +74,7 @@ const WaveThingy = () => {
             style={[styles.dot, styles.absoluteFill, style]}
           />
         ))}
-        {/* <Feather name="phone-outgoing" size={32} color="#fff" /> */}
+        
         <Svg
           width="50"
           height="60"

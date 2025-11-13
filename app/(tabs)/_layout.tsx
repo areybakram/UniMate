@@ -1,4 +1,3 @@
-
 // // import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 // // import CustomTabBar from "../../components/CustomTab";
 
@@ -22,9 +21,6 @@
 
 // // the above is simple layout file
 
-
-
-
 // import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 // import React from 'react';
 // import { StyleSheet, TouchableOpacity, View } from 'react-native';
@@ -37,7 +33,6 @@
 // import Profile from './Profile';
 // import Timetable from './Timetable';
 // import Notes from './Notes'
-
 
 // const Tab = createBottomTabNavigator();
 
@@ -57,39 +52,39 @@
 //         }}
 //         initialRouteName="Home"
 //       >
-//         <Tab.Screen 
-//           name="Home" 
+//         <Tab.Screen
+//           name="Home"
 //           component={Home}
 //           options={{
 //             tabBarLabel: 'Home',
 //             headerShown:false
 //           }}
 //         />
-//         {/* <Tab.Screen 
-//           name="Emergency" 
+//         {/* <Tab.Screen
+//           name="Emergency"
 //           component={EmergencyScreen}
 //           options={{
 //             tabBarLabel: 'Emergency',
 //           }}
 //         /> */}
-//         <Tab.Screen 
-//           name="Notes" 
+//         <Tab.Screen
+//           name="Notes"
 //           component={Notes}
 //           options={{
 //             tabBarLabel: 'Notes',
 //             headerShown:false
 //           }}
 //         />
-//         <Tab.Screen 
-//           name="Timetable" 
+//         <Tab.Screen
+//           name="Timetable"
 //           component={Timetable}
 //           options={{
 //             tabBarLabel: 'Timetable',
 //             headerShown:false
 //           }}
 //         />
-//         <Tab.Screen 
-//           name="Profile" 
+//         <Tab.Screen
+//           name="Profile"
 //           component={Profile}
 //           options={{
 //             tabBarLabel: 'Profile',
@@ -97,8 +92,6 @@
 //           }}
 //         />
 //       </Tab.Navigator>
-
-
 
 //     </View>
 //   );
@@ -113,23 +106,21 @@
 
 // export default TabsLayout;
 
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import React from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from "@expo/vector-icons";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { useNavigation } from "@react-navigation/native";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 
 // Import your custom tab bar
-import TabBar from '../../components/CustomTab'; 
+import TabBar from "../../components/CustomTab";
 
 // Import your screen components
-import Home from './Home';
-import Profile from './Profile';
-import Timetable from './Timetable';
-import Notes from './Notes';
+import Home from "./Home";
+import Notes from "./Notes";
+import Profile from "./Profile";
+import Timetable from "./Timetable";
 // Chatbot screen (make sure it exists in your stack/drawer)
-import Chatbot from '../chatbot';
-import { router } from 'expo-router';
+import { router } from "expo-router";
 
 const Tab = createBottomTabNavigator();
 
@@ -148,36 +139,34 @@ const TabsLayout = () => {
         screenOptions={{
           tabBarShowLabel: false,
         }}
-        initialRouteName="Home"
-      >
-        <Tab.Screen 
-          name="Home" 
+        initialRouteName="Home">
+        <Tab.Screen
+          name="Home"
           component={Home}
           options={{ headerShown: false }}
         />
-        <Tab.Screen 
-          name="Notes" 
+        <Tab.Screen
+          name="Notes"
           component={Notes}
           options={{ headerShown: false }}
         />
-        <Tab.Screen 
-          name="Timetable" 
+        <Tab.Screen
+          name="Timetable"
           component={Timetable}
           options={{ headerShown: false }}
         />
-        <Tab.Screen 
-          name="Profile" 
+        <Tab.Screen
+          name="Profile"
           component={Profile}
           options={{ headerShown: false }}
         />
       </Tab.Navigator>
 
       {/* Floating Chatbot button above TabBar (left side) */}
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.chatbotButton}
-        onPress={()=>router.push('/chatbot')} // 👈 Navigate to chatbot
-        activeOpacity={0.8}
-      >
+        onPress={() => router.push("/(screens)/chatbot")} // 👈 Navigate to chatbot
+        activeOpacity={0.8}>
         <Ionicons name="chatbubbles" size={38} color="#fff" />
       </TouchableOpacity>
     </View>
@@ -187,14 +176,14 @@ const TabsLayout = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: "#000",
     // marginTop:'15%'
   },
   chatbotButton: {
-    position: 'absolute',
-    bottom: 100,     // Just above tab bar
-    left: 320,       // Left side
-    backgroundColor: '#2D3748',
+    position: "absolute",
+    bottom: 100, // Just above tab bar
+    left: 320, // Left side
+    backgroundColor: "#2D3748",
     padding: 12,
     borderRadius: 30,
     elevation: 5,
