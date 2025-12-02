@@ -3,6 +3,7 @@ import { DrawerProvider } from "@/Context/DrawerContext";
 import { useFonts } from "expo-font";
 import { SplashScreen, Stack } from "expo-router";
 import { useEffect } from "react";
+import { LocationProvider } from "../Context/LocationContext";
 // import GlobalProvider from '../context/GlobalProvider'
 
 SplashScreen.preventAutoHideAsync();
@@ -30,6 +31,7 @@ const _layout = () => {
   return (
     <AuthProvider>
       <DrawerProvider>
+        <LocationProvider>
         <Stack>
           <Stack.Screen name="index" options={{ headerShown: false }} />
 
@@ -43,6 +45,7 @@ const _layout = () => {
         name='(search/[query])'
         options={{headerShown:false}}/> */}
         </Stack>
+        </LocationProvider>
       </DrawerProvider>
     </AuthProvider>
   );

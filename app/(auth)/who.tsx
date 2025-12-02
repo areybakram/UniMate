@@ -146,7 +146,7 @@ const Who = () => {
           />
         </TouchableOpacity>
 
-        <Text className="text-center font-pregular">Student</Text>
+        <Text className="text-center font-pregular">Guard</Text>
       </View>
     </SafeAreaView>
   );
