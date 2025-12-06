@@ -159,7 +159,7 @@
 //                     activeTab === "Register"
 //                       ? styles.activeTabText
 //                       : styles.inactiveTabText,
-                      
+
 //                   ]}
 //                 >
 //                   Signup
@@ -464,40 +464,566 @@
 // });
 
 // screens/Auth.tsx
-import React, { useState, useEffect, useContext } from "react";
+
+// import CommonButton from "@/components/CommonButton";
+// import { Colors } from "@/utils/Constants";
+// import { yupResolver } from "@hookform/resolvers/yup";
+// import { router, useLocalSearchParams } from "expo-router";
+// import React, { useContext, useEffect, useState } from "react";
+// import { Controller, useForm } from "react-hook-form";
+// import {
+//   ActivityIndicator,
+//   Alert,
+//   Keyboard,
+//   KeyboardAvoidingView,
+//   Platform,
+//   SafeAreaView,
+//   ScrollView,
+//   StatusBar,
+//   StyleSheet,
+//   Text,
+//   TextInput,
+//   TouchableOpacity,
+//   TouchableWithoutFeedback,
+//   View,
+// } from "react-native";
+// import { RFValue } from "react-native-responsive-fontsize";
+// import * as yup from "yup";
+// import { AuthContext } from "../../Context/AuthContext";
+
+// const loginSchema = yup.object().shape({
+//   email: yup
+//     .string()
+//     .email("Please enter a valid email")
+//     .required("Email is required"),
+//   password: yup.string().required("Password is required"),
+// });
+
+// const registerSchema = yup.object().shape({
+//   fullName: yup.string().required("Full Name is required"),
+//   email: yup
+//     .string()
+//     .email("Please enter a valid email")
+//     .required("Email is required"),
+//   phoneNumber: yup
+//     .string()
+//     .matches(/^[0-9]{12}$/, "Phone Number must be 12 digits")
+//     .required("Phone Number is required"),
+//   password: yup.string().required("Password is required"),
+//   confirmPassword: yup
+//     .string()
+//     .oneOf([yup.ref("password"), null], "Passwords must match")
+//     .required("Confirm Password is required"),
+// });
+
+// const Auth: React.FC = () => {
+//   const [activeTab, setActiveTab] = useState("Login");
+//   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+//   const [loading, setLoading] = useState(false);
+//   const auth = useContext(AuthContext);
+//   // const params = useLocalSearchParams();
+//   // const [role, setRole] = useState<string>("student");
+//   const params = useLocalSearchParams();
+//   const role = params.role as string | undefined;
+
+//   console.log(params.role)
+//   // useEffect(() => {
+//   //   if (params.role) {
+//   //     setRole(params.role as string);
+//   //   }
+//   // }, [params.role]);
+
+//   useEffect(() => {
+//     const keyboardDidShowListener = Keyboard.addListener(
+//       "keyboardDidShow",
+//       () => setIsKeyboardVisible(true)
+//     );
+//     const keyboardDidHideListener = Keyboard.addListener(
+//       "keyboardDidHide",
+//       () => setIsKeyboardVisible(false)
+//     );
+//     return () => {
+//       keyboardDidShowListener.remove();
+//       keyboardDidHideListener.remove();
+//     };
+//   }, []);
+
+//   const dismissKeyboard = () => Keyboard.dismiss();
+
+//   const {
+//     control,
+//     handleSubmit,
+//     formState: { errors },
+//     reset,
+//   } = useForm({
+//     resolver: yupResolver(activeTab === "Login" ? loginSchema : registerSchema),
+//     defaultValues:
+//       activeTab === "Login"
+//         ? { email: "", password: "" }
+//         : {
+//             fullName: "",
+//             email: "",
+//             phoneNumber: "",
+//             password: "",
+//             confirmPassword: "",
+//           },
+//   });
+
+//   useEffect(() => {
+//     reset(
+//       activeTab === "Login"
+//         ? { email: "", password: "" }
+//         : {
+//             fullName: "",
+//             email: "",
+//             phoneNumber: "",
+//             password: "",
+//             confirmPassword: "",
+//           }
+//     );
+//   }, [activeTab, reset]);
+
+//   // const onSubmit = async (data: any) => {
+//   //   if (!auth) return;
+//   //   setLoading(true);
+//   //   try {
+//   //     if (activeTab === "Login") {
+//   //       const res = await auth.signIn(data.email, data.password);
+//   //       if (res.error) {
+//   //         Alert.alert("Login Failed", res.error.message || String(res.error));
+//   //       } else if (res.user) {
+//   //         router.replace("/(tabs)/Home");
+//   //       } else {
+//   //         Alert.alert("Login Failed", "Unable to sign in");
+//   //       }
+//   //     } else {
+//   //       const res = await auth.signUp(
+//   //         data.fullName,
+//   //         data.email,
+//   //         data.phoneNumber,
+//   //         data.password,
+//   //         role
+//   //       );
+//   //       if (res.error) {
+//   //         Alert.alert("Sign Up Failed", res.error.message || String(res.error));
+//   //       } else {
+//   //         Alert.alert("Success", "Account created successfully!");
+//   //         router.replace("/(tabs)/Home");
+//   //       }
+//   //     }
+//   //   } catch (e: any) {
+//   //     Alert.alert("Error", e.message || "Something went wrong");
+//   //   } finally {
+//   //     setLoading(false);
+//   //   }
+//   // };
+//   const onSubmit = async (data: any) => {
+//     if (!auth) return;
+//     if (!role) {
+//       Alert.alert("Error", "Please select a role before signing up");
+//       return;
+//     }
+
+//     setLoading(true);
+//     try {
+//       if (activeTab === "Login") {
+//         const res = await auth.signIn(data.email, data.password);
+//         if (res.error) {
+//           Alert.alert("Login Failed", res.error.message || String(res.error));
+//         } else if (res.user) {
+//           router.replace("/(tabs)/Home");
+//         } else {
+//           Alert.alert("Login Failed", "Unable to sign in");
+//         }
+//       } else {
+//         const res = await auth.signUp(
+//           data.fullName,
+//           data.email,
+//           data.phoneNumber,
+//           data.password,
+//           role
+//         );
+//         if (res.error) {
+//           Alert.alert("Sign Up Failed", res.error.message || String(res.error));
+//         } else {
+//           Alert.alert("Success", "Account created successfully!");
+//           router.replace("/(tabs)/Home");
+//         }
+//       }
+//     } catch (e: any) {
+//       Alert.alert("Error", e.message || "Something went wrong");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   return (
+//     <SafeAreaView style={styles.safeArea}>
+//       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flex: 1 }}>
+//         <TouchableWithoutFeedback onPress={dismissKeyboard}>
+//           <View style={styles.container}>
+//             <Text className="font-pmedium" style={styles.title}>
+//               Welcome!
+//             </Text>
+//             <Text className="font-pregular" style={styles.subtitle}>
+//               Sign up or Login to your Account
+//             </Text>
+
+//             <View style={styles.tabContainer}>
+//               <TouchableOpacity
+//                 style={[
+//                   styles.tab,
+//                   activeTab === "Login" ? styles.activeTab : styles.inactiveTab,
+//                 ]}
+//                 onPress={() => setActiveTab("Login")}>
+//                 <Text
+//                   style={[
+//                     styles.tabText,
+//                     activeTab === "Login"
+//                       ? styles.activeTabText
+//                       : styles.inactiveTabText,
+//                   ]}>
+//                   Login
+//                 </Text>
+//               </TouchableOpacity>
+
+//               <TouchableOpacity
+//                 style={[
+//                   styles.tab,
+//                   activeTab === "Register"
+//                     ? styles.activeTab
+//                     : styles.inactiveTab,
+//                 ]}
+//                 onPress={() => setActiveTab("Register")}>
+//                 <Text
+//                   className="font-pregular"
+//                   style={[
+//                     styles.tabText,
+//                     activeTab === "Register"
+//                       ? styles.activeTabText
+//                       : styles.inactiveTabText,
+//                   ]}>
+//                   Signup
+//                 </Text>
+//               </TouchableOpacity>
+//             </View>
+
+//             {activeTab === "Login" ? (
+//               <>
+//                 <KeyboardAvoidingView
+//                   behavior={Platform.OS === "ios" ? "padding" : "height"}
+//                   keyboardVerticalOffset={60}>
+//                   <Text className="font-pregular" style={styles.label}>
+//                     Email Address
+//                   </Text>
+//                   <Controller
+//                     control={control}
+//                     name="email"
+//                     render={({ field: { onChange, onBlur, value } }) => (
+//                       <TextInput
+//                         style={styles.input}
+//                         placeholder="Enter your Email"
+//                         keyboardType="email-address"
+//                         placeholderTextColor="#B3BFCB"
+//                         onBlur={onBlur}
+//                         onChangeText={onChange}
+//                         value={value}
+//                       />
+//                     )}
+//                   />
+//                   {errors.email && (
+//                     <Text style={styles.errorText}>{errors.email.message}</Text>
+//                   )}
+//                 </KeyboardAvoidingView>
+
+//                 <KeyboardAvoidingView
+//                   behavior={Platform.OS === "ios" ? "padding" : "height"}
+//                   keyboardVerticalOffset={60}>
+//                   <Text className="font-pregular" style={styles.label}>
+//                     Password
+//                   </Text>
+//                   <Controller
+//                     control={control}
+//                     name="password"
+//                     render={({ field: { onChange, onBlur, value } }) => (
+//                       <TextInput
+//                         style={styles.input}
+//                         placeholder="Enter your Password"
+//                         placeholderTextColor="#B3BFCB"
+//                         secureTextEntry
+//                         onBlur={onBlur}
+//                         onChangeText={onChange}
+//                         value={value}
+//                       />
+//                     )}
+//                   />
+//                   {errors.password && (
+//                     <Text style={styles.errorText}>
+//                       {errors.password.message}
+//                     </Text>
+//                   )}
+//                 </KeyboardAvoidingView>
+//               </>
+//             ) : (
+//               <ScrollView>
+//                 <Text className="font-pregular" style={styles.label}>
+//                   Full Name
+//                 </Text>
+//                 <Controller
+//                   control={control}
+//                   name="fullName"
+//                   render={({ field: { onChange, onBlur, value } }) => (
+//                     <TextInput
+//                       style={styles.input}
+//                       placeholder="Enter your Name"
+//                       placeholderTextColor="#B3BFCB"
+//                       onBlur={onBlur}
+//                       onChangeText={onChange}
+//                       value={value}
+//                     />
+//                   )}
+//                 />
+//                 {errors.fullName && (
+//                   <Text style={styles.errorText}>
+//                     {errors.fullName.message}
+//                   </Text>
+//                 )}
+
+//                 <Text className="font-pregular" style={styles.label}>
+//                   E-mail
+//                 </Text>
+//                 <Controller
+//                   control={control}
+//                   name="email"
+//                   render={({ field: { onChange, onBlur, value } }) => (
+//                     <TextInput
+//                       style={styles.input}
+//                       placeholder="Enter your E-mail"
+//                       placeholderTextColor="#B3BFCB"
+//                       keyboardType="email-address"
+//                       onBlur={onBlur}
+//                       onChangeText={onChange}
+//                       value={value}
+//                     />
+//                   )}
+//                 />
+//                 {errors.email && (
+//                   <Text style={styles.errorText}>{errors.email.message}</Text>
+//                 )}
+
+//                 <Text className="font-pregular" style={styles.label}>
+//                   Phone Number
+//                 </Text>
+//                 <Controller
+//                   control={control}
+//                   name="phoneNumber"
+//                   render={({ field: { onChange, onBlur, value } }) => (
+//                     <TextInput
+//                       style={styles.input}
+//                       placeholder="921234567890"
+//                       placeholderTextColor="#B3BFCB"
+//                       keyboardType="phone-pad"
+//                       onBlur={onBlur}
+//                       onChangeText={onChange}
+//                       value={value}
+//                       maxLength={12}
+//                     />
+//                   )}
+//                 />
+//                 {errors.phoneNumber && (
+//                   <Text style={styles.errorText}>
+//                     {errors.phoneNumber.message}
+//                   </Text>
+//                 )}
+
+//                 <Text className="font-pregular" style={styles.label}>
+//                   Create Password
+//                 </Text>
+//                 <Controller
+//                   control={control}
+//                   name="password"
+//                   render={({ field: { onChange, onBlur, value } }) => (
+//                     <TextInput
+//                       style={styles.input}
+//                       placeholder="Enter your Password"
+//                       placeholderTextColor="#B3BFCB"
+//                       secureTextEntry
+//                       onBlur={onBlur}
+//                       onChangeText={onChange}
+//                       value={value}
+//                     />
+//                   )}
+//                 />
+//                 {errors.password && (
+//                   <Text style={styles.errorText}>
+//                     {errors.password.message}
+//                   </Text>
+//                 )}
+
+//                 <Text className="font-pregular" style={styles.label}>
+//                   Confirm Password
+//                 </Text>
+//                 <Controller
+//                   control={control}
+//                   name="confirmPassword"
+//                   render={({ field: { onChange, onBlur, value } }) => (
+//                     <TextInput
+//                       style={styles.input}
+//                       placeholder="Re-enter your Password"
+//                       placeholderTextColor="#B3BFCB"
+//                       secureTextEntry
+//                       onBlur={onBlur}
+//                       onChangeText={onChange}
+//                       value={value}
+//                     />
+//                   )}
+//                 />
+//                 {errors.confirmPassword && (
+//                   <Text style={styles.errorText}>
+//                     {errors.confirmPassword.message}
+//                   </Text>
+//                 )}
+//               </ScrollView>
+//             )}
+
+//             {!isKeyboardVisible && !loading && (
+//               <CommonButton
+//                 text={activeTab === "Login" ? "Login" : "Sign Up"}
+//                 iconName="chevron-forward"
+//                 onPress={handleSubmit(onSubmit)}
+//                 buttonStyle={{
+//                   alignSelf: "center",
+//                   position: "absolute",
+//                   bottom: "11%",
+//                 }}
+//               />
+//             )}
+
+//             {loading && !isKeyboardVisible && (
+//               <ActivityIndicator
+//                 size="large"
+//                 color={Colors.primary}
+//                 style={{
+//                   alignSelf: "center",
+//                   position: "absolute",
+//                   bottom: "3%",
+//                 }}
+//               />
+//             )}
+//           </View>
+//         </TouchableWithoutFeedback>
+//       </ScrollView>
+//       <StatusBar backgroundColor={"#ffffff"} barStyle="dark-content" />
+//     </SafeAreaView>
+//   );
+// };
+
+// export default Auth;
+
+// const styles = StyleSheet.create({
+//   safeArea: { flex: 1 },
+//   container: { flex: 1, backgroundColor: Colors.background, paddingTop: "7%" },
+//   title: {
+//     fontSize: RFValue(25),
+//     fontWeight: "400",
+//     color: Colors.text,
+//     marginHorizontal: "5%",
+//   },
+//   subtitle: {
+//     fontSize: RFValue(13),
+//     fontWeight: "400",
+//     color: Colors.otpColor,
+//     marginBottom: "4.5%",
+//     marginHorizontal: "5%",
+//   },
+//   tabContainer: {
+//     flexDirection: "row",
+//     justifyContent: "center",
+//     marginBottom: 25,
+//     marginHorizontal: "5%",
+//     backgroundColor: Colors.secondary_light,
+//     borderRadius: 50,
+//   },
+//   tab: {
+//     flex: 1,
+//     paddingVertical: "1.9%",
+//     alignItems: "center",
+//     borderRadius: 50,
+//   },
+//   activeTab: { backgroundColor: Colors.primary },
+//   inactiveTab: { backgroundColor: Colors.secondary_light },
+//   tabText: { fontSize: RFValue(17), color: Colors.text, fontWeight: "400" },
+//   activeTabText: { color: Colors.texttwo },
+//   inactiveTabText: { color: Colors.primary },
+//   label: {
+//     fontSize: RFValue(13),
+//     color: Colors.text,
+//     fontWeight: "400",
+//     marginHorizontal: "7%",
+//     marginBottom: 7,
+//   },
+//   input: {
+//     backgroundColor: Colors.inputfild,
+//     borderRadius: 50,
+//     paddingVertical: "1.9%",
+//     marginHorizontal: "5%",
+//     fontSize: RFValue(14),
+//     fontFamily: "BarlowRegular",
+//     color: Colors.text,
+//     fontWeight: "400",
+//     height: RFValue(41),
+//     marginBottom: 15,
+//     paddingLeft: "5%",
+//   },
+//   errorText: {
+//     fontSize: RFValue(12),
+//     color: "red",
+//     marginHorizontal: "7%",
+//     top: -10,
+//     fontFamily: "BarlowRegular",
+//   },
+// });
+
+import CommonButton from "@/components/CommonButton";
+import { Colors } from "@/utils/Constants";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { router, useLocalSearchParams } from "expo-router";
+import React, { useContext, useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import {
+  ActivityIndicator,
+  Alert,
   Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   SafeAreaView,
+  ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
   TouchableWithoutFeedback,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StatusBar,
-  ActivityIndicator,
-  Alert,
+  View,
 } from "react-native";
 import { RFValue } from "react-native-responsive-fontsize";
-import { useForm, Controller } from "react-hook-form";
 import * as yup from "yup";
-import { yupResolver } from "@hookform/resolvers/yup";
-import CommonButton from "@/components/CommonButton";
-import { Colors } from "@/utils/Constants";
-import { router } from "expo-router";
 import { AuthContext } from "../../Context/AuthContext";
 
 const loginSchema = yup.object().shape({
-  email: yup.string().email("Please enter a valid email").required("Email is required"),
+  email: yup
+    .string()
+    .email("Please enter a valid email")
+    .required("Email is required"),
   password: yup.string().required("Password is required"),
 });
 
 const registerSchema = yup.object().shape({
   fullName: yup.string().required("Full Name is required"),
-  email: yup.string().email("Please enter a valid email").required("Email is required"),
+  email: yup
+    .string()
+    .email("Please enter a valid email")
+    .required("Email is required"),
   phoneNumber: yup
     .string()
     .matches(/^[0-9]{12}$/, "Phone Number must be 12 digits")
@@ -514,13 +1040,25 @@ const Auth: React.FC = () => {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const auth = useContext(AuthContext);
+  const params = useLocalSearchParams();
+  const [role, setRole] = useState<string>("student");
+
+  console.log(params.role);
 
   useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener("keyboardDidShow", () =>
-      setIsKeyboardVisible(true)
+    if (params.role) {
+      setRole(params.role as string);
+    }
+  }, [params.role]);
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      "keyboardDidShow",
+      () => setIsKeyboardVisible(true)
     );
-    const keyboardDidHideListener = Keyboard.addListener("keyboardDidHide", () =>
-      setIsKeyboardVisible(false)
+    const keyboardDidHideListener = Keyboard.addListener(
+      "keyboardDidHide",
+      () => setIsKeyboardVisible(false)
     );
     return () => {
       keyboardDidShowListener.remove();
@@ -540,19 +1078,36 @@ const Auth: React.FC = () => {
     defaultValues:
       activeTab === "Login"
         ? { email: "", password: "" }
-        : { fullName: "", email: "", phoneNumber: "", password: "", confirmPassword: "" },
+        : {
+            fullName: "",
+            email: "",
+            phoneNumber: "",
+            password: "",
+            confirmPassword: "",
+          },
   });
 
   useEffect(() => {
     reset(
       activeTab === "Login"
         ? { email: "", password: "" }
-        : { fullName: "", email: "", phoneNumber: "", password: "", confirmPassword: "" }
+        : {
+            fullName: "",
+            email: "",
+            phoneNumber: "",
+            password: "",
+            confirmPassword: "",
+          }
     );
   }, [activeTab, reset]);
 
   const onSubmit = async (data: any) => {
     if (!auth) return;
+    if (!role) {
+      Alert.alert("Error", "Please select a role before signing up");
+      return;
+    }
+
     setLoading(true);
     try {
       if (activeTab === "Login") {
@@ -565,11 +1120,13 @@ const Auth: React.FC = () => {
           Alert.alert("Login Failed", "Unable to sign in");
         }
       } else {
+        console.log("Role during signup:", role);
         const res = await auth.signUp(
           data.fullName,
           data.email,
           data.phoneNumber,
-          data.password
+          data.password,
+          role
         );
         if (res.error) {
           Alert.alert("Sign Up Failed", res.error.message || String(res.error));
@@ -599,15 +1156,18 @@ const Auth: React.FC = () => {
 
             <View style={styles.tabContainer}>
               <TouchableOpacity
-                style={[styles.tab, activeTab === "Login" ? styles.activeTab : styles.inactiveTab]}
-                onPress={() => setActiveTab("Login")}
-              >
+                style={[
+                  styles.tab,
+                  activeTab === "Login" ? styles.activeTab : styles.inactiveTab,
+                ]}
+                onPress={() => setActiveTab("Login")}>
                 <Text
                   style={[
                     styles.tabText,
-                    activeTab === "Login" ? styles.activeTabText : styles.inactiveTabText,
-                  ]}
-                >
+                    activeTab === "Login"
+                      ? styles.activeTabText
+                      : styles.inactiveTabText,
+                  ]}>
                   Login
                 </Text>
               </TouchableOpacity>
@@ -615,17 +1175,19 @@ const Auth: React.FC = () => {
               <TouchableOpacity
                 style={[
                   styles.tab,
-                  activeTab === "Register" ? styles.activeTab : styles.inactiveTab,
+                  activeTab === "Register"
+                    ? styles.activeTab
+                    : styles.inactiveTab,
                 ]}
-                onPress={() => setActiveTab("Register")}
-              >
+                onPress={() => setActiveTab("Register")}>
                 <Text
                   className="font-pregular"
                   style={[
                     styles.tabText,
-                    activeTab === "Register" ? styles.activeTabText : styles.inactiveTabText,
-                  ]}
-                >
+                    activeTab === "Register"
+                      ? styles.activeTabText
+                      : styles.inactiveTabText,
+                  ]}>
                   Signup
                 </Text>
               </TouchableOpacity>
@@ -635,8 +1197,7 @@ const Auth: React.FC = () => {
               <>
                 <KeyboardAvoidingView
                   behavior={Platform.OS === "ios" ? "padding" : "height"}
-                  keyboardVerticalOffset={60}
-                >
+                  keyboardVerticalOffset={60}>
                   <Text className="font-pregular" style={styles.label}>
                     Email Address
                   </Text>
@@ -655,13 +1216,14 @@ const Auth: React.FC = () => {
                       />
                     )}
                   />
-                  {errors.email && <Text style={styles.errorText}>{errors.email.message}</Text>}
+                  {errors.email && (
+                    <Text style={styles.errorText}>{errors.email.message}</Text>
+                  )}
                 </KeyboardAvoidingView>
 
                 <KeyboardAvoidingView
                   behavior={Platform.OS === "ios" ? "padding" : "height"}
-                  keyboardVerticalOffset={60}
-                >
+                  keyboardVerticalOffset={60}>
                   <Text className="font-pregular" style={styles.label}>
                     Password
                   </Text>
@@ -681,7 +1243,9 @@ const Auth: React.FC = () => {
                     )}
                   />
                   {errors.password && (
-                    <Text style={styles.errorText}>{errors.password.message}</Text>
+                    <Text style={styles.errorText}>
+                      {errors.password.message}
+                    </Text>
                   )}
                 </KeyboardAvoidingView>
               </>
@@ -705,7 +1269,9 @@ const Auth: React.FC = () => {
                   )}
                 />
                 {errors.fullName && (
-                  <Text style={styles.errorText}>{errors.fullName.message}</Text>
+                  <Text style={styles.errorText}>
+                    {errors.fullName.message}
+                  </Text>
                 )}
 
                 <Text className="font-pregular" style={styles.label}>
@@ -726,7 +1292,9 @@ const Auth: React.FC = () => {
                     />
                   )}
                 />
-                {errors.email && <Text style={styles.errorText}>{errors.email.message}</Text>}
+                {errors.email && (
+                  <Text style={styles.errorText}>{errors.email.message}</Text>
+                )}
 
                 <Text className="font-pregular" style={styles.label}>
                   Phone Number
@@ -748,7 +1316,9 @@ const Auth: React.FC = () => {
                   )}
                 />
                 {errors.phoneNumber && (
-                  <Text style={styles.errorText}>{errors.phoneNumber.message}</Text>
+                  <Text style={styles.errorText}>
+                    {errors.phoneNumber.message}
+                  </Text>
                 )}
 
                 <Text className="font-pregular" style={styles.label}>
@@ -770,7 +1340,9 @@ const Auth: React.FC = () => {
                   )}
                 />
                 {errors.password && (
-                  <Text style={styles.errorText}>{errors.password.message}</Text>
+                  <Text style={styles.errorText}>
+                    {errors.password.message}
+                  </Text>
                 )}
 
                 <Text className="font-pregular" style={styles.label}>
@@ -792,7 +1364,9 @@ const Auth: React.FC = () => {
                   )}
                 />
                 {errors.confirmPassword && (
-                  <Text style={styles.errorText}>{errors.confirmPassword.message}</Text>
+                  <Text style={styles.errorText}>
+                    {errors.confirmPassword.message}
+                  </Text>
                 )}
               </ScrollView>
             )}
@@ -814,7 +1388,11 @@ const Auth: React.FC = () => {
               <ActivityIndicator
                 size="large"
                 color={Colors.primary}
-                style={{ alignSelf: "center", position: "absolute", bottom: "3%" }}
+                style={{
+                  alignSelf: "center",
+                  position: "absolute",
+                  bottom: "3%",
+                }}
               />
             )}
           </View>
@@ -830,7 +1408,12 @@ export default Auth;
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   container: { flex: 1, backgroundColor: Colors.background, paddingTop: "7%" },
-  title: { fontSize: RFValue(25), fontWeight: "400", color: Colors.text, marginHorizontal: "5%" },
+  title: {
+    fontSize: RFValue(25),
+    fontWeight: "400",
+    color: Colors.text,
+    marginHorizontal: "5%",
+  },
   subtitle: {
     fontSize: RFValue(13),
     fontWeight: "400",
@@ -846,7 +1429,12 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.secondary_light,
     borderRadius: 50,
   },
-  tab: { flex: 1, paddingVertical: "1.9%", alignItems: "center", borderRadius: 50 },
+  tab: {
+    flex: 1,
+    paddingVertical: "1.9%",
+    alignItems: "center",
+    borderRadius: 50,
+  },
   activeTab: { backgroundColor: Colors.primary },
   inactiveTab: { backgroundColor: Colors.secondary_light },
   tabText: { fontSize: RFValue(17), color: Colors.text, fontWeight: "400" },

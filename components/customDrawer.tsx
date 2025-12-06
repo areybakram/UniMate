@@ -357,7 +357,7 @@ const CustomDrawer = ({ active }: any) => {
   const logout = async () => {
     setCurrentUser(null);
     await AsyncStorage.removeItem("user");
-    router.replace("/(auth)/StudentSignIn");
+    router.replace("/(auth)/Auth");
   };
 
   // Logout button press handler
