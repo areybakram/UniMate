@@ -9,6 +9,7 @@ import { LocationProvider } from "../Context/LocationContext";
 SplashScreen.preventAutoHideAsync();
 
 const _layout = () => {
+  console.log("Rendering _layout");
   const [fontsLoaded, error] = useFonts({
     "Poppins-Black": require("../assets/fonts/Poppins-Black.ttf"),
     "Poppins-Bold": require("../assets/fonts/Poppins-Bold.ttf"),

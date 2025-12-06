@@ -1,9 +1,9 @@
-import axios from 'axios';
 import polyline from '@mapbox/polyline';
+import axios from 'axios';
 import { Platform } from 'react-native';
-import { GOOGLE_MAPS_API_KEY_ANDROID, GOOGLE_MAPS_API_KEY_IOS } from '@env' ;
-
-const API_KEY = Platform.OS === 'ios' ? GOOGLE_MAPS_API_KEY_IOS : GOOGLE_MAPS_API_KEY_ANDROID;
+const API_KEY = Platform.OS === 'ios' 
+  ? process.env.GOOGLE_MAPS_API_KEY_IOS 
+  : process.env.GOOGLE_MAPS_API_KEY_ANDROID;
 
 export const getDirections = async (
   origin: { latitude: number; longitude: number },
