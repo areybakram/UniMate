@@ -92,13 +92,14 @@ const Who = () => {
 
   return (
     <SafeAreaView>
-      <Text className="font-pmedium text-2xl text-center leading-tight mt-10">
+      <Text className="font-pmedium text-2xl text-center leading-tight mt-20">
         Choose Your Role To Continue
       </Text>
 
       <View className="justify-center h-full">
         <View className="flex-row justify-evenly">
-          <TouchableOpacity onPress={() => router.push(`/(auth)/Auth?role=student`)}>
+          <TouchableOpacity
+            onPress={() => router.push(`/(auth)/Auth?role=student`)}>
             <Image source={icons.who} className="relative" />
             <Image
               source={icons.student}
@@ -108,7 +109,8 @@ const Who = () => {
             <Text className="text-center font-pregular">Student</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => router.push(`/(auth)/Auth?role=teacher`)}>
+          <TouchableOpacity
+            onPress={() => router.push(`/(auth)/Auth?role=teacher`)}>
             <Image source={icons.who} className="relative" />
             <Image
               source={icons.teacher}
