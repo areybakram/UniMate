@@ -133,184 +133,22 @@
 
 // export default OnBoarding;
 
-// import React from 'react';
-// import { View, Text, Image } from 'react-native';
-// import '../global.css';
-// import { router } from 'expo-router';
-// import { SafeAreaView } from 'react-native-safe-area-context';
-// import icons from '../constants/icons';
-// import CommonButton from '@/components/CommonButton';
-// import WaveThingy from '@/components/WaveThingy';
-// import { useLocation } from '../Context/LocationContext'; // 👈 Import your LocationContext
-
-// const OnBoarding = () => {
-//   const { fetchUserLocation } = useLocation(); // 👈 Get the function to fetch location
-
-//   const handleShareLocation = async () => {
-//     await fetchUserLocation(); // 👈 Ask for permission & store location
-//     router.push('/who'); // 👈 Navigate after location is saved
-//   };
-
-//   return (
-//     <SafeAreaView>
-//       <View>
-//         <View>
-//           <Image
-//             source={icons.blueelipse}
-//             className="w-full h-50%"
-//             resizeMode="cover"
-//           />
-//         </View>
-
-//         <View>
-//           <WaveThingy />
-//           <Image
-//             source={icons.comsats}
-//             className="-mt-28 items-center justify-center self-center"
-//           />
-//         </View>
-
-//         <View className="items-center justify-center mt-10 space-y-3">
-//           <Text className="font-pmedium text-4xl leading-tight">To Get Started</Text>
-//           <Text className="font-pregular text-xs leading-tight">
-//             Allow Location Access
-//           </Text>
-//         </View>
-
-//         <CommonButton
-//           text="Share live location"
-//           textStyle={{ color: 'black', fontSize: 16 }}
-//           buttonStyle={{
-//             justifyContent: 'center',
-//             alignItems: 'center',
-//             alignSelf: 'center',
-//             marginTop: 130,
-//             width: '69%',
-//           }}
-//           onPress={handleShareLocation} // 👈 Call the new function here
-//         />
-
-//         <View className="mt-5">
-//           <Text className="mt-1 text-xs font-pthin italic text-center">
-//             Enable location to assist with navigation and
-//           </Text>
-//           <Text className="mt-1 text-xs font-pthin italic text-center">
-//             enhance campus security response
-//           </Text>
-//         </View>
-//       </View>
-//     </SafeAreaView>
-//   );
-// };
-
-// export default OnBoarding;
-
-
-
-// import React, { useState } from 'react';
-// import { View, Text, Image, ActivityIndicator } from 'react-native';
-// import '../global.css';
-// import { router } from 'expo-router';
-// import { SafeAreaView } from 'react-native-safe-area-context';
-// import icons from '../constants/icons';
-// import CommonButton from '@/components/CommonButton';
-// import WaveThingy from '@/components/WaveThingy';
-// import { useLocation } from '../Context/LocationContext';
-// import { Colors } from '@/utils/Constants';
-
-// const OnBoarding = () => {
-//   const { fetchUserLocation } = useLocation(); // Get location function
-//   const [loading, setLoading] = useState(false); // Loading state
-
-//   const handleShareLocation = async () => {
-//     setLoading(true); // hide button & show loader
-//     await fetchUserLocation(); // ask permission & store location
-//     router.push('/who'); // navigate after location is saved
-//   };
-
-//   return (
-//     <SafeAreaView>
-//       <View>
-//         <View>
-//           <Image
-//             source={icons.blueelipse}
-//             className="w-full h-50%"
-//             resizeMode="cover"
-//           />
-//         </View>
-
-//         <View>
-//           <WaveThingy />
-//           <Image
-//             source={icons.comsats}
-//             className="-mt-28 items-center justify-center self-center"
-//           />
-//         </View>
-
-//         <View className="items-center justify-center mt-10 space-y-3">
-//           <Text className="font-pmedium text-4xl leading-tight">To Get Started</Text>
-//           <Text className="font-pregular text-xs leading-tight">
-//             Allow Location Access
-//           </Text>
-//         </View>
-
-//         {/* Show button only if not loading */}
-//         {!loading && (
-//           <CommonButton
-//             text="Share live location"
-//             textStyle={{ color: 'black', fontSize: 16 }}
-//             buttonStyle={{
-//               justifyContent: 'center',
-//               alignItems: 'center',
-//               alignSelf: 'center',
-//               marginTop: 130,
-//               width: '69%',
-//             }}
-//             onPress={handleShareLocation}
-//           />
-//         )}
-
-//         {/* Show loader when fetching location */}
-//         {loading && (
-//           <ActivityIndicator
-//             size="large"
-//             color={Colors.primary}
-//             style={{ alignSelf: 'center', marginTop: 130 }}
-//           />
-//         )}
-
-//         <View className="mt-[5%]">
-//           <Text className="mt-1 text-xs font-pthin italic text-center">
-//             Enable location to assist with navigation and
-//           </Text>
-//           <Text className="mt-1 text-xs font-pthin italic text-center">
-//             enhance campus security response
-//           </Text>
-//         </View>
-//       </View>
-//     </SafeAreaView>
-//   );
-// };
-
-// export default OnBoarding;
-
-
-import React, { useState, useCallback } from 'react';
-import { View, Text, Image, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from 'expo-router';
-import icons from '../constants/icons';
-import CommonButton from '@/components/CommonButton';
-import WaveThingy from '@/components/WaveThingy';
-import { useLocation } from '../Context/LocationContext';
-import { router } from 'expo-router';
-import { Colors } from '@/utils/Constants';
+import CommonButton from "@/components/CommonButton";
+import WaveThingy from "@/components/WaveThingy";
+import { Colors } from "@/utils/Constants";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
+import { ActivityIndicator, Image, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import icons from "../constants/icons";
+import { useLocation } from "../Context/LocationContext";
+import "../global.css";
+// 👈 Import your LocationContext
 
 const OnBoarding = () => {
   const { fetchUserLocation } = useLocation();
   const [loading, setLoading] = useState(false);
 
-  // Reset loading when screen is focused
   useFocusEffect(
     useCallback(() => {
       setLoading(false);
@@ -318,9 +156,9 @@ const OnBoarding = () => {
   );
 
   const handleShareLocation = async () => {
-    setLoading(true); // show indicator
-    await fetchUserLocation();
-    router.push('/who');
+    setLoading(true); // hide button & show loaders
+    await fetchUserLocation(); // ask permission & store location
+    router.push("/who"); // navigate after location is saved
   };
 
   return (
@@ -343,34 +181,40 @@ const OnBoarding = () => {
         </View>
 
         <View className="items-center justify-center mt-10 space-y-3">
-          <Text className="font-pmedium text-4xl leading-tight">To Get Started</Text>
+          <Text className="font-pmedium text-4xl leading-tight">
+            To Get Started
+          </Text>
           <Text className="font-pregular text-xs leading-tight">
             Allow Location Access
           </Text>
         </View>
 
-        {loading ? (
-          <ActivityIndicator
-            size="large"
-            color={Colors.primary}
-            style={{ alignSelf: 'center', marginTop: 130 }}
-          />
-        ) : (
+        {/* Show button only if not loading */}
+        {!loading && (
           <CommonButton
             text="Share live location"
-            textStyle={{ color: 'black', fontSize: 16 }}
+            textStyle={{ color: "black", fontSize: 16 }}
             buttonStyle={{
-              justifyContent: 'center',
-              alignItems: 'center',
-              alignSelf: 'center',
+              justifyContent: "center",
+              alignItems: "center",
+              alignSelf: "center",
               marginTop: 130,
-              width: '69%',
+              width: "69%",
             }}
             onPress={handleShareLocation}
           />
         )}
 
-        <View className="mt-[5%]">
+        {/* Show loader when fetching location */}
+        {loading && (
+          <ActivityIndicator
+            size="large"
+            color={Colors.primary}
+            style={{ alignSelf: "center", marginTop: 130 }}
+          />
+        )}
+
+        <View className="mt-5">
           <Text className="mt-1 text-xs font-pthin italic text-center">
             Enable location to assist with navigation and
           </Text>
