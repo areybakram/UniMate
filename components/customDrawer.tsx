@@ -349,7 +349,7 @@ const CustomDrawer = ({ active }: any) => {
   // Redirect if not logged in
   useEffect(() => {
     if (!isLoading && !user) {
-      router.replace("/(auth)/StudentSignIn");
+      router.replace("/(auth)/Auth");
     }
   }, [user, isLoading]);
 
