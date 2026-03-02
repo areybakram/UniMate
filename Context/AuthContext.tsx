@@ -6,7 +6,7 @@ import { supabase } from "../supabaseClient";
 interface User {
   id: string;
   email: string;
-  full_name?: string | null;
+  name?: string | null;
   phone?: string | null;
   role?: string | null;
 }
@@ -16,7 +16,8 @@ interface AuthContextProps {
   isLoading: boolean;
   login: (userData: User) => Promise<void>;
   logout: () => Promise<void>;
-  updateUser: (updatedData: Partial<User>) => Promise<void>;
+  updateProfile: (updatedData: { name?: string; phone?: string }) => Promise<{ error?: any }>;
+  changePassword: (newPassword: string) => Promise<{ error?: any }>;
   signIn: (
     email: string,
     password: string
@@ -59,15 +60,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             // fetch profile from profiles table (if exists)
             const { data: profile, error } = await supabase
               .from("profiles")
-              .select("full_name, phone")
+              .select("name, phone, Role")
               .eq("id", id)
               .single();
+            
+            console.log("Auth State Change Profile:", profile);
 
             const usr: User = {
               id,
               email: email ?? "",
-              full_name: profile?.full_name ?? null,
+              name: profile?.name ?? null,
               phone: profile?.phone ?? null,
+              role: profile?.Role?.toLowerCase() ?? "student",
             };
             setUser(usr);
             await AsyncStorage.setItem("user", JSON.stringify(usr));
@@ -101,11 +105,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await AsyncStorage.removeItem("user");
   };
 
-  const updateUser = async (updatedData: Partial<User>) => {
-    if (!user) return;
-    const newUser = { ...user, ...updatedData };
-    setUser(newUser);
-    await AsyncStorage.setItem("user", JSON.stringify(newUser));
+  const updateProfile = async (updatedData: { name?: string; phone?: string }) => {
+    if (!user) return { error: "No user logged in" };
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update(updatedData)
+        .eq("id", user.id);
+
+      if (error) return { error };
+
+      const newUser = { ...user, ...updatedData };
+      setUser(newUser);
+      await AsyncStorage.setItem("user", JSON.stringify(newUser));
+      return { error: null };
+    } catch (err) {
+      return { error: err };
+    }
+  };
+
+  const changePassword = async (newPassword: string) => {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+      return { error };
+    } catch (err) {
+      return { error: err };
+    }
   };
 
   const signIn = async (email: string, password: string) => {
@@ -119,14 +146,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const { id, email: userEmail } = data.user;
         const { data: profile } = await supabase
           .from("profiles")
-          .select("full_name, phone")
+          .select("name, phone, Role")
           .eq("id", id)
           .single();
+        
+        console.log("SignIn Profile:", profile);
+
         const usr: User = {
           id,
           email: userEmail ?? "",
-          full_name: profile?.full_name ?? null,
+          name: profile?.name ?? null,
           phone: profile?.phone ?? null,
+          role: profile?.Role?.toLowerCase() ?? "student",
         };
         await AsyncStorage.setItem("user", JSON.stringify(usr));
         setUser(usr);
@@ -146,10 +177,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     role: string
   ) => {
     try {
-      const { data, error } = await supabase.auth.signUp(
-        { email, password },
-        { data: { full_name: fullName, phone } } // auth metadata
-      );
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { name: fullName, phone },
+        },
+      });
       if (error) return { error };
 
       if (data?.user) {
@@ -166,17 +200,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         );
         await supabase.from("profiles").upsert({
           id,
-          name: fullName,
+          name: fullName, 
           phone,
-          Role: role || "student", // <- store role in profiles table
-          email, // store email for convenience
+          Role: role || "student", 
+          email, 
         });
         const usr: User = {
           id,
           email: data.user.email ?? "",
-          full_name: fullName,
+          name: fullName,
           phone,
-          role,
+          role: (role || "student").toLowerCase(),
         };
         await AsyncStorage.setItem("user", JSON.stringify(usr));
         setUser(usr);
@@ -191,7 +225,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, isLoading, login, logout, updateUser, signIn, signUp }}>
+      value={{ user, isLoading, login, logout, updateProfile, changePassword, signIn, signUp }}>
       {children}
     </AuthContext.Provider>
   );

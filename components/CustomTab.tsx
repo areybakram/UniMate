@@ -382,25 +382,25 @@
 // export default TabBar;
 
 
-import React, { useEffect, useState } from "react";
-import Svg, { Path } from "react-native-svg";
+import { useEffect, useState } from "react";
 import {
-  widthPercentageToDP as wp,
   heightPercentageToDP as hp,
+  widthPercentageToDP as wp,
 } from "react-native-responsive-screen";
+import Svg, { Path } from "react-native-svg";
 
+import { Colors } from "@/utils/Constants";
+import { useRoute } from "@react-navigation/native";
 import {
-  Text,
-  View,
-  TouchableOpacity,
-  StyleSheet,
   Keyboard,
   Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { useRoute } from "@react-navigation/native";
-import { Colors } from "@/utils/Constants";
 
-const HomeIcon = ({ width, height, color }) => {
+const HomeIcon = ({ width, height, color }: { width: number; height: number; color: string }) => {
   return (
     <View style={{ justifyContent: "center", alignItems: "center" }}>
       <Svg
@@ -408,7 +408,6 @@ const HomeIcon = ({ width, height, color }) => {
         height={height}
         viewBox="0 0 24 24"
         fill="none"
-        xmlns="http://www.w3.org/2000/svg"
       >
         <Path
           d="M9.44661 15.3975C9.11385 15.1508 8.64413 15.2206 8.39748 15.5534C8.15082 15.8862 8.22062 16.3559 8.55339 16.6025C9.5258 17.3233 10.715 17.75 12 17.75C13.285 17.75 14.4742 17.3233 15.4466 16.6025C15.7794 16.3559 15.8492 15.8862 15.6025 15.5534C15.3559 15.2206 14.8862 15.1508 14.5534 15.3975C13.825 15.9373 12.9459 16.25 12 16.25C11.0541 16.25 10.175 15.9373 9.44661 15.3975Z"
@@ -425,7 +424,7 @@ const HomeIcon = ({ width, height, color }) => {
   );
 };
 
-const NotesIcon = ({ width, height, color }) => {
+const NotesIcon = ({ width, height, color }: { width: number; height: number; color: string }) => {
   return (
     <View style={{ justifyContent: "center", alignItems: "center" }}>
       <Svg
@@ -433,7 +432,6 @@ const NotesIcon = ({ width, height, color }) => {
         height={height}
         viewBox="0 0 24 24"
         fill="none"
-        xmlns="http://www.w3.org/2000/svg"
       >
         <Path
           d="M8 12H16M8 8H16M8 16H12"
@@ -452,7 +450,7 @@ const NotesIcon = ({ width, height, color }) => {
   );
 };
 
-const TimetableIcon = ({ width, height, color }) => {
+const TimetableIcon = ({ width, height, color }: { width: number; height: number; color: string }) => {
   return (
     <View style={{ justifyContent: "center", alignItems: "center" }}>
       <Svg
@@ -460,7 +458,6 @@ const TimetableIcon = ({ width, height, color }) => {
         height={height}
         viewBox="0 0 24 24"
         fill="none"
-        xmlns="http://www.w3.org/2000/svg"
       >
         <Path
           d="M19 4H5C3.89543 4 3 4.89543 3 6V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V6C21 4.89543 20.1046 4 19 4Z"
@@ -484,7 +481,7 @@ const TimetableIcon = ({ width, height, color }) => {
   );
 };
 
-const ProfileIcon = ({ width, height, color }) => {
+const ProfileIcon = ({ width, height, color }: { width: number; height: number; color: string }) => {
   return (
     <View style={{ justifyContent: "center", alignItems: "center" }}>
       <Svg
@@ -492,7 +489,6 @@ const ProfileIcon = ({ width, height, color }) => {
         height={height}
         viewBox="0 0 24 24"
         fill="none"
-        xmlns="http://www.w3.org/2000/svg"
       >
         <Path
           d="M12 12C14.2091 12 16 10.2091 16 8C16 5.79086 14.2091 4 12 4C9.79086 4 8 5.79086 8 8C8 10.2091 9.79086 12 12 12Z"
@@ -510,7 +506,61 @@ const ProfileIcon = ({ width, height, color }) => {
   );
 };
 
-const TabBar = (props) => {
+const GuardIcon = ({ width, height, color }: { width: number; height: number; color: string }) => {
+  return (
+    <View style={{ justifyContent: "center", alignItems: "center" }}>
+      <Svg
+        width={width}
+        height={height}
+        viewBox="0 0 24 24"
+        fill="none"
+      >
+        <Path
+          d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
+          stroke={color}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </Svg>
+    </View>
+  );
+};
+
+const AttendanceIcon = ({ width, height, color }: { width: number; height: number; color: string }) => {
+  return (
+    <View style={{ justifyContent: "center", alignItems: "center" }}>
+      <Svg width={width} height={height} viewBox="0 0 24 24" fill="none">
+        <Path d="M9 11L12 14L22 4" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <Path d="M21 12V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      </Svg>
+    </View>
+  );
+};
+
+const ClassesIcon = ({ width, height, color }: { width: number; height: number; color: string }) => {
+  return (
+    <View style={{ justifyContent: "center", alignItems: "center" }}>
+      <Svg width={width} height={height} viewBox="0 0 24 24" fill="none">
+        <Path d="M22 10V15C22 16.1046 21.1046 17 20 17H4C2.89543 17 2 16.1046 2 15V10" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <Path d="M22 10L12 5L2 10L12 15L22 10Z" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <Path d="M6 17V20C6 21.1046 6.89543 22 8 22H16C17.1046 22 18 21.1046 18 20V17" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      </Svg>
+    </View>
+  );
+};
+
+const LogsIcon = ({ width, height, color }: { width: number; height: number; color: string }) => {
+  return (
+    <View style={{ justifyContent: "center", alignItems: "center" }}>
+      <Svg width={width} height={height} viewBox="0 0 24 24" fill="none">
+        <Path d="M9 11H15M9 15H13M17 21H7C5.89543 21 5 20.1046 5 19V5C5 3.89543 5.89543 3 7 3H12.5L19 9.5V19C19 20.1046 18.1046 21 17 21Z" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      </Svg>
+    </View>
+  );
+};
+
+const TabBar = (props: any) => {
   const { state, descriptors, navigation } = props;
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const route = useRoute();
@@ -572,8 +622,14 @@ const TabBar = (props) => {
       }}
     >
       <View style={styles.tabbar}>
-        {routes.map((route, index) => {
-          const label = route?.name;
+        {state.routes.map((route: any, index: number) => {
+          const { options } = descriptors[route.key];
+          const label = options.tabBarLabel !== undefined
+            ? options.tabBarLabel
+            : options.title !== undefined
+            ? options.title
+            : route.name;
+
           const isFocused = state.index === index;
 
           const onPress = () => {
@@ -594,6 +650,8 @@ const TabBar = (props) => {
             });
           };
 
+          const getColor = isFocused ? "#C3DDF4" : "#fff";
+
           return (
             <TouchableOpacity
               key={route.key}
@@ -608,34 +666,30 @@ const TabBar = (props) => {
                 padding: 0,
               }}
             >
-              {/* Icons based on label */}
-              {label === "Home" && (
-                <HomeIcon
-                  width={20}
-                  height={20}
-                  color={isFocused ? "#C3DDF4" : "#fff"}
-                />
+              {/* Icons based on route name */}
+              {route.name === "Home" && (
+                <HomeIcon width={20} height={20} color={getColor} />
               )}
-              {label === "Notes" && (
-                <NotesIcon
-                  width={20}
-                  height={20}
-                  color={isFocused ? "#C3DDF4" : "#fff"}
-                />
+              {route.name === "Notes" && (
+                <NotesIcon width={20} height={20} color={getColor} />
               )}
-              {label === "Timetable" && (
-                <TimetableIcon
-                  width={20}
-                  height={20}
-                  color={isFocused ? "#C3DDF4" : "#fff"}
-                />
+              {route.name === "Timetable" && (
+                <TimetableIcon width={20} height={20} color={getColor} />
               )}
-              {label === "Profile" && (
-                <ProfileIcon
-                  width={20}
-                  height={20}
-                  color={isFocused ? "#C3DDF4" : "#fff"}
-                />
+              {route.name === "Profile" && (
+                <ProfileIcon width={20} height={20} color={getColor} />
+              )}
+              {route.name === "GuardDashboard" && (
+                <GuardIcon width={22} height={22} color={getColor} />
+              )}
+              {route.name === "Attendance" && (
+                <AttendanceIcon width={20} height={20} color={getColor} />
+              )}
+              {route.name === "Classes" && (
+                <ClassesIcon width={22} height={22} color={getColor} />
+              )}
+              {route.name === "Logs" && (
+                <LogsIcon width={20} height={20} color={getColor} />
               )}
               <Text
                 allowFontScaling={false}

@@ -158,7 +158,7 @@ const OnBoarding = () => {
   const handleShareLocation = async () => {
     setLoading(true); // hide button & show loaders
     await fetchUserLocation(); // ask permission & store location
-    router.push("/who"); // navigate after location is saved
+    router.push("/(auth)/who"); // navigate after location is saved
   };
 
   return (

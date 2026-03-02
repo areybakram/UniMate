@@ -996,7 +996,7 @@ const registerSchema = yup.object().shape({
   password: yup.string().required("Password is required"),
   confirmPassword: yup
     .string()
-    .oneOf([yup.ref("password"), null], "Passwords must match")
+    .oneOf([yup.ref("password")], "Passwords must match")
     .required("Confirm Password is required"),
 });
 
@@ -1080,7 +1080,10 @@ const Auth: React.FC = () => {
         if (res.error) {
           Alert.alert("Login Failed", res.error.message || String(res.error));
         } else if (res.user) {
-          router.replace("/(tabs)/Home");
+          // Strictly use the role from the database
+          const userRole = res.user.role || "student";
+          const redirectPath = `/(tabs)/${userRole.toLowerCase()}/Home`;
+          router.replace(redirectPath as any);
         } else {
           Alert.alert("Login Failed", "Unable to sign in");
         }
@@ -1097,7 +1100,9 @@ const Auth: React.FC = () => {
           Alert.alert("Sign Up Failed", res.error.message || String(res.error));
         } else {
           Alert.alert("Success", "Account created successfully!");
-          router.replace("/(tabs)/Home");
+          const userRole = res.user?.role || role || "student";
+          const redirectPath = `/(tabs)/${userRole.toLowerCase()}/Home`;
+          router.replace(redirectPath as any);
         }
       }
     } catch (e: any) {

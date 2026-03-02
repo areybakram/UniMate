@@ -80,11 +80,12 @@ import {
 import { AuthContext } from "../../Context/AuthContext";
 
 const Who = () => {
-  const { user, isLoading } = useContext(AuthContext);
+  const { user, isLoading }: any = useContext(AuthContext) || {};
 
   useEffect(() => {
     if (!isLoading && user) {
-      router.replace("/(tabs)/Home");
+      const userRole = user.role || "student";
+      router.replace(`/(tabs)/${userRole.toLowerCase()}/Home` as any);
     }
   }, [user, isLoading]);
 

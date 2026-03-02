@@ -1,332 +1,3 @@
-// import { StatusBar, StyleSheet, Text, View } from "react-native";
-// import React, { useContext } from "react";
-// import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-// import AntDesign from "@expo/vector-icons/AntDesign";
-// import Ionicons from "@expo/vector-icons/Ionicons";
-// import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-// import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-// import { Colors } from "@/utils/Constants";
-// import { TouchableOpacity } from "react-native";
-// import { RFValue } from "react-native-responsive-fontsize";
-// // import { AuthContext } from "@/Context/AuthContext";
-// import { useDrawer } from "../Context/DrawerContext";
-// import { router } from "expo-router";
-// // import { resetAndNavigate } from "@/utils/Helpers";
-// // import useCartStore from "@/basketStore";
-
-// const CustomDrawer = ({ active }: any) => {
-//   const { closeDrawer } = useDrawer();
-//   // const { clearCart } = useCartStore();
-
-//   // const { logout } = useContext(AuthContext);
-//   const logoutPress = () => {
-//     clearCart();
-//     closeDrawer();
-//     active.value = false;
-//     logout();
-//     router.push("/(auth)/StudentSignIn");
-//   };
-//   return (
-//     <View style={styles.container}>
-//       <View style={styles.contentContainer}>
-//         {/* <View style={styles.containerProfile}>
-//           <FontAwesome5 name="user-circle" size={24} color={Colors.texttwo} />
-//           <View>
-//             <Text
-//               style={{
-//                 fontSize: RFValue(17),
-//                 fontFamily: "BarlowRegular",
-//                 fontWeight: "400",
-//                 color: Colors.texttwo,
-//               }}
-//             >
-//               Hot N’ Fast
-//             </Text>
-//           </View>
-//         </View> */}
-//         <TouchableOpacity
-//           accessibilityRole="button"
-//           accessibilityState={{ selected: true }}
-//           style={styles.lablecontainer}
-//           // onPress={() => {
-//           //   router.push("./");
-//           // }}
-//         >
-//           <FontAwesome5 name="user-circle" size={24} color={Colors.texttwo} />
-//           <Text allowFontScaling={false} style={styles.textName}>
-//             Profile
-//           </Text>
-//         </TouchableOpacity>
-//         <TouchableOpacity
-//           accessibilityRole="button"
-//           accessibilityState={{ selected: true }}
-//           style={styles.lablecontainer}
-//           // onPress={() => {
-//           //   resetAndNavigate("/(tabs)/orders");
-//           // }}
-//         >
-//           <MaterialCommunityIcons
-//             name="cart-arrow-down"
-//             size={25}
-//             color={Colors.texttwo}
-//           />
-//           <Text allowFontScaling={false} style={styles.textName}>
-//             Navigation
-//           </Text>
-//         </TouchableOpacity>
-//         <TouchableOpacity
-//           accessibilityRole="button"
-//           accessibilityState={{ selected: true }}
-//           style={styles.lablecontainer}
-//         >
-//           <MaterialIcons name="local-offer" size={24} color={Colors.texttwo} />
-//           <Text allowFontScaling={false} style={styles.textName}>
-//             Emergency
-//           </Text>
-//         </TouchableOpacity>
-//         <TouchableOpacity
-//           accessibilityRole="button"
-//           accessibilityState={{ selected: true }}
-//           style={styles.lablecontainer}
-//         >
-//           <Ionicons
-//             name="document-text-outline"
-//             size={24}
-//             color={Colors.texttwo}
-//           />
-//           <Text allowFontScaling={false} style={styles.textName}>
-//             Privacy policy
-//           </Text>
-//         </TouchableOpacity>
-//         <TouchableOpacity
-//           accessibilityRole="button"
-//           accessibilityState={{ selected: true }}
-//           style={styles.lablecontainer}
-//         >
-//           <MaterialCommunityIcons
-//             name="security"
-//             size={24}
-//             color={Colors.texttwo}
-//           />
-//           <Text allowFontScaling={false} style={styles.textName}>
-//             Support
-//           </Text>
-//         </TouchableOpacity>
-//       </View>
-//       <TouchableOpacity
-//         style={styles.containerdeleted}
-//         onPress={() => {
-//           logoutPress();
-//         }}
-//       >
-// <Text allowFontScaling={false} style={styles.logOutText}>
-//           Sign-out
-//         </Text>
-//         <AntDesign
-//           name="arrowright"
-//           size={24}
-//           color={Colors.texttwo}
-//           style={{ paddingTop: "1%" }}
-//         />
-//       </TouchableOpacity>
-//     </View>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   container: {
-//     ...StyleSheet.absoluteFillObject,
-//     backgroundColor: Colors.primary,
-//     zIndex: -9999,
-//   },
-//   contentContainer: {
-//     paddingTop: "20%",
-//     marginHorizontal: "5%",
-//     flex: 0.89,
-//     maxWidth: 180,
-//   },
-//   containerProfile: {
-//     gap: 14,
-//     paddingBottom: "10%",
-//     borderBottomWidth: 1,
-//     borderBottomColor: "#F4F4F8",
-//     flexDirection: "row",
-//     alignItems: "center",
-//   },
-//   lablecontainer: {
-//     flexDirection: "row",
-//     gap: 14,
-//     alignItems: "center",
-//     borderBottomWidth: 1,
-//     borderBottomColor: "#F4F4F8",
-//   },
-//   imageProfile: {
-//     width: 48,
-//     height: 48,
-//   },
-//   divider: {
-//     width: "100%",
-//   },
-//   textName: {
-//     fontSize: RFValue(17),
-//     fontFamily: "BarlowRegular",
-//     fontWeight: "400",
-//     color: Colors.texttwo,
-//     paddingBottom: "12%",
-//     paddingTop: "12%",
-//   },
-//   containerdeleted: {
-//     flexDirection: "row",
-//     alignItems: "center",
-//     gap: 14,
-//     marginHorizontal: "5%",
-//   },
-//   logOutText: {
-//     fontSize: RFValue(17),
-//     fontFamily: "BarlowRegular",
-//     fontWeight: "400",
-//     color: Colors.texttwo,
-//   },
-// });
-
-// export default CustomDrawer;
-
-// import { useDrawer } from "@/Context/DrawerContext";
-// import { Colors } from "@/utils/Constants";
-// import AntDesign from "@expo/vector-icons/AntDesign";
-// import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-// import Ionicons from "@expo/vector-icons/Ionicons";
-// import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-// import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-// import { router } from "expo-router";
-// import { useContext, useEffect, useState } from "react";
-// import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-// import { RFValue } from "react-native-responsive-fontsize";
-// import { AuthContext } from "../Context/AuthContext";
-// import AsyncStorage from "@react-native-async-storage/async-storage";
-
-// const CustomDrawer = ({ active }: any) => {
-//   const { closeDrawer } = useDrawer();
-//   const { user, signOut } = useContext(AuthContext);
-//   const [ User, setUser] = useState(AuthContext)
-
-//   const { user, isLoading } = useContext(AuthContext);
-//   useEffect(() => {
-//     if (!isLoading) {
-//       if (!user) {
-//         router.replace("/(auth)/StudentSignIn"); // redirect to login if not authenticated
-//       }
-//     }
-//   }, [user, isLoading]);
-
-//   const logout = async () => {
-//     setUser(null);
-//     await AsyncStorage.removeItem("user");
-//     router.replace("/(auth)/StudentSignIn"); // navigate back to login/register
-//   };
-
-//   // const logoutPress = () => {
-//   //   active.value = false;
-//   //   closeDrawer();
-//   //   // router.push("/(auth)/StudentSignIn");
-//   // };
-
-//   return (
-//     <View style={styles.container}>
-//       <View style={styles.contentContainer}>
-//         <TouchableOpacity style={styles.lablecontainer}>
-//           <FontAwesome5 name="user-circle" size={24} color={Colors.texttwo} />
-//           <Text style={styles.textName}>Profile</Text>
-//         </TouchableOpacity>
-
-//         <TouchableOpacity style={styles.lablecontainer}>
-//           <MaterialCommunityIcons
-//             name="map-marker"
-//             size={25}
-//             color={Colors.texttwo}
-//           />
-//           <Text style={styles.textName}>Navigation</Text>
-//         </TouchableOpacity>
-
-//         <TouchableOpacity style={styles.lablecontainer}>
-//           <MaterialIcons name="local-offer" size={24} color={Colors.texttwo} />
-//           <Text style={styles.textName}>Emergency</Text>
-//         </TouchableOpacity>
-
-//         <TouchableOpacity
-//           style={styles.lablecontainer}
-//           onPress={() => router.push("/(screens)/about")}>
-//           <Ionicons
-//             name="document-text-outline"
-//             size={24}
-//             color={Colors.texttwo}
-//           />
-//           <Text style={styles.textName}>About</Text>
-//         </TouchableOpacity>
-
-//         <TouchableOpacity style={styles.lablecontainer}>
-//           <MaterialCommunityIcons
-//             name="security"
-//             size={24}
-//             color={Colors.texttwo}
-//           />
-//           <Text style={styles.textName}>Support</Text>
-//         </TouchableOpacity>
-//       </View>
-
-//       <TouchableOpacity style={styles.containerdeleted} onPress={logoutPress}>
-//         <Text style={styles.logOutText}>Sign-out</Text>
-//         <AntDesign
-//           name="arrowright"
-//           size={24}
-//           color={Colors.texttwo}
-//           style={{ paddingTop: "1%" }}
-//         />
-//       </TouchableOpacity>
-//     </View>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   container: {
-//     ...StyleSheet.absoluteFillObject,
-//     backgroundColor: Colors.primary,
-//     paddingTop: "20%",
-//     paddingHorizontal: 16,
-//   },
-//   contentContainer: {
-//     flex: 0.89,
-//     maxWidth: 200,
-//   },
-//   lablecontainer: {
-//     flexDirection: "row",
-//     gap: 14,
-//     alignItems: "center",
-//     borderBottomWidth: 1,
-//     borderBottomColor: "#F4F4F8",
-//     paddingVertical: 12,
-//   },
-//   textName: {
-//     fontSize: RFValue(16),
-//     fontWeight: "400",
-//     color: Colors.texttwo,
-//   },
-//   containerdeleted: {
-//     flexDirection: "row",
-//     alignItems: "center",
-//     gap: 14,
-//     marginTop: 20,
-//   },
-//   logOutText: {
-//     fontSize: RFValue(16),
-//     fontWeight: "400",
-//     color: Colors.texttwo,
-//   },
-// });
-
-// export default CustomDrawer;
-
-
 import { useDrawer } from "@/Context/DrawerContext";
 import { Colors } from "@/utils/Constants";
 import AntDesign from "@expo/vector-icons/AntDesign";
@@ -335,89 +6,151 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { router } from "expo-router";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { RFValue } from "react-native-responsive-fontsize";
 import { AuthContext } from "../Context/AuthContext";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+
+interface DrawerItemProps {
+  icon: React.ReactNode;
+  label: string;
+  onPress: () => void;
+}
+
+const DrawerItem = ({ icon, label, onPress }: DrawerItemProps) => (
+  <TouchableOpacity style={styles.lablecontainer} onPress={onPress}>
+    {icon}
+    <Text style={styles.textName}>{label}</Text>
+  </TouchableOpacity>
+);
+
 
 const CustomDrawer = ({ active }: any) => {
   const { closeDrawer } = useDrawer();
-  const { user, isLoading } = useContext(AuthContext);
-  const [currentUser, setCurrentUser] = useState(user);
+  const auth = useContext(AuthContext);
+  const user = auth?.user;
+  const isLoading = auth?.isLoading;
 
   // Redirect if not logged in
   useEffect(() => {
     if (!isLoading && !user) {
-      router.replace("/(auth)/Auth");
+      router.replace("/(auth)/who");
     }
   }, [user, isLoading]);
 
-  // Logout function
-  const logout = async () => {
-    setCurrentUser(null);
-    await AsyncStorage.removeItem("user");
-    router.replace("/(auth)/Auth");
-  };
-
   // Logout button press handler
-  const logoutPress = () => {
+  const logoutPress = async () => {
     active.value = false;
     closeDrawer();
-    logout();
+    if (auth?.logout) {
+      await auth.logout();
+    }
+  };
+
+  const role = user?.role || "student";
+
+  const renderDrawerItems = () => {
+    switch (role) {
+      case "guard":
+        return (
+          <>
+            <DrawerItem 
+              icon={<FontAwesome5 name="user-shield" size={24} color={Colors.texttwo} />} 
+              label="Guard Profile" 
+              onPress={() => router.push('/(tabs)/Profile' as any)} 
+            />
+            <DrawerItem 
+              icon={<MaterialCommunityIcons name="map-marker" size={25} color={Colors.texttwo} />} 
+              label="Patrol Map" 
+              onPress={() => router.push("/Modules/Tagging" as any)} 
+            />
+            <DrawerItem 
+              icon={<MaterialIcons name="security" size={24} color={Colors.texttwo} />} 
+              label="Active Alerts" 
+              onPress={() => router.push('/(tabs)/GuardDashboard' as any)} 
+            />
+            <DrawerItem 
+              icon={<Ionicons name="document-text-outline" size={24} color={Colors.texttwo} />} 
+              label="About UniMate" 
+              onPress={() => router.push("/(screens)/about" as any)} 
+            />
+          </>
+        );
+      case "teacher":
+        return (
+          <>
+            <DrawerItem 
+              icon={<FontAwesome5 name="user-tie" size={24} color={Colors.texttwo} />} 
+              label="Faculty Profile" 
+              onPress={() => router.push('/(tabs)/Profile' as any)} 
+            />
+            <DrawerItem 
+              icon={<MaterialCommunityIcons name="calendar-check" size={25} color={Colors.texttwo} />} 
+              label="Attendance" 
+              onPress={() => router.push("/(tabs)/teacher/Attendance" as any)} 
+            />
+            <DrawerItem 
+              icon={<MaterialIcons name="class" size={24} color={Colors.texttwo} />} 
+              label="My Classes" 
+              onPress={() => router.push('/(tabs)/teacher/Classes' as any)} 
+            />
+            <DrawerItem 
+              icon={<Ionicons name="document-text-outline" size={24} color={Colors.texttwo} />} 
+              label="About" 
+              onPress={() => router.push("/(screens)/about")} 
+            />
+          </>
+        );
+      default: // student
+        return (
+          <>
+            <DrawerItem 
+              icon={<FontAwesome5 name="user-circle" size={24} color={Colors.texttwo} />} 
+              label="Profile" 
+              onPress={() => router.push('/(tabs)/Profile' as any)} 
+            />
+            <DrawerItem 
+              icon={<MaterialCommunityIcons name="map-marker" size={25} color={Colors.texttwo} />} 
+              label="Navigation" 
+              onPress={() => router.push("/Modules/Tagging" as any)} 
+            />
+            <DrawerItem 
+              icon={<MaterialIcons name="local-offer" size={24} color={Colors.texttwo} />} 
+              label="Emergency" 
+              onPress={() => router.push('/(screens)/emergency' as any)} 
+            />
+            <DrawerItem 
+              icon={<Ionicons name="document-text-outline" size={24} color={Colors.texttwo} />} 
+              label="About" 
+              onPress={() => router.push("/(screens)/about" as any)} 
+            />
+            <DrawerItem 
+              icon={<MaterialCommunityIcons name="security" size={24} color={Colors.texttwo} />} 
+              label="Support" 
+              onPress={() => router.push("/(screens)/support" as any)} 
+            />
+          </>
+        );
+    }
   };
 
   return (
     <View style={styles.container}>
+      <View style={styles.profileHeader}>
+        <View style={styles.avatarPlaceholder}>
+             <FontAwesome5 name="user-alt" size={30} color={Colors.primary} />
+        </View>
+        <Text style={styles.drawerUserName}>{user?.name || "Guest User"}</Text>
+        <Text style={styles.drawerUserRole}>{user?.role || "No Role"}</Text>
+      </View>
       <View style={styles.contentContainer}>
-        <TouchableOpacity style={styles.lablecontainer}
-        onPress={()=>router.push('/(tabs)/Profile')}>
-          <FontAwesome5 name="user-circle" size={24} color={Colors.texttwo} />
-          <Text style={styles.textName}>Profile</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.lablecontainer}
-        onPress={() => router.push("/Modules/Tagging")} >
-          <MaterialCommunityIcons
-            name="map-marker"
-            size={25}
-            color={Colors.texttwo}
-          />
-          <Text style={styles.textName}>Navigation</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.lablecontainer}
-        onPress={()=>router.push('/(screens)/emergency')}>
-          <MaterialIcons name="local-offer" size={24} color={Colors.texttwo} />
-          <Text style={styles.textName}>Emergency</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.lablecontainer}
-          onPress={() => router.push("/(screens)/about")}
-        >
-          <Ionicons
-            name="document-text-outline"
-            size={24}
-            color={Colors.texttwo}
-          />
-          <Text style={styles.textName}>About</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.lablecontainer}>
-          <MaterialCommunityIcons
-            name="security"
-            size={24}
-            color={Colors.texttwo}
-          />
-          <Text style={styles.textName}>Support</Text>
-        </TouchableOpacity>
+        {renderDrawerItems()}
       </View>
 
       <TouchableOpacity style={styles.containerdeleted} onPress={logoutPress}>
         <Text style={styles.logOutText}>Sign-out</Text>
         <AntDesign
-          // name="arrowright"
+          name="logout"
           size={24}
           color={Colors.texttwo}
           style={{ paddingTop: "1%" }}
@@ -462,6 +195,33 @@ const styles = StyleSheet.create({
     fontWeight: "400",
     color: Colors.texttwo,
   },
+  profileHeader: {
+    paddingBottom: 20,
+    marginBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(255,255,255,0.1)",
+    alignItems: 'center',
+    width: '100%'
+  },
+  avatarPlaceholder: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10
+  },
+  drawerUserName: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  drawerUserRole: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 14,
+    textTransform: 'capitalize'
+  }
 });
 
 export default CustomDrawer;
