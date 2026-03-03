@@ -449,7 +449,7 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 56,
     borderRadius: 16,
-    backgroundColor: "#60A5FA",
+    backgroundColor: "#2D3748",
   },
 });
 

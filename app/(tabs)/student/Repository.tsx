@@ -177,7 +177,7 @@ const Repository = () => {
       <StatusBar barStyle="light-content" />
 
       {/* Header Section */}
-      <LinearGradient colors={["#1e40af", "#3b82f6"]} style={styles.header}>
+      <LinearGradient colors={["#2D3748", "#4A5568"]} style={styles.header}>
         <View style={styles.headerTop}>
           <TouchableOpacity onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color="#fff" />
@@ -225,7 +225,7 @@ const Repository = () => {
               onPress={handleBatchSelect}
             >
               <Text style={styles.batchValue}>{selectedBatch}</Text>
-              <Ionicons name="chevron-down" size={16} color="#1e40af" />
+              <Ionicons name="chevron-down" size={16} color="#2D3748" />
             </TouchableOpacity>
           </View>
 
@@ -234,7 +234,7 @@ const Repository = () => {
             onPress={() => setIsUploadModalVisible(true)}
           >
             <LinearGradient
-              colors={["#3b82f6", "#1e40af"]}
+              colors={["#4A5568", "#2D3748"]}
               style={styles.inlineAddGradient}
             >
               <Ionicons name="add" size={23} color="#fff" />
@@ -246,7 +246,7 @@ const Repository = () => {
           <View
             style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
           >
-            <ActivityIndicator size="large" color="#1e40af" />
+            <ActivityIndicator size="large" color="#2D3748" />
           </View>
         ) : filteredData.length > 0 ? (
           <FlatList
@@ -356,8 +356,8 @@ const styles = StyleSheet.create({
     borderColor: "#e2e8f0",
   },
   activeCategoryChip: {
-    backgroundColor: "#3b82f6",
-    borderColor: "#3b82f6",
+    backgroundColor: "#4A5568",
+    borderColor: "#4A5568",
   },
   categoryText: {
     fontSize: 14,
@@ -385,7 +385,7 @@ const styles = StyleSheet.create({
   batchSelector: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#eff6ff",
+    backgroundColor: "rgba(255,255,255,0.1)",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 10,
@@ -408,7 +408,7 @@ const styles = StyleSheet.create({
   batchValue: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#1e40af",
+    color: "#fff",
   },
   listContainer: {
     paddingHorizontal: 20,

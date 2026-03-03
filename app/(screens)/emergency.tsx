@@ -6,7 +6,7 @@ const EmergencyScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <LinearGradient
-        colors={["#FEF2F2", "#FEE2E2", "#FECACA"]}
+        colors={["#F8FAFC", "#E2E8F0", "#CBD5E1"]}
         style={StyleSheet.absoluteFill}
       />
       <View style={styles.content}>
@@ -22,12 +22,25 @@ const EmergencyScreen = () => {
         </View>
 
         <View style={styles.infoBox}>
-          <Text style={styles.infoTitle}>What happens when I press SOS?</Text>
-          <Text style={styles.infoText}>
-            • Your live location is sent directly to campus guards.{"\n"}
-            • Guards will receive your name and phone number.{"\n"}
-            • Assistance will be dispatched to your location immediately.
-          </Text>
+          <Text style={styles.infoTitle}>Emergency Protocol</Text>
+          <View style={styles.infoRow}>
+            <View style={styles.dot} />
+            <Text style={styles.infoText}>
+              Live location shared with campus guards
+            </Text>
+          </View>
+          <View style={styles.infoRow}>
+            <View style={styles.dot} />
+            <Text style={styles.infoText}>
+              Identity verified for quick identification
+            </Text>
+          </View>
+          <View style={styles.infoRow}>
+            <View style={styles.dot} />
+            <Text style={styles.infoText}>
+              Immediate dispatch of security personnel
+            </Text>
+          </View>
         </View>
       </View>
     </SafeAreaView>
@@ -48,40 +61,62 @@ const styles = StyleSheet.create({
     marginTop: 40,
   },
   title: {
-    fontSize: 32,
-    fontWeight: "800",
-    color: "#991B1B",
+    fontSize: 34,
+    fontWeight: "900",
+    color: "#1E293B",
     textAlign: "center",
   },
   subtitle: {
     fontSize: 16,
-    color: "#9F1239",
+    color: "#475569",
     textAlign: "center",
     marginTop: 12,
-    opacity: 0.8,
+    lineHeight: 24,
+    paddingHorizontal: 20,
   },
   buttonContainer: {
     alignItems: "center",
     justifyContent: "center",
+    marginVertical: 40,
   },
   infoBox: {
-    backgroundColor: "rgba(255, 255, 255, 0.6)",
-    borderRadius: 20,
-    padding: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.7)",
+    borderRadius: 30,
+    padding: 24,
     borderWidth: 1,
-    borderColor: "rgba(239, 68, 68, 0.2)",
+    borderColor: "rgba(255, 255, 255, 0.4)",
     marginBottom: 40,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
   },
   infoTitle: {
     fontSize: 18,
-    fontWeight: "700",
+    fontWeight: "800",
     color: "#991B1B",
-    marginBottom: 10,
+    marginBottom: 16,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
+  infoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+    gap: 12,
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#EF4444",
   },
   infoText: {
     fontSize: 14,
-    color: "#7F1D1D",
-    lineHeight: 22,
+    color: "#475569",
+    fontWeight: "500",
+    flex: 1,
   },
 });
 

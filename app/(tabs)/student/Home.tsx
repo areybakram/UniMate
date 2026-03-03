@@ -70,7 +70,7 @@ const StudentHome: React.FC = () => {
         <StatusBar barStyle="light-content" />
 
         <LinearGradient
-          colors={["#1e40af", "#3b82f6"]}
+          colors={["#2D3748", "#4A5568"]}
           style={styles.heroSection}
         >
           <View style={styles.header}>
@@ -149,7 +149,7 @@ const StudentHome: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#1e40af",
+    backgroundColor: "#2D3748",
   },
   heroSection: {
     paddingTop: 50,

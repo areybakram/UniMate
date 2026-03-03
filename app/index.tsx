@@ -193,13 +193,15 @@ const OnBoarding = () => {
         {!loading && (
           <CommonButton
             text="Share live location"
-            textStyle={{ color: "black", fontSize: 16 }}
+            iconName="location-outline"
+            textStyle={{ color: "white", fontSize: 16 }}
             buttonStyle={{
               justifyContent: "center",
               alignItems: "center",
               alignSelf: "center",
               marginTop: 130,
               width: "69%",
+              backgroundColor: "#2D3748",
             }}
             onPress={handleShareLocation}
           />

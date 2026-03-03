@@ -105,266 +105,278 @@ export default function ProfileScreen() {
   const profilePhoto = require("../../assets/profilephoto.jpeg");
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#0F0F0F" }}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 120 }}
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#F8FAFC" }}>
+      <LinearGradient
+        colors={["#F8FAFC", "#E2E8F0", "#CBD5E1"]}
+        style={{ flex: 1 }}
       >
-        {/* TOP GRADIENT HEADER */}
-        <LinearGradient
-          colors={["#1e40af", "#3b82f6"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.header}
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 120 }}
         >
-          <View style={styles.headerTop}>
-            <TouchableOpacity onPress={() => router.back()}>
-              <Ionicons name="arrow-back" size={24} color="#fff" />
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>My Profile</Text>
-            <View style={{ width: 24 }} />
-          </View>
-
-          {/* PROFILE PHOTO */}
-          <View style={styles.avatarContainer}>
-            <Image source={profilePhoto} style={styles.avatar} />
-            <View style={styles.roleBadge}>
-              <Text style={styles.roleBadgeText}>
-                {(user.role || "student").toUpperCase()}
-              </Text>
-            </View>
-          </View>
-
-          {isEditing ? (
-            <TextInput
-              style={[styles.nameInput]}
-              value={editedName}
-              onChangeText={setEditedName}
-              placeholder="Enter your name"
-              placeholderTextColor="rgba(255,255,255,0.6)"
-            />
-          ) : (
-            <Text style={styles.name}>{user.name || "User Name"}</Text>
-          )}
-          <Text style={styles.email}>{user.email}</Text>
-        </LinearGradient>
-
-        {/* DETAILS SECTION */}
-        <View style={{ marginTop: 80, paddingHorizontal: 20 }}>
-          <BlurView intensity={20} tint="light" style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Ionicons
-                name="person-circle-outline"
-                size={22}
-                color="#3b82f6"
-              />
-              <Text style={styles.cardTitle}>Personal Information</Text>
+          {/* TOP GRADIENT HEADER */}
+          <LinearGradient
+            colors={["#2D3748", "#4A5568"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.header}
+          >
+            <View style={styles.headerTop}>
+              <TouchableOpacity onPress={() => router.back()}>
+                <Ionicons name="arrow-back" size={24} color="#fff" />
+              </TouchableOpacity>
+              <Text style={styles.headerTitle}>My Profile</Text>
+              <View style={{ width: 24 }} />
             </View>
 
-            <View style={styles.row}>
-              <View style={styles.rowLabelGroup}>
-                <Ionicons name="mail-outline" size={16} color="#64748b" />
-                <Text style={styles.label}>Email Address</Text>
-              </View>
-              <Text style={styles.value}>{user.email}</Text>
-            </View>
-
-            <View style={styles.row}>
-              <View style={styles.rowLabelGroup}>
-                <Ionicons name="call-outline" size={16} color="#64748b" />
-                <Text style={styles.label}>Phone Number</Text>
-              </View>
-              {isEditing ? (
-                <TextInput
-                  style={styles.input}
-                  value={editedPhone}
-                  onChangeText={setEditedPhone}
-                  placeholder="Enter phone number"
-                  placeholderTextColor="#94a3b8"
-                />
-              ) : (
-                <Text style={styles.value}>{user.phone || "Not set"}</Text>
-              )}
-            </View>
-          </BlurView>
-
-          {/* SETTINGS CARD */}
-          <BlurView intensity={20} tint="light" style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Ionicons name="settings-outline" size={22} color="#3b82f6" />
-              <Text style={styles.cardTitle}>Account Settings</Text>
-            </View>
-
-            <TouchableOpacity
-              style={styles.item}
-              onPress={() => {
-                if (isEditing) {
-                  handleSaveProfile();
-                } else {
-                  setIsEditing(true);
-                }
-              }}
-              disabled={isSaving}
-            >
-              <View style={styles.itemLeft}>
-                <Ionicons
-                  name={
-                    isEditing ? "checkmark-circle-outline" : "create-outline"
-                  }
-                  size={20}
-                  color="#3b82f6"
-                />
-                <Text style={styles.itemText}>
-                  {isEditing ? "Save Changes" : "Edit Profile Info"}
+            {/* PROFILE PHOTO */}
+            <View style={styles.avatarContainer}>
+              <Image source={profilePhoto} style={styles.avatar} />
+              <View style={styles.roleBadge}>
+                <Text style={styles.roleBadgeText}>
+                  {(user.role || "student").toUpperCase()}
                 </Text>
               </View>
-              {isSaving && !isChangingPassword && (
-                <ActivityIndicator color="#3b82f6" size="small" />
-              )}
-            </TouchableOpacity>
+            </View>
 
-            {isEditing && (
+            {isEditing ? (
+              <TextInput
+                style={[styles.nameInput]}
+                value={editedName}
+                onChangeText={setEditedName}
+                placeholder="Enter your name"
+                placeholderTextColor="rgba(0,0,0,0.4)"
+              />
+            ) : (
+              <Text style={styles.name}>{user.name || "User Name"}</Text>
+            )}
+            <Text style={styles.email}>{user.email}</Text>
+          </LinearGradient>
+
+          {/* DETAILS SECTION */}
+          <View style={{ marginTop: 80, paddingHorizontal: 20 }}>
+            <BlurView intensity={20} tint="light" style={styles.card}>
+              <View style={styles.cardHeader}>
+                <Ionicons
+                  name="person-circle-outline"
+                  size={22}
+                  color="#3b82f6"
+                />
+                <Text style={styles.cardTitle}>Personal Information</Text>
+              </View>
+
+              <View style={styles.row}>
+                <View style={styles.rowLabelGroup}>
+                  <Ionicons name="mail-outline" size={16} color="#64748b" />
+                  <Text style={styles.label}>Email Address</Text>
+                </View>
+                <Text style={styles.value}>{user.email}</Text>
+              </View>
+
+              <View style={styles.row}>
+                <View style={styles.rowLabelGroup}>
+                  <Ionicons name="call-outline" size={16} color="#64748b" />
+                  <Text style={styles.label}>Phone Number</Text>
+                </View>
+                {isEditing ? (
+                  <TextInput
+                    style={styles.input}
+                    value={editedPhone}
+                    onChangeText={setEditedPhone}
+                    placeholder="Enter phone number"
+                    placeholderTextColor="#94a3b8"
+                  />
+                ) : (
+                  <Text style={styles.value}>{user.phone || "Not set"}</Text>
+                )}
+              </View>
+            </BlurView>
+
+            {/* SETTINGS CARD */}
+            <BlurView intensity={20} tint="light" style={styles.card}>
+              <View style={styles.cardHeader}>
+                <Ionicons name="settings-outline" size={22} color="#3b82f6" />
+                <Text style={styles.cardTitle}>Account Settings</Text>
+              </View>
+
               <TouchableOpacity
                 style={styles.item}
                 onPress={() => {
-                  setIsEditing(false);
-                  setEditedName(user.name || "");
-                  setEditedPhone(user.phone || "");
+                  if (isEditing) {
+                    handleSaveProfile();
+                  } else {
+                    setIsEditing(true);
+                  }
                 }}
+                disabled={isSaving}
               >
                 <View style={styles.itemLeft}>
                   <Ionicons
-                    name="close-circle-outline"
+                    name={
+                      isEditing ? "checkmark-circle-outline" : "create-outline"
+                    }
                     size={20}
-                    color="#ef4444"
+                    color="#3b82f6"
                   />
-                  <Text style={[styles.itemText, { color: "#ef4444" }]}>
-                    Cancel Editing
+                  <Text style={styles.itemText}>
+                    {isEditing ? "Save Changes" : "Edit Profile Info"}
                   </Text>
                 </View>
+                {isSaving && !isChangingPassword && (
+                  <ActivityIndicator color="#4A5568" size="small" />
+                )}
               </TouchableOpacity>
-            )}
 
-            <TouchableOpacity
-              style={styles.item}
-              onPress={() => setIsChangingPassword(true)}
-            >
-              <View style={styles.itemLeft}>
-                <Ionicons
-                  name="lock-closed-outline"
-                  size={20}
-                  color="#3b82f6"
-                />
-                <Text style={styles.itemText}>Change Privacy Settings</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={16} color="#94a3b8" />
-            </TouchableOpacity>
+              {isEditing && (
+                <TouchableOpacity
+                  style={styles.item}
+                  onPress={() => {
+                    setIsEditing(false);
+                    setEditedName(user.name || "");
+                    setEditedPhone(user.phone || "");
+                  }}
+                >
+                  <View style={styles.itemLeft}>
+                    <Ionicons
+                      name="close-circle-outline"
+                      size={20}
+                      color="#ef4444"
+                    />
+                    <Text style={[styles.itemText, { color: "#ef4444" }]}>
+                      Cancel Editing
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              )}
 
-            <TouchableOpacity style={styles.item}>
-              <View style={styles.itemLeft}>
-                <Ionicons
-                  name="notifications-outline"
-                  size={20}
-                  color="#3b82f6"
-                />
-                <Text style={styles.itemText}>Notification Preferences</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={16} color="#94a3b8" />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.item}
-              onPress={() => router.push("/(screens)/about")}
-            >
-              <View style={styles.itemLeft}>
-                <Ionicons
-                  name="information-circle-outline"
-                  size={20}
-                  color="#3b82f6"
-                />
-                <Text style={styles.itemText}>About UniMate</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={16} color="#94a3b8" />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.item, { borderBottomWidth: 0 }]}
-              onPress={() => router.push("/(screens)/support")}
-            >
-              <View style={styles.itemLeft}>
-                <Ionicons name="headset-outline" size={20} color="#3b82f6" />
-                <Text style={styles.itemText}>Help & Support</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={16} color="#94a3b8" />
-            </TouchableOpacity>
-          </BlurView>
-
-          {/* LOGOUT BUTTON */}
-          <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-            <LinearGradient
-              colors={["#ef4444", "#dc2626"]}
-              style={styles.logoutGradient}
-            >
-              <Ionicons name="log-out-outline" size={22} color="#fff" />
-              <Text style={styles.logoutText}>Sign Out</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-
-          {/* CHANGE PASSWORD MODAL */}
-          <Modal
-            visible={isChangingPassword}
-            transparent={true}
-            animationType="slide"
-          >
-            <View style={styles.modalOverlay}>
-              <BlurView intensity={90} tint="dark" style={styles.modalContent}>
-                <Text style={styles.modalTitle}>Change Password</Text>
-
-                <TextInput
-                  style={styles.modalInput}
-                  placeholder="New Password"
-                  placeholderTextColor="#999"
-                  secureTextEntry
-                  value={newPassword}
-                  onChangeText={setNewPassword}
-                />
-
-                <TextInput
-                  style={styles.modalInput}
-                  placeholder="Confirm New Password"
-                  placeholderTextColor="#999"
-                  secureTextEntry
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                />
-
-                <View style={styles.modalButtons}>
-                  <TouchableOpacity
-                    style={[styles.modalButton, styles.cancelButton]}
-                    onPress={() => setIsChangingPassword(false)}
-                  >
-                    <Text style={styles.buttonText}>Cancel</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[styles.modalButton, styles.saveButton]}
-                    onPress={handleChangePassword}
-                    disabled={isSaving}
-                  >
-                    {isSaving ? (
-                      <ActivityIndicator color="#fff" />
-                    ) : (
-                      <Text style={styles.buttonText}>Change</Text>
-                    )}
-                  </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.item}
+                onPress={() => setIsChangingPassword(true)}
+              >
+                <View style={styles.itemLeft}>
+                  <Ionicons
+                    name="lock-closed-outline"
+                    size={20}
+                    color="#3b82f6"
+                  />
+                  <Text style={styles.itemText}>Change Privacy Settings</Text>
                 </View>
-              </BlurView>
-            </View>
-          </Modal>
+                <Ionicons name="chevron-forward" size={16} color="#94a3b8" />
+              </TouchableOpacity>
 
-          <View style={{ height: 40 }} />
-        </View>
-      </ScrollView>
+              <TouchableOpacity style={styles.item}>
+                <View style={styles.itemLeft}>
+                  <Ionicons
+                    name="notifications-outline"
+                    size={20}
+                    color="#3b82f6"
+                  />
+                  <Text style={styles.itemText}>Notification Preferences</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color="#94a3b8" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.item}
+                onPress={() => router.push("/(screens)/about")}
+              >
+                <View style={styles.itemLeft}>
+                  <Ionicons
+                    name="information-circle-outline"
+                    size={20}
+                    color="#3b82f6"
+                  />
+                  <Text style={styles.itemText}>About UniMate</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color="#94a3b8" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.item, { borderBottomWidth: 0 }]}
+                onPress={() => router.push("/(screens)/support")}
+              >
+                <View style={styles.itemLeft}>
+                  <Ionicons name="headset-outline" size={20} color="#3b82f6" />
+                  <Text style={styles.itemText}>Help & Support</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color="#94a3b8" />
+              </TouchableOpacity>
+            </BlurView>
+
+            {/* LOGOUT BUTTON */}
+            <TouchableOpacity
+              onPress={handleLogout}
+              style={styles.logoutButton}
+            >
+              <LinearGradient
+                colors={["#ef4444", "#dc2626"]}
+                style={styles.logoutGradient}
+              >
+                <Ionicons name="log-out-outline" size={22} color="#fff" />
+                <Text style={styles.logoutText}>Sign Out</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+
+            {/* CHANGE PASSWORD MODAL */}
+            <Modal
+              visible={isChangingPassword}
+              transparent={true}
+              animationType="slide"
+            >
+              <View style={styles.modalOverlay}>
+                <BlurView
+                  intensity={90}
+                  tint="dark"
+                  style={styles.modalContent}
+                >
+                  <Text style={styles.modalTitle}>Change Password</Text>
+
+                  <TextInput
+                    style={styles.modalInput}
+                    placeholder="New Password"
+                    placeholderTextColor="#999"
+                    secureTextEntry
+                    value={newPassword}
+                    onChangeText={setNewPassword}
+                  />
+
+                  <TextInput
+                    style={styles.modalInput}
+                    placeholder="Confirm New Password"
+                    placeholderTextColor="#999"
+                    secureTextEntry
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                  />
+
+                  <View style={styles.modalButtons}>
+                    <TouchableOpacity
+                      style={[styles.modalButton, styles.cancelButton]}
+                      onPress={() => setIsChangingPassword(false)}
+                    >
+                      <Text style={styles.buttonText}>Cancel</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={[styles.modalButton, styles.saveButton]}
+                      onPress={handleChangePassword}
+                      disabled={isSaving}
+                    >
+                      {isSaving ? (
+                        <ActivityIndicator color="#fff" />
+                      ) : (
+                        <Text style={styles.buttonText}>Change</Text>
+                      )}
+                    </TouchableOpacity>
+                  </View>
+                </BlurView>
+              </View>
+            </Modal>
+
+            <View style={{ height: 40 }} />
+          </View>
+        </ScrollView>
+      </LinearGradient>
     </SafeAreaView>
   );
 }
@@ -428,18 +440,18 @@ const styles = StyleSheet.create({
     marginTop: 15,
   },
   email: {
-    color: "rgba(255,255,255,0.8)",
+    color: "rgba(255,255,255,0.9)",
     fontSize: 14,
     textAlign: "center",
     marginTop: 4,
   },
   card: {
-    backgroundColor: "rgba(255,255,255,0.05)",
+    backgroundColor: "rgba(255,255,255,0.8)",
     borderRadius: 24,
     padding: 20,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)",
+    borderColor: "rgba(255,255,255,0.6)",
     overflow: "hidden",
   },
   cardHeader: {
@@ -449,7 +461,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   cardTitle: {
-    color: "#fff",
+    color: "#1E293B",
     fontSize: 16,
     fontWeight: "bold",
   },
@@ -469,7 +481,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   value: {
-    color: "#fff",
+    color: "#1E293B",
     fontSize: 14,
     fontWeight: "600",
   },
@@ -479,7 +491,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(255,255,255,0.05)",
+    borderBottomColor: "rgba(0,0,0,0.05)",
   },
   itemLeft: {
     flexDirection: "row",
@@ -487,7 +499,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   itemText: {
-    color: "#fff",
+    color: "#1E293B",
     fontSize: 14,
     fontWeight: "500",
   },
@@ -514,7 +526,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   input: {
-    color: "#fff",
+    color: "#1E293B",
     fontSize: 14,
     fontWeight: "500",
     padding: 0,
@@ -522,13 +534,13 @@ const styles = StyleSheet.create({
     minWidth: 150,
   },
   nameInput: {
-    color: "#fff",
+    color: "#1E293B",
     fontSize: 22,
     fontWeight: "700",
     textAlign: "center",
     marginTop: 15,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(255,255,255,0.3)",
+    borderBottomColor: "rgba(0,0,0,0.1)",
     marginHorizontal: 40,
   },
   modalOverlay: {
@@ -546,20 +558,20 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   modalTitle: {
-    color: "#fff",
+    color: "#1E293B",
     fontSize: 20,
     fontWeight: "bold",
     marginBottom: 20,
     textAlign: "center",
   },
   modalInput: {
-    backgroundColor: "rgba(255,255,255,0.05)",
+    backgroundColor: "#F1F5F9",
     borderRadius: 12,
     padding: 15,
-    color: "#fff",
+    color: "#1E293B",
     marginBottom: 15,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)",
+    borderColor: "#E2E8F0",
   },
   modalButtons: {
     flexDirection: "row",

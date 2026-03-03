@@ -142,7 +142,7 @@ const TeacherRepository = () => {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
 
-      <LinearGradient colors={["#4338CA", "#6366F1"]} style={styles.header}>
+      <LinearGradient colors={["#2D3748", "#4A5568"]} style={styles.header}>
         <View style={styles.headerTop}>
           <TouchableOpacity onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color="#fff" />
@@ -150,7 +150,6 @@ const TeacherRepository = () => {
           <Text style={styles.headerTitle}>Faculty Library</Text>
           <View style={{ width: 24 }} />
         </View>
-
         <View style={styles.tabContainer}>
           <TouchableOpacity
             style={[styles.tab, activeTab === "browse" && styles.activeTab]}
@@ -186,7 +185,6 @@ const TeacherRepository = () => {
             </View>
           </TouchableOpacity>
         </View>
-
         <View style={styles.searchContainer}>
           <Ionicons
             name="search"
@@ -402,8 +400,8 @@ const styles = StyleSheet.create({
     borderColor: "#e2e8f0",
   },
   activeCategoryChip: {
-    backgroundColor: "#4338CA",
-    borderColor: "#4338CA",
+    backgroundColor: "#4A5568",
+    borderColor: "#4A5568",
   },
   categoryText: {
     fontSize: 14,

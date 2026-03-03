@@ -49,7 +49,7 @@ const TeacherHome: React.FC = () => {
   });
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#4338CA" }}>
+    <View style={{ flex: 1, backgroundColor: "#2D3748" }}>
       <CustomDrawer active={active} />
 
       <Animated.View
@@ -59,7 +59,7 @@ const TeacherHome: React.FC = () => {
 
         {/* HERO SECTION */}
         <LinearGradient
-          colors={["#4338CA", "#6366F1"]}
+          colors={["#2D3748", "#4A5568"]}
           style={styles.heroSection}
         >
           <View style={styles.header}>
