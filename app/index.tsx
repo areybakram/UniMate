@@ -152,7 +152,7 @@ const OnBoarding = () => {
   useFocusEffect(
     useCallback(() => {
       setLoading(false);
-    }, [])
+    }, []),
   );
 
   const handleShareLocation = async () => {
