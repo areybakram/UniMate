@@ -1,5 +1,3 @@
-
-
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import {
@@ -62,7 +60,8 @@ export default function MapTaggerScreen() {
       <StatusBar style="light" />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}>
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.header}>
           <Text style={styles.headerTitle}>COMSATS University Campus</Text>
           <Text style={styles.headerSubtitle}>
@@ -74,7 +73,8 @@ export default function MapTaggerScreen() {
           style={[
             styles.imageWrap,
             { width: containerWidth, height: containerHeight },
-          ]}>
+          ]}
+        >
           <Image
             source={CAMPUS_MAP}
             style={{
@@ -102,11 +102,11 @@ export default function MapTaggerScreen() {
                     onPress={() => {
                       console.log(
                         "Pressed building",
-                        `/Modules/Tagging/BuildingProfile?id=${b.id}`
+                        `/Modules/Tagging/BuildingProfile?id=${b.id}`,
                       );
 
                       router.navigate(
-                        `/Modules/Tagging/BuildingProfile?id=${b.id}`
+                        `/Modules/Tagging/BuildingProfile?id=${b.id}`,
                       );
                     }}
                   />
@@ -128,10 +128,10 @@ export default function MapTaggerScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: "#C3DDF4",
+    backgroundColor: "#60A5FA",
   },
   scrollContent: {
-    marginTop: '50%',
+    marginTop: "50%",
     padding: 12,
     paddingBottom: 24,
   },

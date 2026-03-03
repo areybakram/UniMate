@@ -33,19 +33,12 @@ const _layout = () => {
     <AuthProvider>
       <DrawerProvider>
         <LocationProvider>
-        <Stack>
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-
-          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-
-          <Stack.Screen name="(screens)" options={{ headerShown: false }} />
-
-          <Stack.Screen name='(tabs)' options={{headerShown:false}}/>
-
-          {/* <Stack.Screen
-        name='(search/[query])'
-        options={{headerShown:false}}/> */}
-        </Stack>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="(auth)" />
+            <Stack.Screen name="(screens)" />
+            <Stack.Screen name="(tabs)" />
+          </Stack>
         </LocationProvider>
       </DrawerProvider>
     </AuthProvider>

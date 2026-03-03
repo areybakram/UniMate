@@ -18,7 +18,9 @@ export const useDrawer = (): DrawerContextProps => {
   return context;
 };
 
-export const DrawerProvider: React.FC = ({ children }:any) => {
+export const DrawerProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
 
   const openDrawer = () => setIsDrawerOpen(true);

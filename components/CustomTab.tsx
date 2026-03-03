@@ -312,21 +312,21 @@
 //                 <HomeIcon
 //                   width={20}
 //                   height={20}
-//                   color={isFocused ? "#C3DDF4" : "#fff"}
+//                   color={isFocused ? "#60A5FA" : "#fff"}
 //                 />
 //               )}
 //               {label === "Domain" && (
 //                 <DomainIcon
 //                   width={22}
 //                   height={22}
-//                   color={isFocused ? "#C3DDF4" : "#fff"}
+//                   color={isFocused ? "#60A5FA" : "#fff"}
 //                 />
 //               )}
 //               {label === "Hosting" && (
 //                 <HostingIcon
 //                   width={20}
 //                   height={20}
-//                   color={isFocused ? "#C3DDF4" : "#fff"}
+//                   color={isFocused ? "#60A5FA" : "#fff"}
 //                 />
 //               )}
 
@@ -334,20 +334,20 @@
 //                 <EmergencyIcon
 //                   width={20}
 //                   height={20}
-//                   color={isFocused ? "#C3DDF4" : "#fff"}
+//                   color={isFocused ? "#60A5FA" : "#fff"}
 //                 />
 //               )}
 //               {label === "Development" && (
 //                 <DevelopmentIcon
 //                   width={20}
 //                   height={20}
-//                   color={isFocused ? "#C3DDF4" : "#fff"}
+//                   color={isFocused ? "#60A5FA" : "#fff"}
 //                 />
 //               )}
 //               <Text
 //                 allowFontScaling={false}
 //                 style={{
-//                   color: isFocused ? "#C3DDF4" : "#fff",
+//                   color: isFocused ? "#60A5FA" : "#fff",
 //                   fontSize: 10,
 //                   fontFamily: "OldschoolGrotesk-CompactRegular",
 //                   fontWeight: "900",
@@ -753,7 +753,7 @@ const TabBar = (props: any) => {
             });
           };
 
-          const getColor = isFocused ? "#C3DDF4" : "#fff";
+          const getColor = isFocused ? Colors.primary : "#fff";
 
           return (
             <TouchableOpacity
@@ -800,7 +800,7 @@ const TabBar = (props: any) => {
               <Text
                 allowFontScaling={false}
                 style={{
-                  color: isFocused ? "#C3DDF4" : "#fff",
+                  color: isFocused ? Colors.primary : "#fff",
                   fontSize: 10,
                   fontFamily: "OldschoolGrotesk-CompactRegular",
                   fontWeight: "900",

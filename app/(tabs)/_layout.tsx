@@ -71,6 +71,7 @@ const TabsLayout = () => {
         }}
         screenOptions={{
           tabBarShowLabel: false,
+          headerShown: false,
         }}
         initialRouteName="Home"
       >
@@ -84,73 +85,36 @@ const TabsLayout = () => {
                 ? TeacherHome
                 : StudentHome
           }
-          options={{ headerShown: false }}
         />
 
         {/* STUDENT SPECIFIC TABS */}
         {role === "student" && (
           <>
-            <Tab.Screen
-              name="Notes"
-              component={StudentNotes}
-              options={{ headerShown: false }}
-            />
-            <Tab.Screen
-              name="Repository"
-              component={StudentRepository}
-              options={{ headerShown: false }}
-            />
-            <Tab.Screen
-              name="Timetable"
-              component={StudentTimetable}
-              options={{ headerShown: false }}
-            />
+            <Tab.Screen name="Notes" component={StudentNotes} />
+            <Tab.Screen name="Repository" component={StudentRepository} />
+            <Tab.Screen name="Timetable" component={StudentTimetable} />
           </>
         )}
 
         {/* GUARD SPECIFIC TABS */}
         {role === "guard" && (
           <>
-            <Tab.Screen
-              name="GuardDashboard"
-              component={GuardDashboard}
-              options={{ headerShown: false }}
-            />
-            <Tab.Screen
-              name="Logs"
-              component={GuardLogs}
-              options={{ headerShown: false }}
-            />
+            <Tab.Screen name="GuardDashboard" component={GuardDashboard} />
+            <Tab.Screen name="Logs" component={GuardLogs} />
           </>
         )}
 
         {/* TEACHER SPECIFIC TABS */}
         {role === "teacher" && (
           <>
-            <Tab.Screen
-              name="Attendance"
-              component={TeacherAttendance}
-              options={{ headerShown: false }}
-            />
-            <Tab.Screen
-              name="Classes"
-              component={TeacherClasses}
-              options={{ headerShown: false }}
-            />
-            <Tab.Screen
-              name="Repository"
-              component={TeacherRepository}
-              options={{ headerShown: false }}
-            />
+            <Tab.Screen name="Attendance" component={TeacherAttendance} />
+            <Tab.Screen name="Classes" component={TeacherClasses} />
+            <Tab.Screen name="Repository" component={TeacherRepository} />
           </>
         )}
 
         {/* SHARED PROFILE TAB */}
-        <Tab.Screen
-          name="Profile"
-          component={ProfileScreen}
-          options={{ headerShown: false }}
-        />
+        <Tab.Screen name="Profile" component={ProfileScreen} />
       </Tab.Navigator>
 
       {/* Floating Chatbot button - Hidden for Guards */}

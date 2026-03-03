@@ -240,7 +240,7 @@ const CustomDrawer = ({ active }: any) => {
       </View>
       <View style={styles.contentContainer}>{renderDrawerItems()}</View>
 
-      <TouchableOpacity style={styles.containerdeleted} onPress={logoutPress}>
+      {/* <TouchableOpacity style={styles.containerdeleted} onPress={logoutPress}>
         <Text style={styles.logOutText}>Sign-out</Text>
         <AntDesign
           name="logout"
@@ -248,7 +248,7 @@ const CustomDrawer = ({ active }: any) => {
           color={Colors.texttwo}
           style={{ paddingTop: "1%" }}
         />
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </View>
   );
 };
