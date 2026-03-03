@@ -3,7 +3,12 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { useNavigation } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useContext } from "react";
-import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 // Import your custom tab bar
 import TabBar from "../../components/CustomTab";
@@ -13,6 +18,7 @@ import TabBar from "../../components/CustomTab";
 import ProfileScreen from "./Profile";
 import StudentHome from "./student/Home";
 import StudentNotes from "./student/Notes";
+import StudentRepository from "./student/Repository";
 import StudentTimetable from "./student/Timetable";
 
 // Guard
@@ -24,6 +30,7 @@ import GuardLogs from "./guard/Logs";
 import TeacherAttendance from "./teacher/Attendance";
 import TeacherClasses from "./teacher/Classes";
 import TeacherHome from "./teacher/Home";
+import TeacherRepository from "./teacher/Repository";
 
 import { AuthContext } from "../../Context/AuthContext";
 
@@ -37,7 +44,14 @@ const TabsLayout = () => {
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#000" }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "#000",
+        }}
+      >
         <ActivityIndicator size="large" color="#fff" />
       </View>
     );
@@ -58,25 +72,32 @@ const TabsLayout = () => {
         screenOptions={{
           tabBarShowLabel: false,
         }}
-        initialRouteName="Home">
-        
+        initialRouteName="Home"
+      >
         {/* SHARED/DYNAMIC HOME SCREEN */}
         <Tab.Screen
           name="Home"
           component={
-            role === "guard" ? GuardHome : 
-            role === "teacher" ? TeacherHome : 
-            StudentHome
+            role === "guard"
+              ? GuardHome
+              : role === "teacher"
+                ? TeacherHome
+                : StudentHome
           }
           options={{ headerShown: false }}
         />
-        
+
         {/* STUDENT SPECIFIC TABS */}
         {role === "student" && (
           <>
             <Tab.Screen
               name="Notes"
               component={StudentNotes}
+              options={{ headerShown: false }}
+            />
+            <Tab.Screen
+              name="Repository"
+              component={StudentRepository}
               options={{ headerShown: false }}
             />
             <Tab.Screen
@@ -116,6 +137,11 @@ const TabsLayout = () => {
               component={TeacherClasses}
               options={{ headerShown: false }}
             />
+            <Tab.Screen
+              name="Repository"
+              component={TeacherRepository}
+              options={{ headerShown: false }}
+            />
           </>
         )}
 
@@ -132,7 +158,8 @@ const TabsLayout = () => {
         <TouchableOpacity
           style={styles.chatbotButton}
           onPress={() => router.push("/(screens)/chatbot")}
-          activeOpacity={0.8}>
+          activeOpacity={0.8}
+        >
           <Ionicons name="chatbubbles" size={38} color="#fff" />
         </TouchableOpacity>
       )}
@@ -147,7 +174,7 @@ const styles = StyleSheet.create({
   },
   chatbotButton: {
     position: "absolute",
-    bottom: 100, 
+    bottom: 100,
     right: 20, // Adjusted to right side
     backgroundColor: "#2D3748",
     padding: 12,

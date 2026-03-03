@@ -1,6 +1,7 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 import React, { useContext, useEffect, useState } from "react";
 import {
   Dimensions,
@@ -36,8 +37,9 @@ interface Incident {
 const { width } = Dimensions.get("window");
 
 const GuardHome: React.FC = () => {
-  const { user } = useContext(AuthContext) || {};
+  const { user, logout } = useContext(AuthContext) || {};
   const { closeDrawer } = useDrawer();
+  const router = useRouter();
   const active = useSharedValue(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [pendingCount, setPendingCount] = useState(0);
@@ -47,7 +49,7 @@ const GuardHome: React.FC = () => {
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
-    
+
     fetchStats();
     fetchRecentIncidents();
 
@@ -59,7 +61,7 @@ const GuardHome: React.FC = () => {
         () => {
           fetchStats();
           fetchRecentIncidents();
-        }
+        },
       )
       .subscribe();
 
@@ -93,7 +95,6 @@ const GuardHome: React.FC = () => {
 
       if (rError) throw rError;
       setResolvedMonthCount(resolved || 0);
-
     } catch (error) {
       console.error("Error fetching guard stats:", error);
     } finally {
@@ -105,19 +106,21 @@ const GuardHome: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from("security_alerts")
-        .select(`
+        .select(
+          `
           id,
           created_at,
           resolved_at,
           status,
           profiles:user_id (name)
-        `)
+        `,
+        )
         .eq("status", "resolved")
         .order("resolved_at", { ascending: false })
         .limit(5);
 
       if (error) throw error;
-      setRecentIncidents(data as any || []);
+      setRecentIncidents((data as any) || []);
     } catch (error) {
       console.error("Error fetching recent incidents:", error);
     }
@@ -128,7 +131,7 @@ const GuardHome: React.FC = () => {
     const then = new Date(dateStr);
     const diffMs = now.getTime() - then.getTime();
     const diffMins = Math.floor(diffMs / 60000);
-    
+
     if (diffMins < 1) return "Just now";
     if (diffMins < 60) return `${diffMins} mins ago`;
     const diffHours = Math.floor(diffMins / 60);
@@ -151,7 +154,9 @@ const GuardHome: React.FC = () => {
     <View style={{ flex: 1, backgroundColor: "#0C1C3A" }}>
       <CustomDrawer active={active} />
 
-      <Animated.View style={[{ flex: 1, backgroundColor: "#F8FAFC" }, animatedStyle]}>
+      <Animated.View
+        style={[{ flex: 1, backgroundColor: "#F8FAFC" }, animatedStyle]}
+      >
         <StatusBar barStyle="light-content" />
 
         {/* HERO SECTION */}
@@ -164,21 +169,43 @@ const GuardHome: React.FC = () => {
               <Ionicons name="menu" size={28} color="#FFF" />
             </Pressable>
             <Text style={styles.headerTitle}>Guard Dashboard</Text>
-            <View style={{ width: 28 }} />
+            <View style={styles.headerRight}>
+              <TouchableOpacity
+                onPress={() => {
+                  if (logout) {
+                    logout();
+                    router.replace("/(auth)/who");
+                  }
+                }}
+              >
+                <Ionicons name="log-out-outline" size={24} color="#FFF" />
+              </TouchableOpacity>
+            </View>
           </View>
 
           <View style={styles.heroContent}>
             <Text style={styles.greeting}>Good Day, Officer</Text>
-            <Text style={styles.userName}>{user?.name || "Campus Security"}</Text>
-            <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 14 }}>Role: {user?.role || "Guard"}</Text>
-            
+            <Text style={styles.userName}>
+              {user?.name || "Campus Security"}
+            </Text>
+            <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 14 }}>
+              Role: {user?.role || "Guard"}
+            </Text>
+
             <BlurView intensity={30} tint="light" style={styles.timeCard}>
-               <Text style={styles.timeText}>
-                {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-               </Text>
-               <Text style={styles.dateText}>
-                 {currentTime.toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' })}
-               </Text>
+              <Text style={styles.timeText}>
+                {currentTime.toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </Text>
+              <Text style={styles.dateText}>
+                {currentTime.toLocaleDateString([], {
+                  weekday: "long",
+                  month: "short",
+                  day: "numeric",
+                })}
+              </Text>
             </BlurView>
           </View>
         </LinearGradient>
@@ -187,12 +214,20 @@ const GuardHome: React.FC = () => {
           {/* STATS */}
           <View style={styles.statsRow}>
             <View style={styles.statCard}>
-              <MaterialCommunityIcons name="alert-decagram" size={32} color="#EF4444" />
+              <MaterialCommunityIcons
+                name="alert-decagram"
+                size={32}
+                color="#EF4444"
+              />
               <Text style={styles.statValue}>{pendingCount}</Text>
               <Text style={styles.statLabel}>Active Alerts</Text>
             </View>
             <View style={styles.statCard}>
-              <MaterialCommunityIcons name="shield-check" size={32} color="#10B981" />
+              <MaterialCommunityIcons
+                name="shield-check"
+                size={32}
+                color="#10B981"
+              />
               <Text style={styles.statValue}>{resolvedMonthCount}</Text>
               <Text style={styles.statLabel}>Patrols Done</Text>
             </View>
@@ -204,11 +239,14 @@ const GuardHome: React.FC = () => {
             {recentIncidents.length > 0 ? (
               recentIncidents.map((incident) => (
                 <TouchableOpacity key={incident.id} style={styles.alertItem}>
-                  <View style={[styles.statusDot, { backgroundColor: '#10B981' }]} />
+                  <View
+                    style={[styles.statusDot, { backgroundColor: "#10B981" }]}
+                  />
                   <View style={{ flex: 1 }}>
                     <Text style={styles.alertTitle}>Emergency Resolved</Text>
                     <Text style={styles.alertTime}>
-                      {getTimeAgo(incident.resolved_at)} • Student {incident.profiles?.name || "Unknown"}
+                      {getTimeAgo(incident.resolved_at)} • Student{" "}
+                      {incident.profiles?.name || "Unknown"}
                     </Text>
                   </View>
                   <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
@@ -216,21 +254,23 @@ const GuardHome: React.FC = () => {
               ))
             ) : (
               <View style={styles.emptyIncidents}>
-                <Text style={styles.emptyText}>No recent resolved incidents.</Text>
+                <Text style={styles.emptyText}>
+                  No recent resolved incidents.
+                </Text>
               </View>
             )}
           </View>
-          
+
           {/* SHIFT INFO */}
           <View style={styles.section}>
-             <Text style={styles.sectionTitle}>Shift Information</Text>
-             <BlurView intensity={40} style={styles.infoCard}>
-                <Ionicons name="time-outline" size={24} color="#1E3A8A" />
-                <View>
-                   <Text style={styles.infoLabel}>Current Shift</Text>
-                   <Text style={styles.infoValue}>Morning (08:00 - 16:00)</Text>
-                </View>
-             </BlurView>
+            <Text style={styles.sectionTitle}>Shift Information</Text>
+            <BlurView intensity={40} style={styles.infoCard}>
+              <Ionicons name="time-outline" size={24} color="#1E3A8A" />
+              <View>
+                <Text style={styles.infoLabel}>Current Shift</Text>
+                <Text style={styles.infoValue}>Morning (08:00 - 16:00)</Text>
+              </View>
+            </BlurView>
           </View>
         </ScrollView>
 
@@ -262,6 +302,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 20,
   },
+  headerRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 15,
+  },
   headerTitle: {
     color: "#FFF",
     fontSize: 18,
@@ -269,7 +314,7 @@ const styles = StyleSheet.create({
   },
   heroContent: {
     paddingHorizontal: 20,
-    alignItems: 'center'
+    alignItems: "center",
   },
   greeting: {
     color: "rgba(255,255,255,0.7)",
@@ -284,9 +329,9 @@ const styles = StyleSheet.create({
   timeCard: {
     padding: 20,
     borderRadius: 20,
-    width: '100%',
-    alignItems: 'center',
-    overflow: 'hidden'
+    width: "100%",
+    alignItems: "center",
+    overflow: "hidden",
   },
   timeText: {
     color: "#FFF",
@@ -302,46 +347,46 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   statsRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 15,
     marginBottom: 25,
   },
   statCard: {
     flex: 1,
-    backgroundColor: '#FFF',
+    backgroundColor: "#FFF",
     padding: 20,
     borderRadius: 20,
-    alignItems: 'center',
+    alignItems: "center",
     elevation: 4,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
   },
   statValue: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1F2937',
+    fontWeight: "bold",
+    color: "#1F2937",
     marginVertical: 4,
   },
   statLabel: {
     fontSize: 12,
-    color: '#6B7280',
-    fontWeight: '600',
+    color: "#6B7280",
+    fontWeight: "600",
   },
   section: {
     marginBottom: 25,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1F2937',
+    fontWeight: "bold",
+    color: "#1F2937",
     marginBottom: 15,
   },
   alertItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFF',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFF",
     padding: 16,
     borderRadius: 16,
     gap: 12,
@@ -353,40 +398,40 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   alertTitle: {
-    fontWeight: 'bold',
-    color: '#1F2937',
+    fontWeight: "bold",
+    color: "#1F2937",
   },
   alertTime: {
     fontSize: 12,
-    color: '#6B7280',
+    color: "#6B7280",
   },
   infoCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(30, 58, 138, 0.05)',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(30, 58, 138, 0.05)",
     padding: 16,
     borderRadius: 16,
     gap: 15,
-    overflow: 'hidden'
+    overflow: "hidden",
   },
   infoLabel: {
     fontSize: 12,
-    color: '#6B7280',
+    color: "#6B7280",
   },
   infoValue: {
-    fontWeight: 'bold',
-    color: '#1E3A8A',
+    fontWeight: "bold",
+    color: "#1E3A8A",
   },
   emptyIncidents: {
-    backgroundColor: '#FFF',
+    backgroundColor: "#FFF",
     padding: 20,
     borderRadius: 16,
-    alignItems: 'center',
+    alignItems: "center",
   },
   emptyText: {
-    color: '#9CA3AF',
+    color: "#9CA3AF",
     fontSize: 14,
-  }
+  },
 });
 
 export default GuardHome;

@@ -22,6 +22,7 @@
     "@react-navigation/native": "^7.1.6",
     "@supabase/supabase-js": "^2.76.1",
     "axios": "^1.13.2",
+    "base64-arraybuffer": "^1.0.2",
     "expo": "~54.0.10",
     "expo-blur": "~15.0.8",
     "expo-constants": "~18.0.9",
@@ -63,6 +64,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
+    "@types/base64-arraybuffer": "^0.1.0",
     "@types/react": "^19.2.7",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~9.2.0",

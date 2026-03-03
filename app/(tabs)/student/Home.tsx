@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from 'expo-linear-gradient';
-import React, { useContext, useEffect, useState } from 'react';
+import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
+import React, { useContext, useEffect, useState } from "react";
 import {
   Dimensions,
   ScrollView,
@@ -9,7 +10,7 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from 'react-native';
+} from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -20,11 +21,12 @@ import CustomDrawer from "../../../components/customDrawer";
 import { AuthContext } from "../../../Context/AuthContext";
 import { useDrawer } from "../../../Context/DrawerContext";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 const StudentHome: React.FC = () => {
-  const { user } = useContext(AuthContext) || {};
+  const { user, logout } = useContext(AuthContext) || {};
   const { closeDrawer } = useDrawer();
+  const router = useRouter();
   const active = useSharedValue(false);
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -46,27 +48,29 @@ const StudentHome: React.FC = () => {
 
   const getGreeting = (): string => {
     const hour = currentTime.getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 17) return 'Good Afternoon';
-    return 'Good Evening';
+    if (hour < 12) return "Good Morning";
+    if (hour < 17) return "Good Afternoon";
+    return "Good Evening";
   };
 
   const quickStats = [
-    { label: 'Classes Today', value: '3', icon: '📚', color: '#3B82F6' },
-    { label: 'Attendance', value: '87%', icon: '✅', color: '#10B981' },
-    { label: 'Tasks Due', value: '4', icon: '⏰', color: '#F59E0B' },
-    { label: 'CGPA', value: '3.45', icon: '🎯', color: '#8B5CF6' },
+    { label: "Classes Today", value: "3", icon: "📚", color: "#3B82F6" },
+    { label: "Attendance", value: "87%", icon: "✅", color: "#10B981" },
+    { label: "Tasks Due", value: "4", icon: "⏰", color: "#F59E0B" },
+    { label: "CGPA", value: "3.45", icon: "🎯", color: "#8B5CF6" },
   ];
 
   return (
     <View style={styles.container}>
       <CustomDrawer active={active} />
 
-      <Animated.View style={[{ flex: 1, backgroundColor: "#fff" }, animatedStyle]}>
+      <Animated.View
+        style={[{ flex: 1, backgroundColor: "#fff" }, animatedStyle]}
+      >
         <StatusBar barStyle="light-content" />
 
         <LinearGradient
-          colors={['#1e40af', '#3b82f6']}
+          colors={["#1e40af", "#3b82f6"]}
           style={styles.heroSection}
         >
           <View style={styles.header}>
@@ -74,16 +78,30 @@ const StudentHome: React.FC = () => {
               <Ionicons name="menu" size={28} color="#fff" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>UniMate</Text>
-            <TouchableOpacity>
-              <Ionicons name="notifications" size={24} color="#fff" />
-            </TouchableOpacity>
+            <View style={styles.headerRight}>
+              <TouchableOpacity>
+                <Ionicons name="notifications" size={24} color="#fff" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  if (logout) {
+                    logout();
+                    router.replace("/(auth)/who");
+                  }
+                }}
+              >
+                <Ionicons name="log-out-outline" size={24} color="#fff" />
+              </TouchableOpacity>
+            </View>
           </View>
 
           <View style={styles.heroContent}>
             <Text style={styles.greeting}>{getGreeting()},</Text>
             <Text style={styles.userName}>{user?.name || "Student Name"}</Text>
             <View style={styles.infoRow}>
-              <Text style={styles.infoText}>Role: {user?.role || "Student"}</Text>
+              <Text style={styles.infoText}>
+                Role: {user?.role || "Student"}
+              </Text>
             </View>
           </View>
         </LinearGradient>
@@ -102,12 +120,14 @@ const StudentHome: React.FC = () => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Today's Schedule</Text>
             <View style={styles.activityCard}>
-                <View style={[styles.indicator, { backgroundColor: '#3B82F6' }]} />
-                <View style={styles.activityInfo}>
-                    <Text style={styles.activityTitle}>Database Systems Lab</Text>
-                    <Text style={styles.activityTime}>09:00 AM - 11:00 AM</Text>
-                    <Text style={styles.activityLoc}>📍 Lab 4, CS Block</Text>
-                </View>
+              <View
+                style={[styles.indicator, { backgroundColor: "#3B82F6" }]}
+              />
+              <View style={styles.activityInfo}>
+                <Text style={styles.activityTitle}>Database Systems Lab</Text>
+                <Text style={styles.activityTime}>09:00 AM - 11:00 AM</Text>
+                <Text style={styles.activityLoc}>📍 Lab 4, CS Block</Text>
+              </View>
             </View>
           </View>
         </ScrollView>
@@ -129,7 +149,7 @@ const StudentHome: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1e40af',
+    backgroundColor: "#1e40af",
   },
   heroSection: {
     paddingTop: 50,
@@ -139,61 +159,66 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 25,
   },
+  headerRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 15,
+  },
   headerTitle: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   heroContent: {
     marginTop: 10,
   },
   greeting: {
-    color: 'rgba(255,255,255,0.8)',
+    color: "rgba(255,255,255,0.8)",
     fontSize: 16,
   },
   userName: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 28,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginTop: 4,
   },
   infoRow: {
     marginTop: 8,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: "rgba(255,255,255,0.2)",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
   },
   infoText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   body: {
     flex: 1,
     padding: 20,
   },
   statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 12,
     marginBottom: 25,
   },
   statCard: {
     flex: 1,
-    minWidth: '45%',
-    backgroundColor: '#fff',
+    minWidth: "45%",
+    backgroundColor: "#fff",
     padding: 16,
     borderRadius: 20,
-    alignItems: 'center',
+    alignItems: "center",
     elevation: 4,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -204,12 +229,12 @@ const styles = StyleSheet.create({
   },
   statValue: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1F2937',
+    fontWeight: "bold",
+    color: "#1F2937",
   },
   statLabel: {
     fontSize: 12,
-    color: '#6B7280',
+    color: "#6B7280",
     marginTop: 2,
   },
   section: {
@@ -217,17 +242,17 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1F2937',
+    fontWeight: "bold",
+    color: "#1F2937",
     marginBottom: 15,
   },
   activityCard: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
+    flexDirection: "row",
+    backgroundColor: "#fff",
     borderRadius: 20,
     padding: 16,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 5,
@@ -242,17 +267,17 @@ const styles = StyleSheet.create({
   },
   activityTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1F2937',
+    fontWeight: "bold",
+    color: "#1F2937",
   },
   activityTime: {
     fontSize: 13,
-    color: '#6B7280',
+    color: "#6B7280",
     marginTop: 4,
   },
   activityLoc: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: "#9CA3AF",
     marginTop: 4,
   },
 });

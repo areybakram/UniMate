@@ -24,7 +24,6 @@ const DrawerItem = ({ icon, label, onPress }: DrawerItemProps) => (
   </TouchableOpacity>
 );
 
-
 const CustomDrawer = ({ active }: any) => {
   const { closeDrawer } = useDrawer();
   const auth = useContext(AuthContext);
@@ -54,80 +53,176 @@ const CustomDrawer = ({ active }: any) => {
       case "guard":
         return (
           <>
-            <DrawerItem 
-              icon={<FontAwesome5 name="user-shield" size={24} color={Colors.texttwo} />} 
-              label="Guard Profile" 
-              onPress={() => router.push('/(tabs)/Profile' as any)} 
+            <DrawerItem
+              icon={
+                <FontAwesome5
+                  name="user-shield"
+                  size={24}
+                  color={Colors.texttwo}
+                />
+              }
+              label="Guard Profile"
+              onPress={() => router.push("/(tabs)/Profile" as any)}
             />
-            <DrawerItem 
-              icon={<MaterialCommunityIcons name="map-marker" size={25} color={Colors.texttwo} />} 
-              label="Patrol Map" 
-              onPress={() => router.push("/Modules/Tagging" as any)} 
+            <DrawerItem
+              icon={
+                <MaterialCommunityIcons
+                  name="map-marker"
+                  size={25}
+                  color={Colors.texttwo}
+                />
+              }
+              label="Patrol Map"
+              onPress={() => router.push("/Modules/Tagging" as any)}
             />
-            <DrawerItem 
-              icon={<MaterialIcons name="security" size={24} color={Colors.texttwo} />} 
-              label="Active Alerts" 
-              onPress={() => router.push('/(tabs)/GuardDashboard' as any)} 
+            <DrawerItem
+              icon={
+                <MaterialIcons
+                  name="security"
+                  size={24}
+                  color={Colors.texttwo}
+                />
+              }
+              label="Active Alerts"
+              onPress={() => router.push("/(tabs)/GuardDashboard" as any)}
             />
-            <DrawerItem 
-              icon={<Ionicons name="document-text-outline" size={24} color={Colors.texttwo} />} 
-              label="About UniMate" 
-              onPress={() => router.push("/(screens)/about" as any)} 
+            <DrawerItem
+              icon={
+                <Ionicons
+                  name="information-circle-outline"
+                  size={24}
+                  color={Colors.texttwo}
+                />
+              }
+              label="About UniMate"
+              onPress={() => router.push("/(screens)/about" as any)}
+            />
+            <DrawerItem
+              icon={
+                <Ionicons
+                  name="headset-outline"
+                  size={24}
+                  color={Colors.texttwo}
+                />
+              }
+              label="Help & Support"
+              onPress={() => router.push("/(screens)/support" as any)}
             />
           </>
         );
       case "teacher":
         return (
           <>
-            <DrawerItem 
-              icon={<FontAwesome5 name="user-tie" size={24} color={Colors.texttwo} />} 
-              label="Faculty Profile" 
-              onPress={() => router.push('/(tabs)/Profile' as any)} 
+            <DrawerItem
+              icon={
+                <FontAwesome5
+                  name="user-tie"
+                  size={24}
+                  color={Colors.texttwo}
+                />
+              }
+              label="Faculty Profile"
+              onPress={() => router.push("/(tabs)/Profile" as any)}
             />
-            <DrawerItem 
-              icon={<MaterialCommunityIcons name="calendar-check" size={25} color={Colors.texttwo} />} 
-              label="Attendance" 
-              onPress={() => router.push("/(tabs)/teacher/Attendance" as any)} 
+            <DrawerItem
+              icon={
+                <MaterialCommunityIcons
+                  name="calendar-check"
+                  size={25}
+                  color={Colors.texttwo}
+                />
+              }
+              label="Attendance"
+              onPress={() => router.push("/(tabs)/teacher/Attendance" as any)}
             />
-            <DrawerItem 
-              icon={<MaterialIcons name="class" size={24} color={Colors.texttwo} />} 
-              label="My Classes" 
-              onPress={() => router.push('/(tabs)/teacher/Classes' as any)} 
+            <DrawerItem
+              icon={
+                <MaterialIcons name="class" size={24} color={Colors.texttwo} />
+              }
+              label="My Classes"
+              onPress={() => router.push("/(tabs)/teacher/Classes" as any)}
             />
-            <DrawerItem 
-              icon={<Ionicons name="document-text-outline" size={24} color={Colors.texttwo} />} 
-              label="About" 
-              onPress={() => router.push("/(screens)/about")} 
+            <DrawerItem
+              icon={
+                <Ionicons
+                  name="information-circle-outline"
+                  size={24}
+                  color={Colors.texttwo}
+                />
+              }
+              label="About UniMate"
+              onPress={() => router.push("/(screens)/about")}
+            />
+            <DrawerItem
+              icon={
+                <Ionicons
+                  name="headset-outline"
+                  size={24}
+                  color={Colors.texttwo}
+                />
+              }
+              label="Help & Support"
+              onPress={() => router.push("/(screens)/support")}
             />
           </>
         );
       default: // student
         return (
           <>
-            <DrawerItem 
-              icon={<FontAwesome5 name="user-circle" size={24} color={Colors.texttwo} />} 
-              label="Profile" 
-              onPress={() => router.push('/(tabs)/Profile' as any)} 
+            <DrawerItem
+              icon={
+                <FontAwesome5
+                  name="user-circle"
+                  size={24}
+                  color={Colors.texttwo}
+                />
+              }
+              label="Profile"
+              onPress={() => router.push("/(tabs)/Profile" as any)}
             />
-            <DrawerItem 
-              icon={<MaterialCommunityIcons name="map-marker" size={25} color={Colors.texttwo} />} 
-              label="Navigation" 
-              onPress={() => router.push("/Modules/Tagging" as any)} 
+            <DrawerItem
+              icon={
+                <MaterialCommunityIcons
+                  name="map-marker"
+                  size={25}
+                  color={Colors.texttwo}
+                />
+              }
+              label="Navigation"
+              onPress={() => router.push("/Modules/Tagging" as any)}
             />
-            <DrawerItem 
-              icon={<MaterialIcons name="local-offer" size={24} color={Colors.texttwo} />} 
-              label="Emergency" 
-              onPress={() => router.push('/(screens)/emergency' as any)} 
+            <DrawerItem
+              icon={
+                <MaterialIcons
+                  name="local-offer"
+                  size={24}
+                  color={Colors.texttwo}
+                />
+              }
+              label="Emergency"
+              onPress={() => router.push("/(screens)/emergency" as any)}
             />
-            <DrawerItem 
-              icon={<Ionicons name="document-text-outline" size={24} color={Colors.texttwo} />} 
-              label="About" 
-              onPress={() => router.push("/(screens)/about" as any)} 
+            <DrawerItem
+              icon={
+                <Ionicons
+                  name="information-circle-outline"
+                  size={24}
+                  color={Colors.texttwo}
+                />
+              }
+              label="About UniMate"
+              onPress={() => router.push("/(screens)/about" as any)}
             />
-            <DrawerItem 
-              icon={<MaterialCommunityIcons name="security" size={24} color={Colors.texttwo} />} 
-              label="Support" 
-              onPress={() => router.push("/(screens)/support" as any)} 
+            <DrawerItem
+              icon={
+                <Ionicons
+                  name="headset-outline"
+                  size={24}
+                  color={Colors.texttwo}
+                />
+              }
+              label="Help & Support"
+              onPress={() => router.push("/(screens)/support" as any)}
             />
           </>
         );
@@ -138,14 +233,12 @@ const CustomDrawer = ({ active }: any) => {
     <View style={styles.container}>
       <View style={styles.profileHeader}>
         <View style={styles.avatarPlaceholder}>
-             <FontAwesome5 name="user-alt" size={30} color={Colors.primary} />
+          <FontAwesome5 name="user-alt" size={30} color={Colors.primary} />
         </View>
         <Text style={styles.drawerUserName}>{user?.name || "Guest User"}</Text>
         <Text style={styles.drawerUserRole}>{user?.role || "No Role"}</Text>
       </View>
-      <View style={styles.contentContainer}>
-        {renderDrawerItems()}
-      </View>
+      <View style={styles.contentContainer}>{renderDrawerItems()}</View>
 
       <TouchableOpacity style={styles.containerdeleted} onPress={logoutPress}>
         <Text style={styles.logOutText}>Sign-out</Text>
@@ -200,28 +293,28 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderBottomWidth: 1,
     borderBottomColor: "rgba(255,255,255,0.1)",
-    alignItems: 'center',
-    width: '100%'
+    alignItems: "center",
+    width: "100%",
   },
   avatarPlaceholder: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 10
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 10,
   },
   drawerUserName: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   drawerUserRole: {
-    color: 'rgba(255,255,255,0.7)',
+    color: "rgba(255,255,255,0.7)",
     fontSize: 14,
-    textTransform: 'capitalize'
-  }
+    textTransform: "capitalize",
+  },
 });
 
 export default CustomDrawer;

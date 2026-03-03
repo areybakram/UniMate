@@ -84,9 +84,7 @@
 //   },
 // });
 
-
 // the above is simple tabbar
-
 
 // import React, { useEffect, useState } from "react";
 // import Svg, { Path } from "react-native-svg";
@@ -370,7 +368,6 @@
 //     flexDirection: "row",
 //     backgroundColor: "#1d1d1d",
 
-
 //     borderRadius: 100,
 //     overflow: "hidden",
 //     height: hp(7),
@@ -380,7 +377,6 @@
 // });
 
 // export default TabBar;
-
 
 import { useEffect, useState } from "react";
 import {
@@ -400,15 +396,18 @@ import {
   View,
 } from "react-native";
 
-const HomeIcon = ({ width, height, color }: { width: number; height: number; color: string }) => {
+const HomeIcon = ({
+  width,
+  height,
+  color,
+}: {
+  width: number;
+  height: number;
+  color: string;
+}) => {
   return (
     <View style={{ justifyContent: "center", alignItems: "center" }}>
-      <Svg
-        width={width}
-        height={height}
-        viewBox="0 0 24 24"
-        fill="none"
-      >
+      <Svg width={width} height={height} viewBox="0 0 24 24" fill="none">
         <Path
           d="M9.44661 15.3975C9.11385 15.1508 8.64413 15.2206 8.39748 15.5534C8.15082 15.8862 8.22062 16.3559 8.55339 16.6025C9.5258 17.3233 10.715 17.75 12 17.75C13.285 17.75 14.4742 17.3233 15.4466 16.6025C15.7794 16.3559 15.8492 15.8862 15.6025 15.5534C15.3559 15.2206 14.8862 15.1508 14.5534 15.3975C13.825 15.9373 12.9459 16.25 12 16.25C11.0541 16.25 10.175 15.9373 9.44661 15.3975Z"
           fill={color}
@@ -424,15 +423,18 @@ const HomeIcon = ({ width, height, color }: { width: number; height: number; col
   );
 };
 
-const NotesIcon = ({ width, height, color }: { width: number; height: number; color: string }) => {
+const NotesIcon = ({
+  width,
+  height,
+  color,
+}: {
+  width: number;
+  height: number;
+  color: string;
+}) => {
   return (
     <View style={{ justifyContent: "center", alignItems: "center" }}>
-      <Svg
-        width={width}
-        height={height}
-        viewBox="0 0 24 24"
-        fill="none"
-      >
+      <Svg width={width} height={height} viewBox="0 0 24 24" fill="none">
         <Path
           d="M8 12H16M8 8H16M8 16H12"
           stroke={color}
@@ -450,15 +452,18 @@ const NotesIcon = ({ width, height, color }: { width: number; height: number; co
   );
 };
 
-const TimetableIcon = ({ width, height, color }: { width: number; height: number; color: string }) => {
+const TimetableIcon = ({
+  width,
+  height,
+  color,
+}: {
+  width: number;
+  height: number;
+  color: string;
+}) => {
   return (
     <View style={{ justifyContent: "center", alignItems: "center" }}>
-      <Svg
-        width={width}
-        height={height}
-        viewBox="0 0 24 24"
-        fill="none"
-      >
+      <Svg width={width} height={height} viewBox="0 0 24 24" fill="none">
         <Path
           d="M19 4H5C3.89543 4 3 4.89543 3 6V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V6C21 4.89543 20.1046 4 19 4Z"
           stroke={color}
@@ -481,15 +486,18 @@ const TimetableIcon = ({ width, height, color }: { width: number; height: number
   );
 };
 
-const ProfileIcon = ({ width, height, color }: { width: number; height: number; color: string }) => {
+const ProfileIcon = ({
+  width,
+  height,
+  color,
+}: {
+  width: number;
+  height: number;
+  color: string;
+}) => {
   return (
     <View style={{ justifyContent: "center", alignItems: "center" }}>
-      <Svg
-        width={width}
-        height={height}
-        viewBox="0 0 24 24"
-        fill="none"
-      >
+      <Svg width={width} height={height} viewBox="0 0 24 24" fill="none">
         <Path
           d="M12 12C14.2091 12 16 10.2091 16 8C16 5.79086 14.2091 4 12 4C9.79086 4 8 5.79086 8 8C8 10.2091 9.79086 12 12 12Z"
           stroke={color}
@@ -506,15 +514,18 @@ const ProfileIcon = ({ width, height, color }: { width: number; height: number; 
   );
 };
 
-const GuardIcon = ({ width, height, color }: { width: number; height: number; color: string }) => {
+const GuardIcon = ({
+  width,
+  height,
+  color,
+}: {
+  width: number;
+  height: number;
+  color: string;
+}) => {
   return (
     <View style={{ justifyContent: "center", alignItems: "center" }}>
-      <Svg
-        width={width}
-        height={height}
-        viewBox="0 0 24 24"
-        fill="none"
-      >
+      <Svg width={width} height={height} viewBox="0 0 24 24" fill="none">
         <Path
           d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
           stroke={color}
@@ -527,34 +538,125 @@ const GuardIcon = ({ width, height, color }: { width: number; height: number; co
   );
 };
 
-const AttendanceIcon = ({ width, height, color }: { width: number; height: number; color: string }) => {
+const AttendanceIcon = ({
+  width,
+  height,
+  color,
+}: {
+  width: number;
+  height: number;
+  color: string;
+}) => {
   return (
     <View style={{ justifyContent: "center", alignItems: "center" }}>
       <Svg width={width} height={height} viewBox="0 0 24 24" fill="none">
-        <Path d="M9 11L12 14L22 4" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <Path d="M21 12V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <Path
+          d="M9 11L12 14L22 4"
+          stroke={color}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <Path
+          d="M21 12V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16"
+          stroke={color}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </Svg>
     </View>
   );
 };
 
-const ClassesIcon = ({ width, height, color }: { width: number; height: number; color: string }) => {
+const ClassesIcon = ({
+  width,
+  height,
+  color,
+}: {
+  width: number;
+  height: number;
+  color: string;
+}) => {
   return (
     <View style={{ justifyContent: "center", alignItems: "center" }}>
       <Svg width={width} height={height} viewBox="0 0 24 24" fill="none">
-        <Path d="M22 10V15C22 16.1046 21.1046 17 20 17H4C2.89543 17 2 16.1046 2 15V10" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <Path d="M22 10L12 5L2 10L12 15L22 10Z" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <Path d="M6 17V20C6 21.1046 6.89543 22 8 22H16C17.1046 22 18 21.1046 18 20V17" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <Path
+          d="M22 10V15C22 16.1046 21.1046 17 20 17H4C2.89543 17 2 16.1046 2 15V10"
+          stroke={color}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <Path
+          d="M22 10L12 5L2 10L12 15L22 10Z"
+          stroke={color}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <Path
+          d="M6 17V20C6 21.1046 6.89543 22 8 22H16C17.1046 22 18 21.1046 18 20V17"
+          stroke={color}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </Svg>
     </View>
   );
 };
 
-const LogsIcon = ({ width, height, color }: { width: number; height: number; color: string }) => {
+const LogsIcon = ({
+  width,
+  height,
+  color,
+}: {
+  width: number;
+  height: number;
+  color: string;
+}) => {
   return (
     <View style={{ justifyContent: "center", alignItems: "center" }}>
       <Svg width={width} height={height} viewBox="0 0 24 24" fill="none">
-        <Path d="M9 11H15M9 15H13M17 21H7C5.89543 21 5 20.1046 5 19V5C5 3.89543 5.89543 3 7 3H12.5L19 9.5V19C19 20.1046 18.1046 21 17 21Z" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <Path
+          d="M9 11H15M9 15H13M17 21H7C5.89543 21 5 20.1046 5 19V5C5 3.89543 5.89543 3 7 3H12.5L19 9.5V19C19 20.1046 18.1046 21 17 21Z"
+          stroke={color}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </Svg>
+    </View>
+  );
+};
+
+const RepositoryIcon = ({
+  width,
+  height,
+  color,
+}: {
+  width: number;
+  height: number;
+  color: string;
+}) => {
+  return (
+    <View style={{ justifyContent: "center", alignItems: "center" }}>
+      <Svg width={width} height={height} viewBox="0 0 24 24" fill="none">
+        <Path
+          d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"
+          stroke={color}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <Path
+          d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
+          stroke={color}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </Svg>
     </View>
   );
@@ -570,13 +672,13 @@ const TabBar = (props: any) => {
       "keyboardDidShow",
       () => {
         setIsKeyboardOpen(true);
-      }
+      },
     );
     const keyboardDidHideListener = Keyboard.addListener(
       "keyboardDidHide",
       () => {
         setIsKeyboardOpen(false);
-      }
+      },
     );
     return () => {
       keyboardDidShowListener.remove();
@@ -624,11 +726,12 @@ const TabBar = (props: any) => {
       <View style={styles.tabbar}>
         {state.routes.map((route: any, index: number) => {
           const { options } = descriptors[route.key];
-          const label = options.tabBarLabel !== undefined
-            ? options.tabBarLabel
-            : options.title !== undefined
-            ? options.title
-            : route.name;
+          const label =
+            options.tabBarLabel !== undefined
+              ? options.tabBarLabel
+              : options.title !== undefined
+                ? options.title
+                : route.name;
 
           const isFocused = state.index === index;
 
@@ -691,6 +794,9 @@ const TabBar = (props: any) => {
               {route.name === "Logs" && (
                 <LogsIcon width={20} height={20} color={getColor} />
               )}
+              {route.name === "Repository" && (
+                <RepositoryIcon width={20} height={20} color={getColor} />
+              )}
               <Text
                 allowFontScaling={false}
                 style={{
@@ -717,7 +823,6 @@ const styles = StyleSheet.create({
     // backgroundColor: "#1E2A3A",
     backgroundColor: Colors.tabbar,
 
-    
     borderRadius: 100,
     overflow: "hidden",
     height: hp(7),
