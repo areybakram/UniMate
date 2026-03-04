@@ -105,11 +105,8 @@ export default function ProfileScreen() {
   const profilePhoto = require("../../assets/profilephoto.jpeg");
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#F8FAFC" }}>
-      <LinearGradient
-        colors={["#F8FAFC", "#E2E8F0", "#CBD5E1"]}
-        style={{ flex: 1 }}
-      >
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+      <View style={{ flex: 1, backgroundColor: "#fff" }}>
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 120 }}
@@ -155,7 +152,10 @@ export default function ProfileScreen() {
 
           {/* DETAILS SECTION */}
           <View style={{ marginTop: 80, paddingHorizontal: 20 }}>
-            <BlurView intensity={20} tint="light" style={styles.card}>
+            <LinearGradient
+              colors={["#ffffff", "#F8FAFC", "#F1F5F9"]}
+              style={styles.card}
+            >
               <View style={styles.cardHeader}>
                 <Ionicons
                   name="person-circle-outline"
@@ -190,10 +190,13 @@ export default function ProfileScreen() {
                   <Text style={styles.value}>{user.phone || "Not set"}</Text>
                 )}
               </View>
-            </BlurView>
+            </LinearGradient>
 
             {/* SETTINGS CARD */}
-            <BlurView intensity={20} tint="light" style={styles.card}>
+            <LinearGradient
+              colors={["#ffffff", "#F8FAFC", "#F1F5F9"]}
+              style={styles.card}
+            >
               <View style={styles.cardHeader}>
                 <Ionicons name="settings-outline" size={22} color="#3b82f6" />
                 <Text style={styles.cardTitle}>Account Settings</Text>
@@ -301,7 +304,7 @@ export default function ProfileScreen() {
                 </View>
                 <Ionicons name="chevron-forward" size={16} color="#94a3b8" />
               </TouchableOpacity>
-            </BlurView>
+            </LinearGradient>
 
             {/* LOGOUT BUTTON */}
             <TouchableOpacity
@@ -309,7 +312,7 @@ export default function ProfileScreen() {
               style={styles.logoutButton}
             >
               <LinearGradient
-                colors={["#ef4444", "#dc2626"]}
+                colors={["#aa0f0fff", "#dc2626"]}
                 style={styles.logoutGradient}
               >
                 <Ionicons name="log-out-outline" size={22} color="#fff" />
@@ -376,7 +379,7 @@ export default function ProfileScreen() {
             <View style={{ height: 40 }} />
           </View>
         </ScrollView>
-      </LinearGradient>
+      </View>
     </SafeAreaView>
   );
 }
@@ -433,7 +436,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   name: {
-    color: "#fff",
+    color: "white",
     fontSize: 24,
     fontWeight: "bold",
     textAlign: "center",
@@ -446,7 +449,6 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   card: {
-    backgroundColor: "rgba(255,255,255,0.8)",
     borderRadius: 24,
     padding: 20,
     marginBottom: 20,

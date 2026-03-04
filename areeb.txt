@@ -1,0 +1,2 @@
+background color #F8FAFC
+headers color #2D3748
