@@ -130,8 +130,8 @@ const styles = StyleSheet.create({
   batchTag: {
     fontSize: 10,
     fontWeight: "bold",
-    color: "#1e40af",
-    backgroundColor: "#eff6ff",
+    color: "#fff",
+    backgroundColor: "#2D3748",
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 5,

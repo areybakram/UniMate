@@ -35,6 +35,7 @@ const TeacherRepository = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"browse" | "approvals">("browse");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedBatch, setSelectedBatch] = useState("All");
   const [isUploadModalVisible, setIsUploadModalVisible] = useState(false);
 
   const fetchItems = async () => {
@@ -106,6 +107,23 @@ const TeacherRepository = () => {
     fetchItems();
   }, [activeTab]);
 
+  const availableBatches = [
+    "All",
+    ...Array.from(new Set(items.map((item) => item.batch))).filter(Boolean),
+  ] as string[];
+
+  const handleBatchSelect = () => {
+    Alert.alert(
+      "Select Batch",
+      "Choose a batch to filter documents",
+      availableBatches.map((batch) => ({
+        text: batch,
+        onPress: () => setSelectedBatch(batch),
+      })),
+      { cancelable: true },
+    );
+  };
+
   const filteredData = items.filter((item) => {
     const matchesCategory =
       selectedCategory === "All" ||
@@ -114,11 +132,14 @@ const TeacherRepository = () => {
       (selectedCategory === "Past Papers" &&
         (item.type as string) === "past_paper");
 
+    const matchesBatch =
+      selectedBatch === "All" || item.batch === selectedBatch;
+
     const matchesSearch =
       item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.course_name.toLowerCase().includes(searchQuery.toLowerCase());
 
-    return matchesCategory && matchesSearch;
+    return matchesCategory && matchesBatch && matchesSearch;
   });
 
   const renderCategoryChip = (category: string) => {
@@ -133,6 +154,26 @@ const TeacherRepository = () => {
           style={[styles.categoryText, isActive && styles.activeCategoryText]}
         >
           {category}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
+  const renderBatchChip = (batch: string) => {
+    const isActive = selectedBatch === batch;
+    return (
+      <TouchableOpacity
+        key={batch}
+        onPress={() => setSelectedBatch(batch)}
+        style={[
+          styles.categoryChip,
+          isActive && { backgroundColor: "#2D3748", borderColor: "#2D3748" },
+        ]}
+      >
+        <Text
+          style={[styles.categoryText, isActive && styles.activeCategoryText]}
+        >
+          {batch}
         </Text>
       </TouchableOpacity>
     );
@@ -215,6 +256,31 @@ const TeacherRepository = () => {
           </View>
         )}
 
+        <View style={styles.batchContainer}>
+          <View style={styles.batchLeft}>
+            <Text style={styles.batchLabel}>Browsing for: </Text>
+            <TouchableOpacity
+              style={styles.batchSelector}
+              onPress={handleBatchSelect}
+            >
+              <Text style={styles.batchValue}>{selectedBatch}</Text>
+              <Ionicons name="chevron-down" size={16} color="#fff" />
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
+            style={styles.inlineAddBtn}
+            onPress={() => setIsUploadModalVisible(true)}
+          >
+            <LinearGradient
+              colors={["#4A5568", "#2D3748"]}
+              style={styles.inlineAddGradient}
+            >
+              <Ionicons name="add" size={23} color="#fff" />
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+
         {isLoading ? (
           <View
             style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
@@ -277,19 +343,6 @@ const TeacherRepository = () => {
           </Animated.View>
         )}
       </View>
-
-      <TouchableOpacity
-        style={styles.fab}
-        activeOpacity={0.8}
-        onPress={() => setIsUploadModalVisible(true)}
-      >
-        <LinearGradient
-          colors={["#6366F1", "#4338CA"]}
-          style={styles.fabGradient}
-        >
-          <Ionicons name="add" size={32} color="#fff" />
-        </LinearGradient>
-      </TouchableOpacity>
 
       <UploadModal
         visible={isUploadModalVisible}
@@ -362,7 +415,7 @@ const styles = StyleSheet.create({
   badgeText: {
     color: "#fff",
     fontSize: 10,
-    fontWeight: "bold",
+    // fontWeight: "bold",
   },
   searchContainer: {
     flexDirection: "row",
@@ -460,16 +513,46 @@ const styles = StyleSheet.create({
     color: "#94a3b8",
     marginTop: 15,
   },
-  fab: {
-    position: "absolute",
-    bottom: 30,
-    right: 20,
-    elevation: 8,
+  batchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    marginBottom: 15,
   },
-  fabGradient: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+  batchLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  batchLabel: {
+    fontSize: 14,
+    color: "#64748b",
+  },
+  batchSelector: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#2D3748",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+    gap: 5,
+  },
+  batchValue: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#fff",
+  },
+  inlineAddBtn: {
+    elevation: 4,
+    shadowColor: "#2D3748",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  inlineAddGradient: {
+    width: 30,
+    height: 30,
+    borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
   },

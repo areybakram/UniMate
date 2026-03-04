@@ -776,13 +776,13 @@ const TabBar = (props: any) => {
               {route.name === "Notes" && (
                 <NotesIcon width={20} height={20} color={getColor} />
               )}
-              {route.name === "Timetable" && (
+              {route.name === "FreeSlots" && (
                 <TimetableIcon width={20} height={20} color={getColor} />
               )}
               {route.name === "Profile" && (
                 <ProfileIcon width={20} height={20} color={getColor} />
               )}
-              {route.name === "GuardDashboard" && (
+              {route.name === "Alerts" && (
                 <GuardIcon width={22} height={22} color={getColor} />
               )}
               {route.name === "Attendance" && (

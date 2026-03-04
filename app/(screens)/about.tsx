@@ -144,7 +144,7 @@ const About = () => {
             <Text style={styles.copyright}>
               © 2026 UniMate Team. All rights reserved.
             </Text>
-            <Text style={styles.madeWith}>Crafted with ❤️ for COMSATS</Text>
+            <Text style={styles.madeWith}>Crafted with ❤️ by Team UniMate</Text>
           </View>
         </View>
       </ScrollView>

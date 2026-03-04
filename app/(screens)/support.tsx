@@ -148,7 +148,12 @@ const Support = () => {
             <Text style={styles.footerText}>
               Available Mon-Fri, 9:00 AM - 5:00 PM
             </Text>
-            <Text style={styles.versionText}>UniMate Support v1.0</Text>
+            {/* <Text style={styles.versionText}>UniMate Support v1.0</Text> */}
+            <Text
+              style={[styles.versionText, { marginTop: 4, fontWeight: "600" }]}
+            >
+              Crafted with ❤️ by Team UniMate
+            </Text>
           </View>
         </View>
       </ScrollView>

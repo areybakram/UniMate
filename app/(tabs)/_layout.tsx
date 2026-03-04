@@ -92,14 +92,14 @@ const TabsLayout = () => {
           <>
             <Tab.Screen name="Notes" component={StudentNotes} />
             <Tab.Screen name="Repository" component={StudentRepository} />
-            <Tab.Screen name="Timetable" component={StudentTimetable} />
+            <Tab.Screen name="FreeSlots" component={StudentTimetable} />
           </>
         )}
 
         {/* GUARD SPECIFIC TABS */}
         {role === "guard" && (
           <>
-            <Tab.Screen name="GuardDashboard" component={GuardDashboard} />
+            <Tab.Screen name="Alerts" component={GuardDashboard} />
             <Tab.Screen name="Logs" component={GuardLogs} />
           </>
         )}

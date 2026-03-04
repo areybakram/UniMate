@@ -1,5 +1,4 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useContext, useEffect, useState } from "react";
@@ -48,6 +47,13 @@ const TeacherHome: React.FC = () => {
     };
   });
 
+  const getGreeting = (): string => {
+    const hour = currentTime.getHours();
+    if (hour < 12) return "Good Morning";
+    if (hour < 17) return "Good Afternoon";
+    return "Good Evening";
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: "#2D3748" }}>
       <CustomDrawer active={active} />
@@ -85,27 +91,33 @@ const TeacherHome: React.FC = () => {
           </View>
 
           <View style={styles.heroContent}>
-            <Text style={styles.greeting}>Welcome Back,</Text>
-            <Text style={styles.userName}>{user?.name || "Professor"}</Text>
-            <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 14 }}>
-              Role: {user?.role || "Teacher"}
-            </Text>
+            <View style={styles.welcomeSection}>
+              <Text style={styles.greeting}>{getGreeting()},</Text>
+              <Text style={styles.userName}>{user?.name || "Professor"}</Text>
+            </View>
 
-            <BlurView intensity={30} tint="light" style={styles.timeCard}>
-              <Text style={styles.timeText}>
-                {currentTime.toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </Text>
-              <Text style={styles.dateText}>
-                {currentTime.toLocaleDateString([], {
-                  weekday: "long",
-                  month: "short",
-                  day: "numeric",
-                })}
-              </Text>
-            </BlurView>
+            <View style={styles.infoSection}>
+              <View style={styles.infoItem}>
+                <Ionicons name="school-outline" size={15} color="#90CDF4" />
+                <Text style={styles.infoText}>{user?.role || "Teacher"}</Text>
+              </View>
+
+              <View style={styles.infoItem}>
+                <Ionicons name="time-outline" size={15} color="#90CDF4" />
+                <Text style={styles.infoText}>
+                  {currentTime.toLocaleDateString([], {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                  })}{" "}
+                  •{" "}
+                  {currentTime.toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </Text>
+              </View>
+            </View>
           </View>
         </LinearGradient>
 
@@ -206,34 +218,36 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   heroContent: {
+    marginTop: 10,
     paddingHorizontal: 20,
-    alignItems: "center",
+  },
+  welcomeSection: {
+    marginBottom: 15,
   },
   greeting: {
-    color: "rgba(255,255,255,0.7)",
+    color: "rgba(255,255,255,0.8)",
     fontSize: 16,
+    marginBottom: 4,
   },
   userName: {
     color: "#FFF",
     fontSize: 28,
     fontWeight: "bold",
-    marginBottom: 20,
   },
-  timeCard: {
-    padding: 20,
-    borderRadius: 20,
-    width: "100%",
+  infoSection: {
+    flexDirection: "column",
+    alignItems: "flex-start",
+    gap: 6,
+  },
+  infoItem: {
+    flexDirection: "row",
     alignItems: "center",
-    overflow: "hidden",
+    gap: 6,
   },
-  timeText: {
-    color: "#FFF",
-    fontSize: 32,
-    fontWeight: "bold",
-  },
-  dateText: {
-    color: "rgba(255,255,255,0.8)",
-    fontSize: 14,
+  infoText: {
+    color: "#E2E8F0",
+    fontSize: 13,
+    fontWeight: "500",
   },
   content: {
     flex: 1,

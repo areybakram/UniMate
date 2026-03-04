@@ -96,12 +96,34 @@ const StudentHome: React.FC = () => {
           </View>
 
           <View style={styles.heroContent}>
-            <Text style={styles.greeting}>{getGreeting()},</Text>
-            <Text style={styles.userName}>{user?.name || "Student Name"}</Text>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoText}>
-                Role: {user?.role || "Student"}
+            <View style={styles.welcomeSection}>
+              <Text style={styles.greeting}>{getGreeting()},</Text>
+              <Text style={styles.userName}>
+                {user?.name || "Student Name"}
               </Text>
+            </View>
+
+            <View style={styles.infoSection}>
+              <View style={styles.infoItem}>
+                <Ionicons name="school-outline" size={15} color="#90CDF4" />
+                <Text style={styles.infoText}>{user?.role || "Student"}</Text>
+              </View>
+
+              <View style={styles.infoItem}>
+                <Ionicons name="time-outline" size={15} color="#90CDF4" />
+                <Text style={styles.infoText}>
+                  {currentTime.toLocaleDateString([], {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                  })}{" "}
+                  •{" "}
+                  {currentTime.toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </Text>
+              </View>
             </View>
           </View>
         </LinearGradient>
@@ -177,28 +199,33 @@ const styles = StyleSheet.create({
   heroContent: {
     marginTop: 10,
   },
+  welcomeSection: {
+    marginBottom: 15,
+  },
   greeting: {
     color: "rgba(255,255,255,0.8)",
     fontSize: 16,
+    marginBottom: 4,
   },
   userName: {
     color: "#fff",
     fontSize: 28,
     fontWeight: "bold",
-    marginTop: 4,
   },
-  infoRow: {
-    marginTop: 8,
-    backgroundColor: "rgba(255,255,255,0.2)",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    alignSelf: "flex-start",
+  infoSection: {
+    flexDirection: "column",
+    alignItems: "flex-start",
+    gap: 6,
+  },
+  infoItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
   infoText: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "600",
+    color: "#E2E8F0",
+    fontSize: 13,
+    fontWeight: "500",
   },
   body: {
     flex: 1,

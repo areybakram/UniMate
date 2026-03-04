@@ -109,6 +109,9 @@ const Who = () => {
           <Text style={styles.footerText}>
             By continuing, you agree to our Terms of Service
           </Text>
+          <Text style={styles.craftedText}>
+            Crafted with ❤️ by Team UniMate
+          </Text>
         </View>
       </SafeAreaView>
     </LinearGradient>
@@ -215,10 +218,16 @@ const styles = StyleSheet.create({
   footer: {
     padding: 20,
     alignItems: "center",
+    gap: 6,
   },
   footerText: {
     fontSize: 12,
     color: "#94A3B8",
+  },
+  craftedText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#64748B",
   },
 });
 

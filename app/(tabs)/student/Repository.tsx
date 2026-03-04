@@ -408,7 +408,7 @@ const styles = StyleSheet.create({
   batchValue: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#fff",
+    color: "#2D3748",
   },
   listContainer: {
     paddingHorizontal: 20,

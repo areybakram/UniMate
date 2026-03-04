@@ -150,6 +150,13 @@ const GuardHome: React.FC = () => {
     };
   });
 
+  const getGreeting = (): string => {
+    const hour = currentTime.getHours();
+    if (hour < 12) return "Good Morning";
+    if (hour < 17) return "Good Afternoon";
+    return "Good Evening";
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: "#2D3748" }}>
       <CustomDrawer active={active} />
@@ -170,6 +177,9 @@ const GuardHome: React.FC = () => {
             </Pressable>
             <Text style={styles.headerTitle}>Guard Dashboard</Text>
             <View style={styles.headerRight}>
+              <TouchableOpacity>
+                <Ionicons name="notifications" size={24} color="#FFF" />
+              </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => {
                   if (logout) {
@@ -184,29 +194,39 @@ const GuardHome: React.FC = () => {
           </View>
 
           <View style={styles.heroContent}>
-            <Text style={styles.greeting}>Good Day, Officer</Text>
-            <Text style={styles.userName}>
-              {user?.name || "Campus Security"}
-            </Text>
-            <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 14 }}>
-              Role: {user?.role || "Guard"}
-            </Text>
+            <View style={styles.welcomeSection}>
+              <Text style={styles.greeting}>{getGreeting()},</Text>
+              <Text style={styles.userName}>
+                {user?.name || "Campus Security"}
+              </Text>
+            </View>
 
-            <BlurView intensity={30} tint="light" style={styles.timeCard}>
-              <Text style={styles.timeText}>
-                {currentTime.toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </Text>
-              <Text style={styles.dateText}>
-                {currentTime.toLocaleDateString([], {
-                  weekday: "long",
-                  month: "short",
-                  day: "numeric",
-                })}
-              </Text>
-            </BlurView>
+            <View style={styles.infoSection}>
+              <View style={styles.infoItem}>
+                <Ionicons
+                  name="shield-checkmark-outline"
+                  size={15}
+                  color="#90CDF4"
+                />
+                <Text style={styles.infoText}>{user?.role || "Guard"}</Text>
+              </View>
+
+              <View style={styles.infoItem}>
+                <Ionicons name="time-outline" size={15} color="#90CDF4" />
+                <Text style={styles.infoText}>
+                  {currentTime.toLocaleDateString([], {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                  })}{" "}
+                  •{" "}
+                  {currentTime.toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </Text>
+              </View>
+            </View>
           </View>
         </LinearGradient>
 
@@ -314,33 +334,35 @@ const styles = StyleSheet.create({
   },
   heroContent: {
     paddingHorizontal: 20,
-    alignItems: "center",
+    marginTop: 10,
+  },
+  welcomeSection: {
+    marginBottom: 15,
   },
   greeting: {
-    color: "rgba(255,255,255,0.7)",
+    color: "rgba(255,255,255,0.8)",
     fontSize: 16,
+    marginBottom: 4,
   },
   userName: {
     color: "#FFF",
     fontSize: 28,
     fontWeight: "bold",
-    marginBottom: 20,
   },
-  timeCard: {
-    padding: 20,
-    borderRadius: 20,
-    width: "100%",
+  infoSection: {
+    flexDirection: "column",
+    alignItems: "flex-start",
+    gap: 6,
+  },
+  infoItem: {
+    flexDirection: "row",
     alignItems: "center",
-    overflow: "hidden",
+    gap: 6,
   },
-  timeText: {
-    color: "#FFF",
-    fontSize: 32,
-    fontWeight: "bold",
-  },
-  dateText: {
-    color: "rgba(255,255,255,0.8)",
-    fontSize: 14,
+  infoText: {
+    color: "#E2E8F0",
+    fontSize: 13,
+    fontWeight: "500",
   },
   content: {
     flex: 1,

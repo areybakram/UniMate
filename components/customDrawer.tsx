@@ -160,7 +160,7 @@ const CustomDrawer = ({ active }: any) => {
                   color={"#2D3748"}
                 />
               }
-              label="Navigation"
+              label="Tagging"
               onPress={() => router.push("/Modules/Tagging" as any)}
             />
             <DrawerItem
