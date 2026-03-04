@@ -1,5 +1,4 @@
 import ItemCard from "@/components/ItemCard";
-import SmallSOSButton from "@/components/SmallSOSButton";
 import UploadModal from "@/components/UploadModal";
 import { AuthContext } from "@/Context/AuthContext";
 import { supabase } from "@/supabaseClient";
@@ -189,9 +188,8 @@ const TeacherRepository = () => {
           <TouchableOpacity onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>UniMate</Text>
+          <View style={{ width: 24 }} />
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-            <SmallSOSButton />
             <View style={{ width: 24 }} />
           </View>
         </View>
@@ -268,7 +266,7 @@ const TeacherRepository = () => {
               onPress={handleBatchSelect}
             >
               <Text style={styles.batchValue}>{selectedBatch}</Text>
-              <Ionicons name="chevron-down" size={16} color="#fff" />
+              <Ionicons name="chevron-down" size={16} color="#2D3748" />
             </TouchableOpacity>
           </View>
 
@@ -367,7 +365,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
-    position: "relative",
   },
   headerTop: {
     flexDirection: "row",
@@ -379,12 +376,6 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "bold",
     color: "#fff",
-    position: "absolute",
-    left: 0,
-    right: 0,
-    textAlign: "center",
-    top: 60, // Align with the icons
-    zIndex: -1,
   },
   tabContainer: {
     flexDirection: "row",
@@ -542,7 +533,7 @@ const styles = StyleSheet.create({
   batchSelector: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#2D3748",
+    backgroundColor: "rgba(255,255,255,0.1)",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 10,
@@ -551,7 +542,7 @@ const styles = StyleSheet.create({
   batchValue: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#fff",
+    color: "#2D3748",
   },
   inlineAddBtn: {
     elevation: 4,

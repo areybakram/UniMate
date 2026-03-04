@@ -10,13 +10,13 @@ import {
   Modal,
   SafeAreaView,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
-import SmallSOSButton from "../../components/SmallSOSButton";
 import { AuthContext } from "../../Context/AuthContext";
 
 export default function ProfileScreen() {
@@ -106,7 +106,12 @@ export default function ProfileScreen() {
   const profilePhoto = require("../../assets/profilephoto.jpeg");
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+    <View style={{ flex: 1, backgroundColor: "#fff" }}>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor="transparent"
+        translucent
+      />
       <View style={{ flex: 1, backgroundColor: "#fff" }}>
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -123,12 +128,8 @@ export default function ProfileScreen() {
               <TouchableOpacity onPress={() => router.back()}>
                 <Ionicons name="arrow-back" size={24} color="#fff" />
               </TouchableOpacity>
-              <Text style={styles.headerTitle}>UniMate</Text>
-              {user.role === "student" || user.role === "teacher" ? (
-                <SmallSOSButton />
-              ) : (
-                <View style={{ width: 24 }} />
-              )}
+              <View style={{ width: 24 }} />
+              <View style={{ width: 24 }} />
             </View>
 
             {/* PROFILE PHOTO */}
@@ -156,7 +157,7 @@ export default function ProfileScreen() {
           </LinearGradient>
 
           {/* DETAILS SECTION */}
-          <View style={{ marginTop: 80, paddingHorizontal: 20 }}>
+          <View style={{ marginTop: 25, paddingHorizontal: 20 }}>
             <LinearGradient
               colors={["#ffffff", "#F8FAFC", "#F1F5F9"]}
               style={styles.card}
@@ -385,7 +386,7 @@ export default function ProfileScreen() {
           </View>
         </ScrollView>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -397,7 +398,6 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 40,
     paddingTop: 60,
     paddingHorizontal: 20,
-    position: "relative",
   },
   headerTop: {
     flexDirection: "row",
@@ -409,12 +409,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 20,
     fontWeight: "bold",
-    position: "absolute",
-    left: 0,
-    right: 0,
-    textAlign: "center",
-    top: 60, // Align with items in headerTop
-    zIndex: -1,
   },
   avatarContainer: {
     alignSelf: "center",
