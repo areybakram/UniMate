@@ -2,11 +2,11 @@ import { Asset } from "expo-asset";
 import * as FileSystem from "expo-file-system/legacy"; // ✅ legacy API
 import { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    FlatList,
-    StyleSheet,
-    Text,
-    View,
+  ActivityIndicator,
+  FlatList,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 import * as XLSX from "xlsx";
 
@@ -142,7 +142,7 @@ function timeToMinutes(t: string) {
   return h * 60 + m;
 }
 
-const Timetable = () => {
+const FreeSlots = () => {
   const [sections, setSections] = useState<
     { key: string; day: string; table: number; slots: any[] }[]
   >([]);
@@ -212,8 +212,10 @@ const Timetable = () => {
           for (const day of daysForThisTable) {
             const key = `${tableIndex}||${day}`;
             const classList = entriesByTableDay[key] || [];
-            const startMap: Record<number, { startIdx: number; endIdx: number; entry: any }> =
-              {};
+            const startMap: Record<
+              number,
+              { startIdx: number; endIdx: number; entry: any }
+            > = {};
             for (const c of classList) {
               if (typeof c.startIdx === "number" && c.startIdx >= 0) {
                 startMap[c.startIdx] = c;
@@ -245,7 +247,10 @@ const Timetable = () => {
               const freeStartMin = timeToMinutes(freeStart);
               const freeEndMin = timeToMinutes(freeEnd);
 
-              if (Number.isFinite(freeStartMin) && Number.isFinite(freeEndMin)) {
+              if (
+                Number.isFinite(freeStartMin) &&
+                Number.isFinite(freeEndMin)
+              ) {
                 if (freeStartMin >= allowedMaxMin) {
                 } else {
                   const clippedEndMin = Math.min(freeEndMin, allowedMaxMin);
@@ -298,14 +303,14 @@ const Timetable = () => {
     return (
       <View style={styles.loaderContainer}>
         <ActivityIndicator size="large" color="#0f3550" />
-        <Text style={styles.loaderText}>Loading timetable...</Text>
+        <Text style={styles.loaderText}>Loading free slots...</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>📅 Weekly Timetable</Text>
+      <Text style={styles.title}>📅 Weekly Free Slots</Text>
 
       <FlatList
         data={sections}
@@ -346,7 +351,7 @@ const Timetable = () => {
   );
 };
 
-export default Timetable;
+export default FreeSlots;
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 18, backgroundColor: "#f8fafb" },

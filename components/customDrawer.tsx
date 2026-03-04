@@ -69,13 +69,13 @@ const CustomDrawer = ({ active }: any) => {
               label="Explore Campus"
               onPress={() => router.push("/Modules/Tagging" as any)}
             />
-            <DrawerItem
+            {/* <DrawerItem
               icon={
                 <MaterialIcons name="security" size={24} color={"#2D3748"} />
               }
               label="Active Alerts"
-              onPress={() => router.push("/(tabs)/GuardDashboard" as any)}
-            />
+              onPress={() => router.push("/" as any)}
+            /> */}
             <DrawerItem
               icon={
                 <Ionicons
@@ -117,7 +117,20 @@ const CustomDrawer = ({ active }: any) => {
               label="Explore Campus"
               onPress={() => router.push("/Modules/Tagging" as any)}
             />
+
             <DrawerItem
+              icon={<Ionicons name="map-outline" size={24} color={"#2D3748"} />}
+              label="Campus Navigation"
+              onPress={() => router.push("/Modules/Navigation" as any)}
+            />
+            <DrawerItem
+              icon={
+                <MaterialIcons name="local-offer" size={24} color={"#2D3748"} />
+              }
+              label="Emergency"
+              onPress={() => router.push("/(screens)/emergency" as any)}
+            />
+            {/* <DrawerItem
               icon={
                 <MaterialCommunityIcons
                   name="calendar-check"
@@ -132,7 +145,7 @@ const CustomDrawer = ({ active }: any) => {
               icon={<MaterialIcons name="class" size={24} color={"#2D3748"} />}
               label="My Classes"
               onPress={() => router.push("/(tabs)/teacher/Classes" as any)}
-            />
+            /> */}
             <DrawerItem
               icon={
                 <Ionicons
@@ -144,11 +157,7 @@ const CustomDrawer = ({ active }: any) => {
               label="About UniMate"
               onPress={() => router.push("/(screens)/about")}
             />
-            <DrawerItem
-              icon={<Ionicons name="map-outline" size={24} color={"#2D3748"} />}
-              label="Campus Navigation"
-              onPress={() => router.push("/Modules/Navigation" as any)}
-            />
+
             <DrawerItem
               icon={
                 <Ionicons name="headset-outline" size={24} color={"#2D3748"} />
@@ -180,6 +189,11 @@ const CustomDrawer = ({ active }: any) => {
               onPress={() => router.push("/Modules/Tagging" as any)}
             />
             <DrawerItem
+              icon={<Ionicons name="map-outline" size={24} color={"#2D3748"} />}
+              label="Campus Navigation"
+              onPress={() => router.push("/Modules/Navigation" as any)}
+            />
+            <DrawerItem
               icon={
                 <MaterialIcons name="local-offer" size={24} color={"#2D3748"} />
               }
@@ -197,11 +211,7 @@ const CustomDrawer = ({ active }: any) => {
               label="About UniMate"
               onPress={() => router.push("/(screens)/about" as any)}
             />
-            <DrawerItem
-              icon={<Ionicons name="map-outline" size={24} color={"#2D3748"} />}
-              label="Campus Navigation"
-              onPress={() => router.push("/Modules/Navigation" as any)}
-            />
+
             <DrawerItem
               icon={
                 <Ionicons name="headset-outline" size={24} color={"#2D3748"} />

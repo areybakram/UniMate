@@ -16,10 +16,9 @@ import TabBar from "../../components/CustomTab";
 // Import Role-Based Screen Components
 // Student
 import ProfileScreen from "./Profile";
+import StudentFreeSlots from "./student/FreeSlots";
 import StudentHome from "./student/Home";
-import StudentNotes from "./student/Notes";
 import StudentRepository from "./student/Repository";
-import StudentTimetable from "./student/Timetable";
 
 // Guard
 import GuardDashboard from "./guard/Dashboard";
@@ -27,8 +26,6 @@ import GuardHome from "./guard/Home";
 import GuardLogs from "./guard/Logs";
 
 // Teacher
-import TeacherAttendance from "./teacher/Attendance";
-import TeacherClasses from "./teacher/Classes";
 import TeacherHome from "./teacher/Home";
 import TeacherRepository from "./teacher/Repository";
 
@@ -90,9 +87,8 @@ const TabsLayout = () => {
         {/* STUDENT SPECIFIC TABS */}
         {role === "student" && (
           <>
-            <Tab.Screen name="Notes" component={StudentNotes} />
             <Tab.Screen name="Repository" component={StudentRepository} />
-            <Tab.Screen name="FreeSlots" component={StudentTimetable} />
+            <Tab.Screen name="FreeSlots" component={StudentFreeSlots} />
           </>
         )}
 
@@ -107,9 +103,10 @@ const TabsLayout = () => {
         {/* TEACHER SPECIFIC TABS */}
         {role === "teacher" && (
           <>
-            <Tab.Screen name="Attendance" component={TeacherAttendance} />
-            <Tab.Screen name="Classes" component={TeacherClasses} />
+            {/* <Tab.Screen name="Attendance" component={TeacherAttendance} /> */}
+            {/* <Tab.Screen name="Classes" component={TeacherClasses} /> */}
             <Tab.Screen name="Repository" component={TeacherRepository} />
+            <Tab.Screen name="FreeSlots" component={StudentFreeSlots} />
           </>
         )}
 
