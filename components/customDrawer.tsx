@@ -1,6 +1,4 @@
 import { useDrawer } from "@/Context/DrawerContext";
-import { Colors } from "@/utils/Constants";
-import AntDesign from "@expo/vector-icons/AntDesign";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -55,11 +53,7 @@ const CustomDrawer = ({ active }: any) => {
           <>
             <DrawerItem
               icon={
-                <FontAwesome5
-                  name="user-shield"
-                  size={24}
-                  color={Colors.texttwo}
-                />
+                <FontAwesome5 name="user-shield" size={24} color={"#2D3748"} />
               }
               label="Guard Profile"
               onPress={() => router.push("/(tabs)/Profile" as any)}
@@ -69,7 +63,7 @@ const CustomDrawer = ({ active }: any) => {
                 <MaterialCommunityIcons
                   name="map-marker"
                   size={25}
-                  color={Colors.texttwo}
+                  color={"#2D3748"}
                 />
               }
               label="Patrol Map"
@@ -77,11 +71,7 @@ const CustomDrawer = ({ active }: any) => {
             />
             <DrawerItem
               icon={
-                <MaterialIcons
-                  name="security"
-                  size={24}
-                  color={Colors.texttwo}
-                />
+                <MaterialIcons name="security" size={24} color={"#2D3748"} />
               }
               label="Active Alerts"
               onPress={() => router.push("/(tabs)/GuardDashboard" as any)}
@@ -91,7 +81,7 @@ const CustomDrawer = ({ active }: any) => {
                 <Ionicons
                   name="information-circle-outline"
                   size={24}
-                  color={Colors.texttwo}
+                  color={"#2D3748"}
                 />
               }
               label="About UniMate"
@@ -99,11 +89,7 @@ const CustomDrawer = ({ active }: any) => {
             />
             <DrawerItem
               icon={
-                <Ionicons
-                  name="headset-outline"
-                  size={24}
-                  color={Colors.texttwo}
-                />
+                <Ionicons name="headset-outline" size={24} color={"#2D3748"} />
               }
               label="Help & Support"
               onPress={() => router.push("/(screens)/support" as any)}
@@ -115,11 +101,7 @@ const CustomDrawer = ({ active }: any) => {
           <>
             <DrawerItem
               icon={
-                <FontAwesome5
-                  name="user-tie"
-                  size={24}
-                  color={Colors.texttwo}
-                />
+                <FontAwesome5 name="user-tie" size={24} color={"#2D3748"} />
               }
               label="Faculty Profile"
               onPress={() => router.push("/(tabs)/Profile" as any)}
@@ -129,16 +111,14 @@ const CustomDrawer = ({ active }: any) => {
                 <MaterialCommunityIcons
                   name="calendar-check"
                   size={25}
-                  color={Colors.texttwo}
+                  color={"#2D3748"}
                 />
               }
               label="Attendance"
               onPress={() => router.push("/(tabs)/teacher/Attendance" as any)}
             />
             <DrawerItem
-              icon={
-                <MaterialIcons name="class" size={24} color={Colors.texttwo} />
-              }
+              icon={<MaterialIcons name="class" size={24} color={"#2D3748"} />}
               label="My Classes"
               onPress={() => router.push("/(tabs)/teacher/Classes" as any)}
             />
@@ -147,7 +127,7 @@ const CustomDrawer = ({ active }: any) => {
                 <Ionicons
                   name="information-circle-outline"
                   size={24}
-                  color={Colors.texttwo}
+                  color={"#2D3748"}
                 />
               }
               label="About UniMate"
@@ -155,11 +135,7 @@ const CustomDrawer = ({ active }: any) => {
             />
             <DrawerItem
               icon={
-                <Ionicons
-                  name="headset-outline"
-                  size={24}
-                  color={Colors.texttwo}
-                />
+                <Ionicons name="headset-outline" size={24} color={"#2D3748"} />
               }
               label="Help & Support"
               onPress={() => router.push("/(screens)/support")}
@@ -171,11 +147,7 @@ const CustomDrawer = ({ active }: any) => {
           <>
             <DrawerItem
               icon={
-                <FontAwesome5
-                  name="user-circle"
-                  size={24}
-                  color={Colors.texttwo}
-                />
+                <FontAwesome5 name="user-circle" size={24} color={"#2D3748"} />
               }
               label="Profile"
               onPress={() => router.push("/(tabs)/Profile" as any)}
@@ -185,7 +157,7 @@ const CustomDrawer = ({ active }: any) => {
                 <MaterialCommunityIcons
                   name="map-marker"
                   size={25}
-                  color={Colors.texttwo}
+                  color={"#2D3748"}
                 />
               }
               label="Navigation"
@@ -193,11 +165,7 @@ const CustomDrawer = ({ active }: any) => {
             />
             <DrawerItem
               icon={
-                <MaterialIcons
-                  name="local-offer"
-                  size={24}
-                  color={Colors.texttwo}
-                />
+                <MaterialIcons name="local-offer" size={24} color={"#2D3748"} />
               }
               label="Emergency"
               onPress={() => router.push("/(screens)/emergency" as any)}
@@ -207,7 +175,7 @@ const CustomDrawer = ({ active }: any) => {
                 <Ionicons
                   name="information-circle-outline"
                   size={24}
-                  color={Colors.texttwo}
+                  color={"#2D3748"}
                 />
               }
               label="About UniMate"
@@ -215,11 +183,7 @@ const CustomDrawer = ({ active }: any) => {
             />
             <DrawerItem
               icon={
-                <Ionicons
-                  name="headset-outline"
-                  size={24}
-                  color={Colors.texttwo}
-                />
+                <Ionicons name="headset-outline" size={24} color={"#2D3748"} />
               }
               label="Help & Support"
               onPress={() => router.push("/(screens)/support" as any)}
@@ -233,7 +197,7 @@ const CustomDrawer = ({ active }: any) => {
     <View style={styles.container}>
       <View style={styles.profileHeader}>
         <View style={styles.avatarPlaceholder}>
-          <FontAwesome5 name="user-alt" size={30} color={Colors.primary} />
+          <FontAwesome5 name="user-alt" size={30} color={"#2D3748"} />
         </View>
         <Text style={styles.drawerUserName}>{user?.name || "Guest User"}</Text>
         <Text style={styles.drawerUserRole}>{user?.role || "No Role"}</Text>
@@ -245,7 +209,7 @@ const CustomDrawer = ({ active }: any) => {
         <AntDesign
           name="logout"
           size={24}
-          color={Colors.texttwo}
+          color={"#2D3748"}
           style={{ paddingTop: "1%" }}
         />
       </TouchableOpacity> */}
@@ -256,7 +220,8 @@ const CustomDrawer = ({ active }: any) => {
 const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: Colors.primary,
+    // backgroundColor: Colors.primary,
+    backgroundColor: "#fff",
     paddingTop: "20%",
     paddingHorizontal: 16,
   },
@@ -275,7 +240,7 @@ const styles = StyleSheet.create({
   textName: {
     fontSize: RFValue(16),
     fontWeight: "400",
-    color: Colors.texttwo,
+    color: "#2D3748",
   },
   containerdeleted: {
     flexDirection: "row",
@@ -286,32 +251,32 @@ const styles = StyleSheet.create({
   logOutText: {
     fontSize: RFValue(16),
     fontWeight: "400",
-    color: Colors.texttwo,
+    color: "#2D3748",
   },
   profileHeader: {
     paddingBottom: 20,
     marginBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(255,255,255,0.1)",
-    alignItems: "center",
+    borderBottomColor: "#E2E8F0",
+    alignItems: "flex-start",
     width: "100%",
   },
   avatarPlaceholder: {
     width: 60,
     height: 60,
-    borderRadius: 30,
-    backgroundColor: "#fff",
+    borderRadius: 18,
+    backgroundColor: "#EEF2FF",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 10,
   },
   drawerUserName: {
-    color: "#fff",
+    color: "#2D3748",
     fontSize: 18,
     fontWeight: "bold",
   },
   drawerUserRole: {
-    color: "rgba(255,255,255,0.7)",
+    color: "#2D374899",
     fontSize: 14,
     textTransform: "capitalize",
   },

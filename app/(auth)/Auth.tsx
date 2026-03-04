@@ -345,8 +345,8 @@ const styles = StyleSheet.create({
   innerContainer: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 40,
-    paddingBottom: 40,
+    paddingVertical: 40,
+    justifyContent: "center",
   },
   header: {
     marginBottom: 40,
