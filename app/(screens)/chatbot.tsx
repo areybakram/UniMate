@@ -1,134 +1,325 @@
-import { Ionicons } from "@expo/vector-icons";
-import { BlurView } from "expo-blur";
-import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
-import { useContext, useEffect } from "react";
+import Fuse from "fuse.js";
+import React, { useEffect, useRef, useState } from "react";
 import {
-  SafeAreaView,
-  StyleSheet,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
-import { AuthContext } from "../../Context/AuthContext";
 
-export default function Chatbot() {
-  const router = useRouter();
-  const { user } = useContext(AuthContext);
+import MessageBubble from "../../components/MessageBubble";
+import dataset from "../../utils/comsats_data";
 
-  useEffect(() => {
-    // Redirect to role selection if no user is logged in
-    if (!user) {
-      router.replace("/(auth)/who");
-    }
-  }, [user]);
+/* ============================= */
+/* ========= TYPES ============= */
+/* ============================= */
 
-  if (!user) return null;
-
-  return (
-    <LinearGradient colors={["#F8FAFC", "#E2E8F0"]} style={styles.background}>
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={styles.backButton}
-          >
-            <Ionicons name="arrow-back" size={24} color="#1E293B" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>UniMate AI</Text>
-          <View style={{ width: 40 }} />
-        </View>
-
-        <View style={styles.content}>
-          <BlurView intensity={40} tint="light" style={styles.card}>
-            <View style={styles.iconWrapper}>
-              <Ionicons name="chatbubbles-outline" size={48} color="#60A5FA" />
-            </View>
-            <Text style={styles.title}>AI Chatbot Coming Soon</Text>
-            <Text style={styles.subtitle}>
-              We're building an intelligent campus assistant to help you with
-              your queries. Stay tuned!
-            </Text>
-          </BlurView>
-        </View>
-      </SafeAreaView>
-    </LinearGradient>
-  );
+interface Message {
+  role: "user" | "bot";
+  content: string;
+  time: string;
 }
 
-const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-  },
-  container: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "white",
-    alignItems: "center",
-    justifyContent: "center",
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#1E293B",
-  },
-  content: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 30,
-  },
-  card: {
-    width: "100%",
-    borderRadius: 32,
-    padding: 40,
-    alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.4)",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.6)",
-    overflow: "hidden",
-  },
-  iconWrapper: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: "white",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 24,
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "800",
-    color: "#1E293B",
-    textAlign: "center",
-    marginBottom: 12,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#64748B",
-    textAlign: "center",
-    lineHeight: 24,
-  },
-});
+interface FacultyItem {
+  type: "faculty";
+  name: string;
+  department: string;
+  designation: string;
+  area?: string;
+  hod?: boolean;
+}
+
+interface GeneralItem {
+  type: "general";
+  question: string;
+  answer: string;
+}
+
+type DatasetItem = FacultyItem | GeneralItem;
+
+/* ============================= */
+/* ========= COMPONENT ========= */
+/* ============================= */
+
+const ChatScreen: React.FC = () => {
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      role: "bot",
+      content: "👋 Hi! Ask me anything about COMSATS Lahore.",
+      time: new Date().toISOString(),
+    },
+  ]);
+
+  const [input, setInput] = useState<string>("");
+  const [keyboardHeight, setKeyboardHeight] = useState<number>(0);
+
+  const scrollRef = useRef<ScrollView | null>(null);
+
+  /* ============================= */
+  /* ========= FUSE SETUP ======== */
+  /* ============================= */
+
+  const fuse = new Fuse<DatasetItem>(dataset as DatasetItem[], {
+    keys: ["question", "name", "department", "designation", "area"],
+    threshold: 0.4,
+  });
+
+  /* ============================= */
+  /* ===== KEYBOARD LISTENER ===== */
+  /* ============================= */
+
+  useEffect(() => {
+    const show = Keyboard.addListener("keyboardDidShow", (e) =>
+      setKeyboardHeight(e.endCoordinates.height),
+    );
+
+    const hide = Keyboard.addListener("keyboardDidHide", () =>
+      setKeyboardHeight(0),
+    );
+
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
+
+  /* ============================= */
+  /* ===== FACULTY LINKS ========= */
+  /* ============================= */
+
+  const facultyLinks: Record<string, string> = {
+    "management sciences": "https://lahore.comsats.edu.pk/ms/faculty.aspx",
+    "electrical engineering": "https://lahore.comsats.edu.pk/ee/faculty.aspx",
+    "computer engineering": "https://lahore.comsats.edu.pk/ce/faculty.aspx",
+    pharmacy: "https://lahore.comsats.edu.pk/pharmacy/Faculty.aspx",
+    "computer science": "https://lahore.comsats.edu.pk/cs/faculty.aspx",
+  };
+
+  /* ============================= */
+  /* ========= GET ANSWER ======== */
+  /* ============================= */
+
+  const getAnswer = (query: string): string => {
+    const lowerQuery = query.toLowerCase().trim();
+
+    /* === Greetings === */
+    const greetings = ["hi", "hello", "salam", "assalamualaikum", "hey"];
+    if (greetings.includes(lowerQuery)) {
+      return "👋 Hello! I am here to provide information about COMSATS Lahore. Ask me anything! 🎓";
+    }
+
+    /* === HOD Logic === */
+    if (
+      lowerQuery.includes("hod") ||
+      lowerQuery.includes("head of department")
+    ) {
+      const hodExact = (dataset as DatasetItem[]).find(
+        (item) =>
+          item.type === "faculty" &&
+          item.hod &&
+          lowerQuery.includes(item.department.toLowerCase()),
+      ) as FacultyItem | undefined;
+
+      if (hodExact) {
+        return `${hodExact.name} is the HOD of ${hodExact.department}.`;
+      }
+
+      for (const dept in facultyLinks) {
+        if (lowerQuery.includes(dept)) {
+          return `I couldn't find the HOD for ${dept}. You can visit the faculty page here: ${facultyLinks[dept]}`;
+        }
+      }
+
+      const hod = (dataset as DatasetItem[]).find(
+        (item) => item.type === "faculty" && item.hod,
+      ) as FacultyItem | undefined;
+
+      if (hod) {
+        return `${hod.name} is the HOD of ${hod.department}.`;
+      }
+    }
+
+    /* === Campus Info === */
+    const campusKeywords = ["campus", "campuses", "locations", "cui"];
+    if (campusKeywords.some((word) => lowerQuery.includes(word))) {
+      return "COMSATS University Islamabad has campuses in Islamabad, Abbottabad, Wah, Lahore, Attock, Sahiwal, Vehari & Virtual.";
+    }
+
+    /* === Keyword Rules === */
+    const keywordsMap = [
+      { keywords: ["library"], field: "library" },
+      { keywords: ["fee", "tuition"], field: "fee" },
+      { keywords: ["location", "where"], field: "location" },
+      { keywords: ["hostel", "dorm"], field: "hostel" },
+      { keywords: ["department"], field: "department" },
+      { keywords: ["students"], field: "students" },
+      { keywords: ["facilities"], field: "facilities" },
+      { keywords: ["n block"], field: "n block" },
+      { keywords: ["scholarship"], field: "scholarship" },
+    ];
+
+    for (const rule of keywordsMap) {
+      if (rule.keywords.some((word) => lowerQuery.includes(word))) {
+        const found = (dataset as DatasetItem[]).find(
+          (item) =>
+            item.type === "general" &&
+            item.question.toLowerCase().includes(rule.field),
+        ) as GeneralItem | undefined;
+
+        if (found) return found.answer;
+      }
+    }
+
+    /* === Fuse Search Fallback === */
+    const fuseResult = fuse.search(query)[0]?.item;
+
+    if (fuseResult) {
+      if (fuseResult.type === "faculty") {
+        return `${fuseResult.name} is ${fuseResult.designation} in ${fuseResult.department}. Area: ${fuseResult.area || "N/A"}`;
+      }
+
+      if (fuseResult.type === "general") {
+        return fuseResult.answer;
+      }
+    }
+
+    /* === Department Link Fallback === */
+    const departmentKeywords = [
+      "faculty",
+      "professor",
+      "department",
+      "hod",
+      "teacher",
+    ];
+
+    if (departmentKeywords.some((word) => lowerQuery.includes(word))) {
+      for (const dept in facultyLinks) {
+        if (lowerQuery.includes(dept)) {
+          return `I couldn't find specific info for that department or professor. Please visit the faculty page here: ${facultyLinks[dept]}`;
+        }
+      }
+    }
+
+    /* === Default === */
+    return "This information is confidential. Please visit Student Services or COMSATS official websites.";
+  };
+
+  /* ============================= */
+  /* ===== MESSAGE HANDLING ====== */
+  /* ============================= */
+
+  const addMessage = (role: "user" | "bot", content: string) => {
+    setMessages((prev) => [
+      ...prev,
+      { role, content, time: new Date().toISOString() },
+    ]);
+  };
+
+  const handleSend = () => {
+    if (!input.trim()) return;
+
+    addMessage("user", input);
+    Keyboard.dismiss();
+
+    const answer = getAnswer(input);
+    addMessage("bot", answer);
+
+    setInput("");
+  };
+
+  /* === Auto Scroll === */
+  useEffect(() => {
+    setTimeout(() => {
+      scrollRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  }, [messages, keyboardHeight]);
+
+  /* ============================= */
+  /* ========= UI ================ */
+  /* ============================= */
+
+  return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
+    >
+      <View style={{ flex: 1, backgroundColor: "#0A5EFF" }}>
+        <View
+          style={{
+            padding: 20,
+            paddingTop: 40,
+            backgroundColor: "#0A5EFF",
+            alignItems: "center",
+          }}
+        >
+          <Text style={{ color: "#fff", fontSize: 20, fontWeight: "bold" }}>
+            COMSATS Chatbot
+          </Text>
+          <Text style={{ color: "#dbe7ff", fontSize: 12 }}>
+            Ask anything about COMSATS
+          </Text>
+        </View>
+
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "#f5f7ff",
+            borderTopLeftRadius: 30,
+            borderTopRightRadius: 30,
+            paddingTop: 10,
+          }}
+        >
+          <ScrollView
+            ref={scrollRef}
+            style={{ flex: 1, padding: 15 }}
+            keyboardShouldPersistTaps="handled"
+          >
+            {messages.map((msg, index) => (
+              <MessageBubble key={index} message={msg} />
+            ))}
+          </ScrollView>
+
+          <View
+            style={{
+              flexDirection: "row",
+              margin: 10,
+              backgroundColor: "#fff",
+              borderRadius: 30,
+              paddingHorizontal: 10,
+              paddingVertical: 5,
+              alignItems: "center",
+              elevation: 5,
+            }}
+          >
+            <TextInput
+              style={{ flex: 1, padding: 10, fontSize: 14 }}
+              placeholder="Type your message..."
+              value={input}
+              onChangeText={setInput}
+              multiline
+            />
+
+            <TouchableOpacity
+              onPress={handleSend}
+              style={{
+                backgroundColor: "#0A5EFF",
+                padding: 12,
+                borderRadius: 25,
+                marginLeft: 5,
+              }}
+            >
+              <Text style={{ color: "#fff", fontWeight: "bold" }}>➤</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </KeyboardAvoidingView>
+  );
+};
+
+export default ChatScreen;
