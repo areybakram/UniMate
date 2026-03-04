@@ -55,7 +55,7 @@ const CustomDrawer = ({ active }: any) => {
               icon={
                 <FontAwesome5 name="user-shield" size={24} color={"#2D3748"} />
               }
-              label="Guard Profile"
+              label="Profile"
               onPress={() => router.push("/(tabs)/Profile" as any)}
             />
             <DrawerItem
@@ -66,7 +66,7 @@ const CustomDrawer = ({ active }: any) => {
                   color={"#2D3748"}
                 />
               }
-              label="Patrol Map"
+              label="Explore Campus"
               onPress={() => router.push("/Modules/Tagging" as any)}
             />
             <DrawerItem
@@ -103,8 +103,19 @@ const CustomDrawer = ({ active }: any) => {
               icon={
                 <FontAwesome5 name="user-tie" size={24} color={"#2D3748"} />
               }
-              label="Faculty Profile"
+              label="Profile"
               onPress={() => router.push("/(tabs)/Profile" as any)}
+            />
+            <DrawerItem
+              icon={
+                <MaterialCommunityIcons
+                  name="map-marker"
+                  size={25}
+                  color={"#2D3748"}
+                />
+              }
+              label="Explore Campus"
+              onPress={() => router.push("/Modules/Tagging" as any)}
             />
             <DrawerItem
               icon={
@@ -134,6 +145,11 @@ const CustomDrawer = ({ active }: any) => {
               onPress={() => router.push("/(screens)/about")}
             />
             <DrawerItem
+              icon={<Ionicons name="map-outline" size={24} color={"#2D3748"} />}
+              label="Campus Navigation"
+              onPress={() => router.push("/Modules/Navigation" as any)}
+            />
+            <DrawerItem
               icon={
                 <Ionicons name="headset-outline" size={24} color={"#2D3748"} />
               }
@@ -160,7 +176,7 @@ const CustomDrawer = ({ active }: any) => {
                   color={"#2D3748"}
                 />
               }
-              label="Tagging"
+              label="Explore Campus"
               onPress={() => router.push("/Modules/Tagging" as any)}
             />
             <DrawerItem
@@ -180,6 +196,11 @@ const CustomDrawer = ({ active }: any) => {
               }
               label="About UniMate"
               onPress={() => router.push("/(screens)/about" as any)}
+            />
+            <DrawerItem
+              icon={<Ionicons name="map-outline" size={24} color={"#2D3748"} />}
+              label="Campus Navigation"
+              onPress={() => router.push("/Modules/Navigation" as any)}
             />
             <DrawerItem
               icon={
