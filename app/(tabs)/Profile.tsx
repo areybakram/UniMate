@@ -16,6 +16,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import SmallSOSButton from "../../components/SmallSOSButton";
 import { AuthContext } from "../../Context/AuthContext";
 
 export default function ProfileScreen() {
@@ -122,8 +123,12 @@ export default function ProfileScreen() {
               <TouchableOpacity onPress={() => router.back()}>
                 <Ionicons name="arrow-back" size={24} color="#fff" />
               </TouchableOpacity>
-              <Text style={styles.headerTitle}>My Profile</Text>
-              <View style={{ width: 24 }} />
+              <Text style={styles.headerTitle}>UniMate</Text>
+              {user.role === "student" || user.role === "teacher" ? (
+                <SmallSOSButton />
+              ) : (
+                <View style={{ width: 24 }} />
+              )}
             </View>
 
             {/* PROFILE PHOTO */}
@@ -392,6 +397,7 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 40,
     paddingTop: 60,
     paddingHorizontal: 20,
+    position: "relative",
   },
   headerTop: {
     flexDirection: "row",
@@ -403,6 +409,12 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 20,
     fontWeight: "bold",
+    position: "absolute",
+    left: 0,
+    right: 0,
+    textAlign: "center",
+    top: 60, // Align with items in headerTop
+    zIndex: -1,
   },
   avatarContainer: {
     alignSelf: "center",

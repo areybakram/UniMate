@@ -1,4 +1,5 @@
 import ItemCard from "@/components/ItemCard";
+import SmallSOSButton from "@/components/SmallSOSButton";
 import UploadModal from "@/components/UploadModal";
 import { supabase } from "@/supabaseClient";
 import { Ionicons } from "@expo/vector-icons";
@@ -182,10 +183,13 @@ const Repository = () => {
           <TouchableOpacity onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Global Library</Text>
-          <TouchableOpacity>
-            <Ionicons name="filter" size={24} color="#fff" />
-          </TouchableOpacity>
+          <Text style={styles.headerTitle}>UniMate</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+            <SmallSOSButton />
+            <TouchableOpacity>
+              <Ionicons name="filter" size={24} color="#fff" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.searchContainer}>
@@ -303,6 +307,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
+    position: "relative",
   },
   headerTop: {
     flexDirection: "row",
@@ -314,6 +319,12 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "bold",
     color: "#fff",
+    position: "absolute",
+    left: 0,
+    right: 0,
+    textAlign: "center",
+    top: 60, // Align with the icons
+    zIndex: -1,
   },
   searchContainer: {
     flexDirection: "row",

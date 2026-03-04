@@ -19,6 +19,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import CustomDrawer from "../../../components/customDrawer";
+import SmallSOSButton from "../../../components/SmallSOSButton";
 import { AuthContext } from "../../../Context/AuthContext";
 import { useDrawer } from "../../../Context/DrawerContext";
 
@@ -72,8 +73,9 @@ const TeacherHome: React.FC = () => {
             <Pressable onPress={() => (active.value = !active.value)}>
               <Ionicons name="menu" size={28} color="#FFF" />
             </Pressable>
-            <Text style={styles.headerTitle}>Faculty Portal</Text>
+            <Text style={styles.headerTitle}>UniMate</Text>
             <View style={styles.headerRight}>
+              <SmallSOSButton />
               <TouchableOpacity>
                 <Ionicons name="notifications" size={24} color="#FFF" />
               </TouchableOpacity>
@@ -206,6 +208,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
     marginBottom: 20,
+    position: "relative",
   },
   headerRight: {
     flexDirection: "row",
@@ -216,6 +219,11 @@ const styles = StyleSheet.create({
     color: "#FFF",
     fontSize: 18,
     fontWeight: "bold",
+    position: "absolute",
+    left: 0,
+    right: 0,
+    textAlign: "center",
+    zIndex: -1,
   },
   heroContent: {
     marginTop: 10,

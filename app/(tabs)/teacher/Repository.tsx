@@ -1,4 +1,5 @@
 import ItemCard from "@/components/ItemCard";
+import SmallSOSButton from "@/components/SmallSOSButton";
 import UploadModal from "@/components/UploadModal";
 import { AuthContext } from "@/Context/AuthContext";
 import { supabase } from "@/supabaseClient";
@@ -188,8 +189,11 @@ const TeacherRepository = () => {
           <TouchableOpacity onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Faculty Library</Text>
-          <View style={{ width: 24 }} />
+          <Text style={styles.headerTitle}>UniMate</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+            <SmallSOSButton />
+            <View style={{ width: 24 }} />
+          </View>
         </View>
         <View style={styles.tabContainer}>
           <TouchableOpacity
@@ -363,6 +367,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
+    position: "relative",
   },
   headerTop: {
     flexDirection: "row",
@@ -374,6 +379,12 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "bold",
     color: "#fff",
+    position: "absolute",
+    left: 0,
+    right: 0,
+    textAlign: "center",
+    top: 60, // Align with the icons
+    zIndex: -1,
   },
   tabContainer: {
     flexDirection: "row",
