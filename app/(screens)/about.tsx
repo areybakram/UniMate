@@ -48,7 +48,7 @@ const About = () => {
       >
         {/* Header */}
         <LinearGradient
-          colors={["#1e40af", "#3b82f6"]}
+          colors={["#1A202C", "#2D3748"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.header}
@@ -98,16 +98,13 @@ const About = () => {
                 style={styles.featureCard}
               >
                 <LinearGradient
-                  colors={[
-                    "rgba(59, 130, 246, 0.1)",
-                    "rgba(30, 64, 175, 0.05)",
-                  ]}
+                  colors={["rgba(45, 55, 72, 0.08)", "rgba(26, 32, 44, 0.03)"]}
                   style={styles.featureGradient}
                 >
                   <Ionicons
                     name={feature.icon as any}
                     size={30}
-                    color="#3b82f6"
+                    color="#2D3748"
                   />
                   <Text style={styles.featureTitle}>{feature.title}</Text>
                   <Text style={styles.featureDesc}>{feature.desc}</Text>
@@ -138,7 +135,7 @@ const About = () => {
                 }
               >
                 <Text style={styles.uniLinkText}>Visit Campus Website</Text>
-                <Ionicons name="open-outline" size={16} color="#3b82f6" />
+                <Ionicons name="open-outline" size={16} color="#2D3748" />
               </TouchableOpacity>
             </BlurView>
           </Animated.View>
@@ -147,7 +144,7 @@ const About = () => {
             <Text style={styles.copyright}>
               © 2026 UniMate Team. All rights reserved.
             </Text>
-            <Text style={styles.madeWith}>Made with ❤️ for COMSATS</Text>
+            <Text style={styles.madeWith}>Crafted with ❤️ for COMSATS</Text>
           </View>
         </View>
       </ScrollView>
@@ -286,13 +283,13 @@ const styles = StyleSheet.create({
   uniTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#1e40af",
+    color: "#1A202C",
     marginBottom: 2,
   },
   uniTag: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#3b82f6",
+    color: "#2D3748",
     marginBottom: 15,
     textTransform: "uppercase",
   },
@@ -303,7 +300,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   uniLinkText: {
-    color: "#3b82f6",
+    color: "#2D3748",
     fontWeight: "bold",
     fontSize: 14,
   },

@@ -50,7 +50,7 @@ const Support = () => {
       >
         {/* Header */}
         <LinearGradient
-          colors={["#1e40af", "#3b82f6"]}
+          colors={["#1A202C", "#2D3748"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.header}
@@ -102,7 +102,7 @@ const Support = () => {
 
             <TouchableOpacity style={styles.contactCard} onPress={handleCall}>
               <LinearGradient
-                colors={["#3b82f6", "#1e40af"]}
+                colors={["#2D3748", "#1A202C"]}
                 style={styles.contactGradient}
               >
                 <Ionicons name="call" size={30} color="#fff" />
@@ -118,7 +118,7 @@ const Support = () => {
             <TouchableOpacity style={styles.emailInner} onPress={handleEmail}>
               <View style={styles.emailLeft}>
                 <View style={styles.emailIconBox}>
-                  <Ionicons name="mail" size={24} color="#3b82f6" />
+                  <Ionicons name="mail" size={24} color="#2D3748" />
                 </View>
                 <View>
                   <Text style={styles.emailLabel}>Email us at</Text>
@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
     width: 45,
     height: 45,
     borderRadius: 12,
-    backgroundColor: "#eff6ff",
+    backgroundColor: "#F1F5F9",
     justifyContent: "center",
     alignItems: "center",
   },

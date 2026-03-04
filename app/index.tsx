@@ -1,155 +1,34 @@
-// // // onbarding screen after splash screen. can make it as a splash screen later if needed
-
-// // import { View, Text, Image, TouchableOpacity } from 'react-native'
-// // import '../global.css'
-// // import React from 'react'
-// // import { Link, router } from 'expo-router'
-// // import { SafeAreaView } from 'react-native-safe-area-context'
-// // import icons from '../constants/icons'
-// // import CommonButton from '@/components/CommonButton'
-// // import WaveThingy from '@/components/WaveThingy'
-
-// // const onBoarding = () => {
-// //   return (
-// //     <SafeAreaView>
-// //       <View>
-
-// //         <View>
-// //           <Image
-// //           source={icons.blueelipse}
-// //           className='w-full h-50%'
-// //           resizeMode='cover'
-// //           />
-// //         </View>
-
-// //         {/* <View>
-// //           <Image
-// //           source={icons.comsats}
-// //           className='-mt-28 items-center justify-center self-center'/>
-// //         </View> */}
-
-// //         <View>
-// //           <WaveThingy/>
-// //           <Image
-// //           source={icons.comsats}
-// //           className='-mt-28 items-center justify-center self-center'/>
-// //         </View>
-
-// //         <View className="items-center justify-center mt-10 space-y-3">
-// //           <Text className="font-pmedium text-4xl leading-tight">To Get Started</Text>
-// //           <Text className="font-pregular text-xs leading-tight">Allow Location Access</Text>
-// //         </View>
-
-// //         <CommonButton
-// //          text='Share live location'
-// //          textStyle={{color:'black', fontSize:16,}}
-// //          buttonStyle={{justifyContent:'center', alignItems:'center' , alignSelf:'center', marginTop:130 , width:'69%' ,}}
-// //          onPress={()=>router.push('/who')}/>
-
-// //          <View className="mt-5">
-// //           <Text className="mt-1 text-xs font-pthin italic text-center">Enable location to assist with navigation and</Text>
-// //           <Text className="mt-1 text-xs font-pthin italic text-center">enhance campus security response</Text>
-// //          </View>
-
-// //       </View>
-
-// //     </SafeAreaView>
-// //   )
-// // }
-
-// // export default onBoarding
-
-// import React, { useContext, useEffect } from 'react';
-// import { View, Text, Image } from 'react-native';
-// import '../global.css';
-// import { router } from 'expo-router';
-// import { SafeAreaView } from 'react-native-safe-area-context';
-// import icons from '../constants/icons';
-// import CommonButton from '@/components/CommonButton';
-// import WaveThingy from '@/components/WaveThingy';
-// import { AuthContext } from '../Context/AuthContext'; // 👈 Import your context
-
-// const OnBoarding = () => {
-//   const { user } = useContext(AuthContext); // 👈 Access the logged-in user
-
-//   useEffect(() => {
-//     // If already logged in, skip onboarding
-//     if (user) {
-//       router.replace('/(tabs)/Home'); // 👈 Change this to your actual main screen
-//     }
-//   }, [user]);
-
-//   return (
-//     <SafeAreaView>
-//       <View>
-//         <View>
-//           <Image
-//             source={icons.blueelipse}
-//             className="w-full h-50%"
-//             resizeMode="cover"
-//           />
-//         </View>
-
-//         <View>
-//           <WaveThingy />
-//           <Image
-//             source={icons.comsats}
-//             className="-mt-28 items-center justify-center self-center"
-//           />
-//         </View>
-
-//         <View className="items-center justify-center mt-10 space-y-3">
-//           <Text className="font-pmedium text-4xl leading-tight">To Get Started</Text>
-//           <Text className="font-pregular text-xs leading-tight">
-//             Allow Location Access
-//           </Text>
-//         </View>
-
-//         <CommonButton
-//           text="Share live location"
-//           textStyle={{ color: 'black', fontSize: 16 }}
-//           buttonStyle={{
-//             justifyContent: 'center',
-//             alignItems: 'center',
-//             alignSelf: 'center',
-//             marginTop: 130,
-//             width: '69%',
-//           }}
-//           onPress={() => router.push('/who')}
-//         />
-
-//         <View className="mt-5">
-//           <Text className="mt-1 text-xs font-pthin italic text-center">
-//             Enable location to assist with navigation and
-//           </Text>
-//           <Text className="mt-1 text-xs font-pthin italic text-center">
-//             enhance campus security response
-//           </Text>
-//         </View>
-//       </View>
-//     </SafeAreaView>
-//   );
-// };
-
-// export default OnBoarding;
-
+// Onboarding / Share Live Location screen
 import CommonButton from "@/components/CommonButton";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
+  Dimensions,
   Image,
   StatusBar,
   StyleSheet,
   Text,
   View,
 } from "react-native";
-import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
+import Animated, {
+  FadeInDown,
+  FadeInUp,
+  ZoomIn,
+} from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import icons from "../constants/icons";
 import { useLocation } from "../Context/LocationContext";
+
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+
+const FEATURES = [
+  { icon: "map-marker-path", label: "Campus Navigation" },
+  { icon: "alert-octagon-outline", label: "Emergency Alerts" },
+  { icon: "shield-account-outline", label: "Guard Tracking" },
+];
 
 const OnBoarding = () => {
   const { fetchUserLocation } = useLocation();
@@ -168,173 +47,319 @@ const OnBoarding = () => {
   };
 
   return (
-    <LinearGradient colors={["#F8FAFC", "#E2E8F0"]} style={styles.background}>
-      <StatusBar barStyle="dark-content" />
-      <SafeAreaView style={styles.safeArea}>
-        {/* Logo area */}
-        <Animated.View entering={FadeInDown.delay(100)} style={styles.logoArea}>
-          <View style={styles.logoCard}>
-            <Image
-              source={icons.comsats}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-          </View>
-          <Text style={styles.appName}>UniMate</Text>
-          <Text style={styles.tagline}>Your Smart Campus Companion</Text>
-        </Animated.View>
+    <View style={styles.root}>
+      <StatusBar barStyle="light-content" />
 
-        {/* Content card */}
-        <Animated.View entering={FadeInDown.delay(300)} style={styles.card}>
-          {/* Icon badge */}
+      {/* ── Dark hero section ── */}
+      <LinearGradient
+        colors={["#1A202C", "#2D3748"]}
+        style={styles.hero}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
+        <SafeAreaView style={styles.heroInner} edges={["top"]}>
+          {/* Decorative circles */}
+          <View style={[styles.circle, styles.circleLarge]} />
+          <View style={[styles.circle, styles.circleSmall]} />
+
+          {/* Logo */}
+          <Animated.View
+            entering={ZoomIn.delay(100).duration(500)}
+            style={styles.logoWrap}
+          >
+            <View style={styles.logoRing}>
+              <View style={styles.logoCard}>
+                <Image
+                  source={icons.comsats}
+                  style={styles.logo}
+                  resizeMode="contain"
+                />
+              </View>
+            </View>
+          </Animated.View>
+
+          {/* Branding */}
+          <Animated.View
+            entering={FadeInDown.delay(300)}
+            style={styles.brandBlock}
+          >
+            <Text style={styles.appName}>UniMate</Text>
+            <Text style={styles.tagline}>Smart Campus Companion</Text>
+          </Animated.View>
+
+          {/* Feature pills */}
+          <Animated.View
+            entering={FadeInDown.delay(450)}
+            style={styles.pillsRow}
+          >
+            {FEATURES.map((f) => (
+              <View key={f.label} style={styles.pill}>
+                <MaterialCommunityIcons
+                  name={f.icon as any}
+                  size={14}
+                  color="#CBD5E0"
+                />
+                <Text style={styles.pillText}>{f.label}</Text>
+              </View>
+            ))}
+          </Animated.View>
+        </SafeAreaView>
+      </LinearGradient>
+
+      {/* ── White CTA card ── */}
+      <Animated.View
+        entering={FadeInUp.delay(300).duration(500)}
+        style={styles.card}
+      >
+        {/* Location icon badge */}
+        <View style={styles.iconRing}>
           <View style={styles.iconBadge}>
-            <Ionicons name="location" size={28} color="#2D3748" />
+            <Ionicons name="location" size={28} color="#fff" />
           </View>
+        </View>
 
-          <Text style={styles.headline}>Enable Location</Text>
-          <Text style={styles.subtitle}>
-            Allow UniMate to access your location to assist with campus
-            navigation and enhance security response.
+        <Text style={styles.cardHeadline}>Enable Location Access</Text>
+        <Text style={styles.cardSubtitle}>
+          UniMate uses your location to guide you around campus and assist
+          security teams in real time.
+        </Text>
+
+        {/* CTA */}
+        {loading ? (
+          <ActivityIndicator
+            size="large"
+            color="#2D3748"
+            style={styles.loader}
+          />
+        ) : (
+          <CommonButton
+            text="Share Live Location"
+            iconName="location-outline"
+            textStyle={styles.buttonText}
+            buttonStyle={styles.button}
+            onPress={handleShareLocation}
+          />
+        )}
+
+        {/* Trust line */}
+        <View style={styles.trustRow}>
+          <Ionicons name="lock-closed-outline" size={12} color="#94A3B8" />
+          <Text style={styles.trustText}>
+            Used only within campus · Never shared externally
           </Text>
+        </View>
 
-          {loading ? (
-            <ActivityIndicator
-              size="large"
-              color="#2D3748"
-              style={styles.loader}
-            />
-          ) : (
-            <CommonButton
-              text="Share Live Location"
-              iconName="location-outline"
-              textStyle={styles.buttonText}
-              buttonStyle={styles.button}
-              onPress={handleShareLocation}
-            />
-          )}
-
-          <Text style={styles.disclaimer}>
-            Your location is only used within the campus for your safety.
-          </Text>
-        </Animated.View>
-
-        {/* Footer */}
-        <Animated.Text entering={FadeInUp.delay(500)} style={styles.footer}>
-          COMSATS University Islamabad
-        </Animated.Text>
-      </SafeAreaView>
-    </LinearGradient>
+        {/* University name */}
+        <Text style={styles.university}>COMSATS University Islamabad</Text>
+      </Animated.View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  background: { flex: 1 },
-  safeArea: {
+  root: {
+    flex: 1,
+    backgroundColor: "#F8FAFC",
+  },
+
+  /* Hero */
+  hero: {
+    height: SCREEN_HEIGHT * 0.52,
+    overflow: "hidden",
+  },
+  heroInner: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
+    gap: 16,
     paddingHorizontal: 24,
-    gap: 28,
   },
-  logoArea: {
+
+  /* Decorative background circles */
+  circle: {
+    position: "absolute",
+    borderRadius: 999,
+    backgroundColor: "rgba(255,255,255,0.04)",
+  },
+  circleLarge: {
+    width: 300,
+    height: 300,
+    top: -80,
+    right: -80,
+  },
+  circleSmall: {
+    width: 180,
+    height: 180,
+    bottom: -40,
+    left: -40,
+  },
+
+  /* Logo */
+  logoWrap: {
     alignItems: "center",
-    gap: 8,
+    justifyContent: "center",
+  },
+  logoRing: {
+    width: 108,
+    height: 108,
+    borderRadius: 32,
+    borderWidth: 1.5,
+    borderColor: "rgba(255,255,255,0.15)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   logoCard: {
-    width: 90,
-    height: 90,
+    width: 88,
+    height: 88,
     borderRadius: 24,
     backgroundColor: "#fff",
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 6,
-    marginBottom: 4,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 10,
   },
   logo: {
-    width: 64,
-    height: 64,
+    width: 60,
+    height: 60,
+  },
+
+  /* Branding */
+  brandBlock: {
+    alignItems: "center",
+    gap: 4,
   },
   appName: {
-    fontSize: 30,
+    fontSize: 34,
     fontWeight: "800",
-    color: "#1E293B",
+    color: "#fff",
     letterSpacing: -0.5,
   },
   tagline: {
     fontSize: 14,
-    color: "#64748B",
+    color: "rgba(255,255,255,0.6)",
     fontWeight: "500",
+    letterSpacing: 0.2,
   },
-  card: {
-    width: "100%",
-    backgroundColor: "rgba(255,255,255,0.85)",
-    borderRadius: 24,
-    padding: 28,
+
+  /* Feature pills */
+  pillsRow: {
+    flexDirection: "row",
+    gap: 8,
+    flexWrap: "wrap",
+    justifyContent: "center",
+    marginTop: 4,
+  },
+  pill: {
+    flexDirection: "row",
     alignItems: "center",
+    gap: 5,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.9)",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.07,
-    shadowRadius: 16,
-    elevation: 4,
-    gap: 12,
+    borderColor: "rgba(255,255,255,0.12)",
   },
-  iconBadge: {
-    width: 60,
-    height: 60,
-    borderRadius: 18,
-    backgroundColor: "#EEF2FF",
+  pillText: {
+    fontSize: 11,
+    color: "#CBD5E0",
+    fontWeight: "600",
+  },
+
+  /* Card */
+  card: {
+    flex: 1,
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    marginTop: -24,
+    paddingHorizontal: 28,
+    paddingTop: 36,
+    paddingBottom: 24,
+    alignItems: "center",
+    gap: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+
+  /* Location badge */
+  iconRing: {
+    width: 72,
+    height: 72,
+    borderRadius: 22,
+    borderWidth: 1.5,
+    borderColor: "#E2E8F0",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 4,
   },
-  headline: {
+  iconBadge: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    backgroundColor: "#2D3748",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  cardHeadline: {
     fontSize: 22,
     fontWeight: "700",
     color: "#1E293B",
     textAlign: "center",
+    letterSpacing: -0.3,
   },
-  subtitle: {
+  cardSubtitle: {
     fontSize: 14,
     color: "#64748B",
     textAlign: "center",
     lineHeight: 22,
-    paddingHorizontal: 4,
+    paddingHorizontal: 8,
   },
+
   loader: {
-    marginTop: 8,
-    marginBottom: 8,
+    marginVertical: 8,
   },
   button: {
-    width: "85%",
-    height: 48,
+    width: "88%",
+    height: 50,
     borderRadius: 14,
     backgroundColor: "#2D3748",
     alignSelf: "center",
-    marginTop: 8,
+    marginTop: 4,
   },
   buttonText: {
-    color: "white",
+    color: "#fff",
     fontSize: 15,
+    fontWeight: "600",
   },
-  disclaimer: {
+
+  /* Trust row */
+  trustRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    marginTop: 2,
+  },
+  trustText: {
     fontSize: 11,
     color: "#94A3B8",
     textAlign: "center",
-    fontStyle: "italic",
-    marginTop: 4,
   },
-  footer: {
-    fontSize: 12,
-    color: "#94A3B8",
-    textAlign: "center",
-    fontWeight: "500",
-    letterSpacing: 0.3,
+
+  /* Footer */
+  university: {
+    fontSize: 11,
+    color: "#CBD5E0",
+    fontWeight: "600",
+    letterSpacing: 0.4,
+    marginTop: 4,
   },
 });
 

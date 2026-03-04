@@ -1,4 +1,3 @@
-
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 const TAG_SIZE = 36;
@@ -19,7 +18,7 @@ export default function MapTag({ title, left, top, onPress }: MapTagProps) {
         width: TAG_SIZE,
         height: TAG_SIZE,
         borderRadius: TAG_SIZE / 2,
-        backgroundColor: "#0284c7",
+        backgroundColor: "#2D3748",
         borderWidth: 2,
         borderColor: "#ffffff",
         alignItems: "center",
@@ -36,7 +35,8 @@ export default function MapTag({ title, left, top, onPress }: MapTagProps) {
         top: top - TAG_SIZE / 2,
       }}
       accessibilityRole="button"
-      accessibilityLabel={`Open profile for ${title}`}>
+      accessibilityLabel={`Open profile for ${title}`}
+    >
       <View style={styles.inner}>
         <Text style={styles.label} numberOfLines={1} adjustsFontSizeToFit>
           {title}
