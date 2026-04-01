@@ -21,22 +21,57 @@ import Animated, { FadeInDown, FadeInUp, Layout } from "react-native-reanimated"
 import { queryUniMate, ChatMessage } from "../../utils/chatbotService";
 import { AuthContext } from "../../Context/AuthContext";
 import { BlurView } from "expo-blur";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get("window");
 
 const ChatScreen: React.FC = () => {
   const router = useRouter();
   const { user } = useContext(AuthContext) || {};
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      role: "bot",
-      content: `👋 Hi ${user?.name || "there"}! I'm UniMate. Ask me anything about COMSATS Lahore academics, faculty, or campus.`,
-    },
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isReady, setIsReady] = useState<boolean>(false);
 
   const [input, setInput] = useState<string>("");
   const [isTyping, setIsTyping] = useState<boolean>(false);
   const scrollRef = useRef<ScrollView | null>(null);
+
+  useEffect(() => {
+    const loadChatHistory = async () => {
+      try {
+        const savedMessages = await AsyncStorage.getItem("chatbot_history");
+        if (savedMessages) {
+          setMessages(JSON.parse(savedMessages));
+        } else {
+          setMessages([
+            {
+              role: "bot",
+              content: `👋 Hi ${user?.name || "there"}! I'm UniMate. Ask me anything about COMSATS Lahore academics, faculty, or campus.`,
+            },
+          ]);
+        }
+      } catch (error) {
+        console.error("Failed to load chat history:", error);
+      } finally {
+        setIsReady(true);
+      }
+    };
+    loadChatHistory();
+  }, [user]);
+
+  useEffect(() => {
+    if (isReady && messages.length > 0) {
+      AsyncStorage.setItem("chatbot_history", JSON.stringify(messages)).catch(console.error);
+    }
+  }, [messages, isReady]);
+
+  const clearChat = () => {
+    const defaultMsg: ChatMessage = {
+      role: "bot",
+      content: `👋 Hi ${user?.name || "there"}! I'm UniMate. Ask me anything about COMSATS Lahore academics, faculty, or campus.`,
+    };
+    setMessages([defaultMsg]);
+    AsyncStorage.removeItem("chatbot_history").catch(console.error);
+  };
 
   const handleSend = async () => {
     if (!input.trim() || isTyping) return;
@@ -83,7 +118,9 @@ const ChatScreen: React.FC = () => {
               <Text style={styles.headerSubtitle}>Always here to help</Text>
             </View>
           </View>
-          <Ionicons name="sparkles" size={20} color="#90CDF4" />
+          <TouchableOpacity onPress={clearChat} style={{ padding: 4 }}>
+            <Ionicons name="trash-outline" size={20} color="#94A3B8" />
+          </TouchableOpacity>
         </View>
       </LinearGradient>
 
@@ -93,12 +130,13 @@ const ChatScreen: React.FC = () => {
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
         <View style={styles.chatArea}>
-          <ScrollView
-            ref={scrollRef}
-            style={{ flex: 1 }}
-            contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
-            keyboardShouldPersistTaps="handled"
-          >
+          {isReady ? (
+            <ScrollView
+              ref={scrollRef}
+              style={{ flex: 1 }}
+              contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
+              keyboardShouldPersistTaps="handled"
+            >
             {messages.map((msg, index) => (
               <Animated.View 
                 key={index} 
@@ -150,7 +188,12 @@ const ChatScreen: React.FC = () => {
                 </View>
               </Animated.View>
             )}
-          </ScrollView>
+            </ScrollView>
+          ) : (
+            <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+              <ActivityIndicator size="small" color="#3182CE" />
+            </View>
+          )}
 
           {/* Input Area */}
           <BlurView intensity={80} tint="light" style={styles.inputContainer}>
