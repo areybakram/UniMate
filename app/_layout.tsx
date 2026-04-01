@@ -8,6 +8,8 @@ import { LocationProvider } from "../Context/LocationContext";
 
 SplashScreen.preventAutoHideAsync();
 
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+
 const _layout = () => {
   console.log("Rendering _layout");
   const [fontsLoaded, error] = useFonts({
@@ -30,18 +32,20 @@ const _layout = () => {
   if (!fontsLoaded && !error) return null;
 
   return (
-    <AuthProvider>
-      <DrawerProvider>
-        <LocationProvider>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="index" />
-            <Stack.Screen name="(auth)" />
-            <Stack.Screen name="(screens)" />
-            <Stack.Screen name="(tabs)" />
-          </Stack>
-        </LocationProvider>
-      </DrawerProvider>
-    </AuthProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <AuthProvider>
+        <DrawerProvider>
+          <LocationProvider>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="index" />
+              <Stack.Screen name="(auth)" />
+              <Stack.Screen name="(screens)" />
+              <Stack.Screen name="(tabs)" />
+            </Stack>
+          </LocationProvider>
+        </DrawerProvider>
+      </AuthProvider>
+    </GestureHandlerRootView>
   );
 };
 

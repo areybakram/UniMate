@@ -13,13 +13,26 @@ import {
   TouchableOpacity,
   View,
   Alert,
+  Dimensions,
 } from "react-native";
-import Animated, { FadeInDown, FadeInRight } from "react-native-reanimated";
-import { supabase } from "../../../supabaseClient";
-import DropdownModal from "@/components/DropdownModal";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { extractCoursesFromImage, ExtractedCourse } from "@/utils/geminiService";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import Animated, { 
+  FadeInDown, 
+  FadeInRight, 
+  useAnimatedStyle, 
+  useSharedValue, 
+  withSpring,
+  runOnJS,
+  withTiming
+} from "react-native-reanimated";
+import { saveAttendance, loadAttendance, removeAttendance, AttendanceRecord } from "@/utils/attendanceService";
+import { supabase } from "../../../supabaseClient";
+import DropdownModal from "@/components/DropdownModal";
+
+const { width } = Dimensions.get("window");
 
 interface TimetableItem {
   id: string;
@@ -35,6 +48,107 @@ interface TimetableItem {
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
+interface ClassCardProps {
+  item: TimetableItem;
+  index: number;
+  isToday: boolean;
+  isTaken: boolean;
+  onMarkTaken: (id: string) => void;
+  onResetTaken: (id: string) => void;
+  status: "ongoing" | "finished" | "upcoming" | null;
+}
+
+const ClassCard: React.FC<ClassCardProps> = ({ item, index, isToday, isTaken, onMarkTaken, onResetTaken, status }) => {
+  const isOngoing = status === "ongoing";
+  const isFinished = status === "finished";
+  const translateX = useSharedValue(0);
+  
+  const panGesture = Gesture.Pan()
+    .enabled(isToday)
+    .onUpdate((event) => {
+      translateX.value = event.translationX;
+    })
+    .onEnd((event) => {
+      if (event.translationX > 100 && !isTaken) {
+        translateX.value = withSpring(0);
+        runOnJS(onMarkTaken)(item.id);
+      } else if (event.translationX < -100 && isTaken) {
+        translateX.value = withSpring(0);
+        runOnJS(onResetTaken)(item.id);
+      } else {
+        translateX.value = withSpring(0);
+      }
+    });
+
+  const animatedCardStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
+
+  return (
+    <View style={styles.swipeContainer}>
+      <GestureDetector gesture={panGesture}>
+        <Animated.View
+          entering={FadeInDown.delay(index * 100)}
+          style={[
+            styles.cardContainer, 
+            isOngoing && styles.activeCard,
+            isFinished && !isTaken && styles.finishedCard,
+            animatedCardStyle
+          ]}
+        >
+          <View style={styles.timeSection}>
+            <Text style={[styles.startTime, (isFinished || isTaken) && styles.finishedText]}>
+              {item.start_time.slice(0, 5)}
+            </Text>
+            <View style={styles.timeDivider} />
+            <Text style={[styles.endTime, (isFinished || isTaken) && styles.finishedText]}>
+              {item.end_time.slice(0, 5)}
+            </Text>
+          </View>
+
+          <View style={styles.detailsSection}>
+            <View style={styles.subjectRow}>
+              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Text style={[styles.subjectText, (isFinished || isTaken) && styles.finishedText]}>
+                  {item.subject}
+                </Text>
+                {isTaken && <Ionicons name="checkmark-circle" size={16} color="#10B981" />}
+              </View>
+              {isOngoing && !isTaken && (
+                <View style={styles.liveBadge}>
+                  <View style={styles.liveDot} />
+                  <Text style={styles.liveText}>ONGOING</Text>
+                </View>
+              )}
+              {isFinished && !isTaken && (
+                <View style={styles.finishedBadge}>
+                  <Ionicons name="time-outline" size={12} color="#94a3b8" />
+                  <Text style={styles.finishedBadgeText}>FINISHED</Text>
+                </View>
+              )}
+            </View>
+            
+            <Text style={[styles.courseCode, (isFinished || isTaken) && { color: "#94a3b8" }]}>
+              {item.course_code}
+            </Text>
+            
+            <View style={styles.metaRow}>
+              <View style={styles.metaItem}>
+                <Ionicons name="person" size={14} color="#64748b" />
+                <Text style={styles.metaText}>{item.teacher_name}</Text>
+              </View>
+              <View style={styles.metaItem}>
+                <Ionicons name="location" size={14} color="#64748b" />
+                <Text style={styles.metaText}>Room: {item.room}</Text>
+              </View>
+            </View>
+          </View>
+        </Animated.View>
+      </GestureDetector>
+    </View>
+  );
+};
+
 export default function TimetableScreen() {
   const [selectedDay, setSelectedDay] = useState(DAYS[new Date().getDay() - 1] || DAYS[0]);
   const [classes, setClasses] = useState<TimetableItem[]>([]);
@@ -46,6 +160,7 @@ export default function TimetableScreen() {
   const [personalCourses, setPersonalCourses] = useState<ExtractedCourse[]>([]);
   const [unmatchedCourses, setUnmatchedCourses] = useState<ExtractedCourse[]>([]);
   const [isAiProcessing, setIsAiProcessing] = useState(false);
+  const [attendance, setAttendance] = useState<AttendanceRecord>({});
 
   const fetchAvailableBatches = async () => {
     try {
@@ -56,8 +171,8 @@ export default function TimetableScreen() {
       if (error) throw error;
       
       const uniqueBatches = Array.from(
-        new Set((data || []).map((item) => item.batch_code))
-      ).sort();
+        new Set((data || []).map((item: any) => item.batch_code))
+      ).sort() as string[];
       setAvailableBatches(uniqueBatches);
     } catch (error) {
       console.error("Error fetching batches:", error);
@@ -70,15 +185,10 @@ export default function TimetableScreen() {
       let query = supabase.from("timetables").select("*").eq("day", selectedDay);
 
       if (isPersonalized && personalCourses.length > 0) {
-        // Use ilike for case-insensitive matching in the logic tree
         const filterStr = personalCourses
           .map((c) => `and(course_code.ilike.${c.course_code},batch_code.ilike.${c.batch_code})`)
           .join(",");
         
-        console.log("--- FINAL SUPABASE FILTER ---");
-        console.log(filterStr);
-
-        // Fetch ALL personalized classes for ALL days to find unmatched ones
         const { data: allPersonalData, error: allErr } = await supabase
           .from("timetables")
           .select("*")
@@ -86,18 +196,15 @@ export default function TimetableScreen() {
 
         if (allErr) throw allErr;
 
-        // Find courses from Gemini that aren't in the DB at all (case-insensitive check)
-        const foundCourseCodes = new Set(allPersonalData?.map(c => c.course_code.toUpperCase()));
+        const foundCourseCodes = new Set(allPersonalData?.map((c: any) => c.course_code.toUpperCase()));
         const missing = personalCourses.filter(pc => !foundCourseCodes.has(pc.course_code.toUpperCase()));
         setUnmatchedCourses(missing);
 
-        // Now filter for the selected day
-        const dayClasses = allPersonalData?.filter(c => c.day === selectedDay).sort((a, b) => 
+        const dayClasses = allPersonalData?.filter((c: any) => c.day === selectedDay).sort((a: any, b: any) => 
           a.start_time.localeCompare(b.start_time)
         );
         setClasses(dayClasses || []);
       } else {
-        // Simple mode: show everything for a single batch
         const { data, error } = await query
           .eq("batch_code", batchCode)
           .order("start_time");
@@ -114,10 +221,8 @@ export default function TimetableScreen() {
 
   const handlePersonalizeToggle = async () => {
     if (personalCourses.length > 0) {
-      // Toggle if already has data
       setIsPersonalized(!isPersonalized);
     } else {
-      // Otherwise, open picker
       await startPersonalizationFlow();
     }
   };
@@ -157,7 +262,6 @@ export default function TimetableScreen() {
     const savedData = await AsyncStorage.getItem("personal_timetable");
     if (savedData) {
       setPersonalCourses(JSON.parse(savedData));
-      // Keep isPersonalized as false by default as requested
     }
   };
 
@@ -178,9 +282,15 @@ export default function TimetableScreen() {
     await AsyncStorage.removeItem("personal_timetable");
   };
 
+  const refreshAttendance = async () => {
+    const data = await loadAttendance();
+    setAttendance(data);
+  };
+
   useEffect(() => {
     fetchAvailableBatches();
     loadPersonalizedData();
+    refreshAttendance();
   }, []);
 
   useEffect(() => {
@@ -206,61 +316,19 @@ export default function TimetableScreen() {
     return "upcoming";
   };
 
-  const renderClassCard = ({ item, index }: { item: TimetableItem; index: number }) => {
-    const status = getClassStatus(item.start_time, item.end_time);
-    const isOngoing = status === "ongoing";
-    const isFinished = status === "finished";
-    
-    return (
-      <View key={item.id || `${item.course_code}-${index}`}>
-        <Animated.View
-          entering={FadeInDown.delay(index * 100)}
-          style={[
-            styles.cardContainer, 
-            isOngoing && styles.activeCard,
-            isFinished && styles.finishedCard
-          ]}
-        >
-          <View style={styles.timeSection}>
-            <Text style={[styles.startTime, isFinished && styles.finishedText]}>{item.start_time.slice(0, 5)}</Text>
-            <View style={styles.timeDivider} />
-            <Text style={[styles.endTime, isFinished && styles.finishedText]}>{item.end_time.slice(0, 5)}</Text>
-          </View>
-
-          <View style={styles.detailsSection}>
-            <View style={styles.subjectRow}>
-              <Text style={[styles.subjectText, isFinished && styles.finishedText]}>{item.subject}</Text>
-              {isOngoing && (
-                <View style={styles.liveBadge}>
-                  <View style={styles.liveDot} />
-                  <Text style={styles.liveText}>ONGOING</Text>
-                </View>
-              )}
-              {isFinished && (
-                <View style={styles.finishedBadge}>
-                  <Ionicons name="checkmark-circle" size={12} color="#94a3b8" />
-                  <Text style={styles.finishedBadgeText}>FINISHED</Text>
-                </View>
-              )}
-            </View>
-            
-            <Text style={[styles.courseCode, isFinished && { color: "#94a3b8" }]}>{item.course_code}</Text>
-            
-            <View style={styles.metaRow}>
-              <View style={styles.metaItem}>
-                <Ionicons name="person" size={14} color="#64748b" />
-                <Text style={styles.metaText}>{item.teacher_name}</Text>
-              </View>
-              <View style={styles.metaItem}>
-                <Ionicons name="location" size={14} color="#64748b" />
-                <Text style={styles.metaText}>Room: {item.room}</Text>
-              </View>
-            </View>
-          </View>
-        </Animated.View>
-      </View>
-    );
+  const handleMarkTaken = async (classId: string) => {
+    await saveAttendance(classId, "taken");
+    await refreshAttendance();
   };
+
+  const handleResetTaken = async (classId: string) => {
+    await removeAttendance(classId);
+    await refreshAttendance();
+  };
+
+  const now = new Date();
+  const currentDay = DAYS[now.getDay() - 1] || DAYS[0];
+  const isToday = selectedDay === currentDay;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -353,7 +421,18 @@ export default function TimetableScreen() {
             )}
 
             {classes.length > 0 ? (
-              classes.map((item, index) => renderClassCard({ item, index }))
+              classes.map((item, index) => (
+                <ClassCard 
+                  key={item.id || `${item.course_code}-${index}`}
+                  item={item}
+                  index={index}
+                  isToday={isToday}
+                  isTaken={isToday && attendance[item.id] === 'taken'}
+                  onMarkTaken={handleMarkTaken}
+                  onResetTaken={handleResetTaken}
+                  status={getClassStatus(item.start_time, item.end_time)}
+                />
+              ))
             ) : (
               <View style={styles.emptyState}>
                 <Ionicons name="cafe-outline" size={80} color="#e2e8f0" />
@@ -594,8 +673,6 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: "700",
     color: "#1e293b",
-    flex: 1,
-    marginRight: 8,
   },
   courseCode: {
     fontSize: 12,
@@ -700,5 +777,46 @@ const styles = StyleSheet.create({
     color: "#94a3b8",
     fontSize: 13,
     fontWeight: "700",
+  },
+  swipeContainer: {
+    position: "relative",
+    marginBottom: 16,
+  },
+  swipeBackground: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    bottom: 0,
+    right: 0,
+    backgroundColor: "#10B981",
+    borderRadius: 24,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    gap: 12,
+  },
+  swipeText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  takenCard: {
+    backgroundColor: "#ecfdf5",
+    borderColor: "#10B981",
+    opacity: 0.8,
+  },
+  takenBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#d1fae5",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    gap: 4,
+  },
+  takenText: {
+    color: "#065f46",
+    fontSize: 10,
+    fontWeight: "800",
   },
 });
