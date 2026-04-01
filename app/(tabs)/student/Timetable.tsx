@@ -202,14 +202,14 @@ export default function TimetableScreen() {
     const eTime = endH * 3600 + endM * 60;
     
     if (currentTime >= sTime && currentTime <= eTime) return "ongoing";
-    if (currentTime > eTime) return "missed";
+    if (currentTime > eTime) return "finished";
     return "upcoming";
   };
 
   const renderClassCard = ({ item, index }: { item: TimetableItem; index: number }) => {
     const status = getClassStatus(item.start_time, item.end_time);
     const isOngoing = status === "ongoing";
-    const isMissed = status === "missed";
+    const isFinished = status === "finished";
     
     return (
       <View key={item.id || `${item.course_code}-${index}`}>
@@ -218,33 +218,33 @@ export default function TimetableScreen() {
           style={[
             styles.cardContainer, 
             isOngoing && styles.activeCard,
-            isMissed && styles.missedCard
+            isFinished && styles.finishedCard
           ]}
         >
           <View style={styles.timeSection}>
-            <Text style={[styles.startTime, isMissed && styles.missedText]}>{item.start_time.slice(0, 5)}</Text>
+            <Text style={[styles.startTime, isFinished && styles.finishedText]}>{item.start_time.slice(0, 5)}</Text>
             <View style={styles.timeDivider} />
-            <Text style={[styles.endTime, isMissed && styles.missedText]}>{item.end_time.slice(0, 5)}</Text>
+            <Text style={[styles.endTime, isFinished && styles.finishedText]}>{item.end_time.slice(0, 5)}</Text>
           </View>
 
           <View style={styles.detailsSection}>
             <View style={styles.subjectRow}>
-              <Text style={[styles.subjectText, isMissed && styles.missedText]}>{item.subject}</Text>
+              <Text style={[styles.subjectText, isFinished && styles.finishedText]}>{item.subject}</Text>
               {isOngoing && (
                 <View style={styles.liveBadge}>
                   <View style={styles.liveDot} />
                   <Text style={styles.liveText}>ONGOING</Text>
                 </View>
               )}
-              {isMissed && (
-                <View style={styles.missedBadge}>
-                  <Ionicons name="close-circle" size={12} color="#ef4444" />
-                  <Text style={styles.missedBadgeText}>MISSED</Text>
+              {isFinished && (
+                <View style={styles.finishedBadge}>
+                  <Ionicons name="checkmark-circle" size={12} color="#94a3b8" />
+                  <Text style={styles.finishedBadgeText}>FINISHED</Text>
                 </View>
               )}
             </View>
             
-            <Text style={styles.courseCode}>{item.course_code}</Text>
+            <Text style={[styles.courseCode, isFinished && { color: "#94a3b8" }]}>{item.course_code}</Text>
             
             <View style={styles.metaRow}>
               <View style={styles.metaItem}>
@@ -551,6 +551,10 @@ const styles = StyleSheet.create({
     borderColor: "#3b82f6",
     backgroundColor: "#f0f9ff",
   },
+  finishedCard: {
+    backgroundColor: "#f8fafc",
+    opacity: 0.7,
+  },
   timeSection: {
     alignItems: "center",
     justifyContent: "center",
@@ -639,20 +643,20 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff5f5",
     borderColor: "#feb2b2",
   },
-  missedText: {
-    color: "#9b2c2c",
+  finishedText: {
+    color: "#94a3b8",
   },
-  missedBadge: {
+  finishedBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#ffe4e6",
+    backgroundColor: "#f1f5f9",
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 8,
     gap: 4,
   },
-  missedBadgeText: {
-    color: "#e11d48",
+  finishedBadgeText: {
+    color: "#64748b",
     fontSize: 10,
     fontWeight: "800",
   },
