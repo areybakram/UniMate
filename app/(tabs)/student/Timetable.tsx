@@ -28,7 +28,7 @@ import Animated, {
   runOnJS,
   withTiming
 } from "react-native-reanimated";
-import { saveAttendance, loadAttendance, removeAttendance, AttendanceRecord } from "@/utils/attendanceService";
+import { saveAttendance, loadAttendance, removeAttendance, AttendanceRecord, clearAllAttendance } from "@/utils/attendanceService";
 import { supabase } from "../../../supabaseClient";
 import DropdownModal from "@/components/DropdownModal";
 
@@ -279,7 +279,15 @@ export default function TimetableScreen() {
   const resetToBatch = async () => {
     setIsPersonalized(false);
     setUnmatchedCourses([]);
+    setPersonalCourses([]);
     await AsyncStorage.removeItem("personal_timetable");
+    await clearAllAttendance();
+    await refreshAttendance();
+    if (availableBatches.length > 0) {
+      setBatchCode(availableBatches[0]); // fallback to first available
+    } else {
+      setBatchCode("SP24-BCS-A"); 
+    }
   };
 
   const refreshAttendance = async () => {

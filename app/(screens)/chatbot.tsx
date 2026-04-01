@@ -1,5 +1,4 @@
-import Fuse from "fuse.js";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useContext } from "react";
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -9,226 +8,55 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ActivityIndicator,
+  Dimensions,
+  StatusBar,
+  StyleSheet,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useRouter } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
+import Animated, { FadeInDown, FadeInUp, Layout } from "react-native-reanimated";
+import { queryUniMate, ChatMessage } from "../../utils/chatbotService";
+import { AuthContext } from "../../Context/AuthContext";
+import { BlurView } from "expo-blur";
 
-import MessageBubble from "../../components/MessageBubble";
-import dataset from "../../utils/comsats_data";
-
-/* ============================= */
-/* ========= TYPES ============= */
-/* ============================= */
-
-interface Message {
-  role: "user" | "bot";
-  content: string;
-  time: string;
-}
-
-interface FacultyItem {
-  type: "faculty";
-  name: string;
-  department: string;
-  designation: string;
-  area?: string;
-  hod?: boolean;
-}
-
-interface GeneralItem {
-  type: "general";
-  question: string;
-  answer: string;
-}
-
-type DatasetItem = FacultyItem | GeneralItem;
-
-/* ============================= */
-/* ========= COMPONENT ========= */
-/* ============================= */
+const { width } = Dimensions.get("window");
 
 const ChatScreen: React.FC = () => {
-  const [messages, setMessages] = useState<Message[]>([
+  const router = useRouter();
+  const { user } = useContext(AuthContext) || {};
+  const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "bot",
-      content: "👋 Hi! Ask me anything about COMSATS Lahore.",
-      time: new Date().toISOString(),
+      content: `👋 Hi ${user?.name || "there"}! I'm UniMate. Ask me anything about COMSATS Lahore academics, faculty, or campus.`,
     },
   ]);
 
   const [input, setInput] = useState<string>("");
-  const [keyboardHeight, setKeyboardHeight] = useState<number>(0);
-
+  const [isTyping, setIsTyping] = useState<boolean>(false);
   const scrollRef = useRef<ScrollView | null>(null);
 
-  /* ============================= */
-  /* ========= FUSE SETUP ======== */
-  /* ============================= */
+  const handleSend = async () => {
+    if (!input.trim() || isTyping) return;
 
-  const fuse = new Fuse<DatasetItem>(dataset as DatasetItem[], {
-    keys: ["question", "name", "department", "designation", "area"],
-    threshold: 0.4,
-  });
-
-  /* ============================= */
-  /* ===== KEYBOARD LISTENER ===== */
-  /* ============================= */
-
-  useEffect(() => {
-    const show = Keyboard.addListener("keyboardDidShow", (e) =>
-      setKeyboardHeight(e.endCoordinates.height),
-    );
-
-    const hide = Keyboard.addListener("keyboardDidHide", () =>
-      setKeyboardHeight(0),
-    );
-
-    return () => {
-      show.remove();
-      hide.remove();
-    };
-  }, []);
-
-  /* ============================= */
-  /* ===== FACULTY LINKS ========= */
-  /* ============================= */
-
-  const facultyLinks: Record<string, string> = {
-    "management sciences": "https://lahore.comsats.edu.pk/ms/faculty.aspx",
-    "electrical engineering": "https://lahore.comsats.edu.pk/ee/faculty.aspx",
-    "computer engineering": "https://lahore.comsats.edu.pk/ce/faculty.aspx",
-    pharmacy: "https://lahore.comsats.edu.pk/pharmacy/Faculty.aspx",
-    "computer science": "https://lahore.comsats.edu.pk/cs/faculty.aspx",
-  };
-
-  /* ============================= */
-  /* ========= GET ANSWER ======== */
-  /* ============================= */
-
-  const getAnswer = (query: string): string => {
-    const lowerQuery = query.toLowerCase().trim();
-
-    /* === Greetings === */
-    const greetings = ["hi", "hello", "salam", "assalamualaikum", "hey"];
-    if (greetings.includes(lowerQuery)) {
-      return "👋 Hello! I am here to provide information about COMSATS Lahore. Ask me anything! 🎓";
-    }
-
-    /* === HOD Logic === */
-    if (
-      lowerQuery.includes("hod") ||
-      lowerQuery.includes("head of department")
-    ) {
-      const hodExact = (dataset as DatasetItem[]).find(
-        (item) =>
-          item.type === "faculty" &&
-          item.hod &&
-          lowerQuery.includes(item.department.toLowerCase()),
-      ) as FacultyItem | undefined;
-
-      if (hodExact) {
-        return `${hodExact.name} is the HOD of ${hodExact.department}.`;
-      }
-
-      for (const dept in facultyLinks) {
-        if (lowerQuery.includes(dept)) {
-          return `I couldn't find the HOD for ${dept}. You can visit the faculty page here: ${facultyLinks[dept]}`;
-        }
-      }
-
-      const hod = (dataset as DatasetItem[]).find(
-        (item) => item.type === "faculty" && item.hod,
-      ) as FacultyItem | undefined;
-
-      if (hod) {
-        return `${hod.name} is the HOD of ${hod.department}.`;
-      }
-    }
-
-    /* === Campus Info === */
-    const campusKeywords = ["campus", "campuses", "locations", "cui"];
-    if (campusKeywords.some((word) => lowerQuery.includes(word))) {
-      return "COMSATS University Islamabad has campuses in Islamabad, Abbottabad, Wah, Lahore, Attock, Sahiwal, Vehari & Virtual.";
-    }
-
-    /* === Keyword Rules === */
-    const keywordsMap = [
-      { keywords: ["library"], field: "library" },
-      { keywords: ["fee", "tuition"], field: "fee" },
-      { keywords: ["location", "where"], field: "location" },
-      { keywords: ["hostel", "dorm"], field: "hostel" },
-      { keywords: ["department"], field: "department" },
-      { keywords: ["students"], field: "students" },
-      { keywords: ["facilities"], field: "facilities" },
-      { keywords: ["n block"], field: "n block" },
-      { keywords: ["scholarship"], field: "scholarship" },
-    ];
-
-    for (const rule of keywordsMap) {
-      if (rule.keywords.some((word) => lowerQuery.includes(word))) {
-        const found = (dataset as DatasetItem[]).find(
-          (item) =>
-            item.type === "general" &&
-            item.question.toLowerCase().includes(rule.field),
-        ) as GeneralItem | undefined;
-
-        if (found) return found.answer;
-      }
-    }
-
-    /* === Fuse Search Fallback === */
-    const fuseResult = fuse.search(query)[0]?.item;
-
-    if (fuseResult) {
-      if (fuseResult.type === "faculty") {
-        return `${fuseResult.name} is ${fuseResult.designation} in ${fuseResult.department}. Area: ${fuseResult.area || "N/A"}`;
-      }
-
-      if (fuseResult.type === "general") {
-        return fuseResult.answer;
-      }
-    }
-
-    /* === Department Link Fallback === */
-    const departmentKeywords = [
-      "faculty",
-      "professor",
-      "department",
-      "hod",
-      "teacher",
-    ];
-
-    if (departmentKeywords.some((word) => lowerQuery.includes(word))) {
-      for (const dept in facultyLinks) {
-        if (lowerQuery.includes(dept)) {
-          return `I couldn't find specific info for that department or professor. Please visit the faculty page here: ${facultyLinks[dept]}`;
-        }
-      }
-    }
-
-    /* === Default === */
-    return "This information is confidential. Please visit Student Services or COMSATS official websites.";
-  };
-
-  /* ============================= */
-  /* ===== MESSAGE HANDLING ====== */
-  /* ============================= */
-
-  const addMessage = (role: "user" | "bot", content: string) => {
-    setMessages((prev) => [
-      ...prev,
-      { role, content, time: new Date().toISOString() },
-    ]);
-  };
-
-  const handleSend = () => {
-    if (!input.trim()) return;
-
-    addMessage("user", input);
+    const userQuery = input.trim();
+    const newMessages: ChatMessage[] = [...messages, { role: "user", content: userQuery }];
+    
+    setMessages(newMessages);
+    setInput("");
+    setIsTyping(true);
     Keyboard.dismiss();
 
-    const answer = getAnswer(input);
-    addMessage("bot", answer);
-
-    setInput("");
+    try {
+      const response = await queryUniMate(userQuery, messages);
+      setMessages([...newMessages, { role: "bot", content: response }]);
+    } catch (error) {
+      setMessages([...newMessages, { role: "bot", content: "Sorry, I'm having trouble thinking right now." }]);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   /* === Auto Scroll === */
@@ -236,90 +64,301 @@ const ChatScreen: React.FC = () => {
     setTimeout(() => {
       scrollRef.current?.scrollToEnd({ animated: true });
     }, 100);
-  }, [messages, keyboardHeight]);
-
-  /* ============================= */
-  /* ========= UI ================ */
-  /* ============================= */
+  }, [messages, isTyping]);
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
-    >
-      <View style={{ flex: 1, backgroundColor: "#0A5EFF" }}>
-        <View
-          style={{
-            padding: 20,
-            paddingTop: 40,
-            backgroundColor: "#0A5EFF",
-            alignItems: "center",
-          }}
-        >
-          <Text style={{ color: "#fff", fontSize: 20, fontWeight: "bold" }}>
-            COMSATS Chatbot
-          </Text>
-          <Text style={{ color: "#dbe7ff", fontSize: 12 }}>
-            Ask anything about COMSATS
-          </Text>
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" />
+      
+      {/* Header */}
+      <LinearGradient colors={["#2D3748", "#1A202C"]} style={styles.header}>
+        <View style={styles.headerContent}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <Ionicons name="chevron-back" size={24} color="#fff" />
+          </TouchableOpacity>
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.headerTitle}>UniMate Assistant</Text>
+            <View style={styles.statusRow}>
+              <View style={styles.onlineDot} />
+              <Text style={styles.headerSubtitle}>Always here to help</Text>
+            </View>
+          </View>
+          <Ionicons name="sparkles" size={20} color="#90CDF4" />
         </View>
+      </LinearGradient>
 
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: "#f5f7ff",
-            borderTopLeftRadius: 30,
-            borderTopRightRadius: 30,
-            paddingTop: 10,
-          }}
-        >
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+      >
+        <View style={styles.chatArea}>
           <ScrollView
             ref={scrollRef}
-            style={{ flex: 1, padding: 15 }}
+            style={{ flex: 1 }}
+            contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
             keyboardShouldPersistTaps="handled"
           >
             {messages.map((msg, index) => (
-              <MessageBubble key={index} message={msg} />
+              <Animated.View 
+                key={index} 
+                entering={FadeInDown.springify().delay(100)} 
+                layout={Layout.springify()}
+                style={[
+                  styles.bubbleWrapper,
+                  msg.role === "user" ? styles.userWrapper : styles.botWrapper
+                ]}
+              >
+                <View style={styles.avatarMessageRow}>
+                  {msg.role === "bot" && (
+                    <View style={[styles.avatar, styles.botAvatar]}>
+                      <MaterialCommunityIcons name="robot-outline" size={16} color="#fff" />
+                    </View>
+                  )}
+                  
+                  <View style={[
+                    styles.bubble,
+                    msg.role === "user" ? styles.userBubble : styles.botBubble
+                  ]}>
+                    <Text style={[
+                      styles.messageText,
+                      msg.role === "user" ? styles.userText : styles.botText
+                    ]}>
+                      {msg.content}
+                    </Text>
+                  </View>
+
+                  {msg.role === "user" && (
+                    <View style={[styles.avatar, styles.userAvatar]}>
+                      <Text style={styles.avatarText}>{user?.name?.charAt(0) || "U"}</Text>
+                    </View>
+                  )}
+                </View>
+              </Animated.View>
             ))}
+            
+            {isTyping && (
+              <Animated.View entering={FadeInDown} style={styles.botWrapper}>
+                <View style={styles.avatarMessageRow}>
+                  <View style={[styles.avatar, styles.botAvatar]}>
+                    <Ionicons name="sparkles" size={12} color="#fff" />
+                  </View>
+                  <View style={[styles.bubble, styles.botBubble, styles.typingContainer]}>
+                    <ActivityIndicator size="small" color="#4A5568" />
+                    <Text style={styles.typingText}>Thinking...</Text>
+                  </View>
+                </View>
+              </Animated.View>
+            )}
           </ScrollView>
 
-          <View
-            style={{
-              flexDirection: "row",
-              margin: 10,
-              backgroundColor: "#fff",
-              borderRadius: 30,
-              paddingHorizontal: 10,
-              paddingVertical: 5,
-              alignItems: "center",
-              elevation: 5,
-            }}
-          >
-            <TextInput
-              style={{ flex: 1, padding: 10, fontSize: 14 }}
-              placeholder="Type your message..."
-              value={input}
-              onChangeText={setInput}
-              multiline
-            />
-
-            <TouchableOpacity
-              onPress={handleSend}
-              style={{
-                backgroundColor: "#0A5EFF",
-                padding: 12,
-                borderRadius: 25,
-                marginLeft: 5,
-              }}
-            >
-              <Text style={{ color: "#fff", fontWeight: "bold" }}>➤</Text>
-            </TouchableOpacity>
-          </View>
+          {/* Input Area */}
+          <BlurView intensity={80} tint="light" style={styles.inputContainer}>
+            <Animated.View entering={FadeInUp.delay(300)} style={styles.inputWrapper}>
+              <TextInput
+                style={[styles.input, { maxHeight: 100 }]}
+                placeholder="Message UniMate..."
+                placeholderTextColor="#94A3B8"
+                value={input}
+                onChangeText={setInput}
+                multiline
+              />
+              <TouchableOpacity 
+                activeOpacity={0.7}
+                onPress={handleSend} 
+                style={[styles.sendButton, !input.trim() && styles.sendButtonDisabled]}
+                disabled={!input.trim() || isTyping}
+              >
+                <LinearGradient
+                  colors={!input.trim() ? ["#E2E8F0", "#CBD5E0"] : ["#3182CE", "#2C5282"]}
+                  style={styles.sendGradient}
+                >
+                  {isTyping ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Ionicons name="arrow-up" size={20} color="#fff" />
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
+            </Animated.View>
+          </BlurView>
         </View>
-      </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#2D3748",
+  },
+  header: {
+    paddingTop: Platform.OS === "ios" ? 50 : 30,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+  },
+  headerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  backButton: {
+    padding: 8,
+    marginRight: 10,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    borderRadius: 12,
+  },
+  headerTextContainer: {
+    flex: 1,
+  },
+  headerTitle: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  statusRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 2,
+  },
+  onlineDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#48BB78",
+    marginRight: 6,
+  },
+  headerSubtitle: {
+    color: "#A0AEC0",
+    fontSize: 12,
+    fontWeight: "500",
+  },
+  chatArea: {
+    flex: 1,
+    backgroundColor: "#F7FAFC",
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    overflow: "hidden",
+  },
+  bubbleWrapper: {
+    marginBottom: 20,
+    maxWidth: "85%",
+  },
+  userWrapper: {
+    alignSelf: "flex-end",
+  },
+  botWrapper: {
+    alignSelf: "flex-start",
+  },
+  avatarMessageRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    gap: 8,
+  },
+  avatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  botAvatar: {
+    backgroundColor: "#2D3748",
+  },
+  userAvatar: {
+    backgroundColor: "#3182CE",
+  },
+  avatarText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "bold",
+  },
+  bubble: {
+    padding: 14,
+    borderRadius: 20,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    flexShrink: 1,
+  },
+  userBubble: {
+    backgroundColor: "#3182CE",
+    borderBottomRightRadius: 4,
+  },
+  botBubble: {
+    backgroundColor: "#fff",
+    borderBottomLeftRadius: 4,
+    borderWidth: 1,
+    borderColor: "#F1F5F9",
+  },
+  messageText: {
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  userText: {
+    color: "#fff",
+    fontWeight: "500",
+  },
+  botText: {
+    color: "#1E293B",
+  },
+  typingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+  },
+  typingText: {
+    color: "#64748B",
+    fontSize: 13,
+    fontWeight: "500",
+  },
+  inputContainer: {
+    padding: 16,
+    paddingBottom: Platform.OS === "ios" ? 40 : 20,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(226, 232, 240, 0.5)",
+  },
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    borderRadius: 28,
+    paddingHorizontal: 6,
+    paddingVertical: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  input: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: "#1E293B",
+    minHeight: 44,
+  },
+  sendButton: {
+    width: 40,
+    height: 40,
+  },
+  sendGradient: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  sendButtonDisabled: {
+    opacity: 0.6,
+  },
+});
 
 export default ChatScreen;

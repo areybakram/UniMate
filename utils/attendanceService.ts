@@ -37,6 +37,12 @@ export const loadAttendance = async (dateKey: string = getTodayDateKey()): Promi
   return existing ? JSON.parse(existing) : {};
 };
 
+export const clearAllAttendance = async () => {
+  const dateKey = getTodayDateKey();
+  const storageKey = `attendance_${dateKey}`;
+  await AsyncStorage.removeItem(storageKey);
+};
+
 export const calculateStats = (classes: any[], attendance: AttendanceRecord) => {
   const now = new Date();
   const currentTime = now.getHours() * 3600 + now.getMinutes() * 60;
