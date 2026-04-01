@@ -4,6 +4,7 @@ import { useFonts } from "expo-font";
 import { SplashScreen, Stack } from "expo-router";
 import { useEffect } from "react";
 import { LocationProvider } from "../Context/LocationContext";
+import { NotificationProvider } from "../Context/NotificationContext";
 // import GlobalProvider from '../context/GlobalProvider'
 
 SplashScreen.preventAutoHideAsync();
@@ -34,16 +35,18 @@ const _layout = () => {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthProvider>
-        <DrawerProvider>
-          <LocationProvider>
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="index" />
-              <Stack.Screen name="(auth)" />
-              <Stack.Screen name="(screens)" />
-              <Stack.Screen name="(tabs)" />
-            </Stack>
-          </LocationProvider>
-        </DrawerProvider>
+        <NotificationProvider>
+          <DrawerProvider>
+            <LocationProvider>
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="index" />
+                <Stack.Screen name="(auth)" />
+                <Stack.Screen name="(screens)" />
+                <Stack.Screen name="(tabs)" />
+              </Stack>
+            </LocationProvider>
+          </DrawerProvider>
+        </NotificationProvider>
       </AuthProvider>
     </GestureHandlerRootView>
   );

@@ -31,6 +31,7 @@ import Animated, {
 import { saveAttendance, loadAttendance, removeAttendance, AttendanceRecord, clearAllAttendance } from "@/utils/attendanceService";
 import { supabase } from "../../../supabaseClient";
 import DropdownModal from "@/components/DropdownModal";
+import { scheduleClassReminders } from "@/utils/notificationService";
 
 const { width } = Dimensions.get("window");
 
@@ -211,6 +212,18 @@ export default function TimetableScreen() {
 
         if (error) throw error;
         setClasses(data || []);
+      }
+
+      // Re-sync notifications in background whenever timetable list changes significantly 
+      if (isPersonalized && personalCourses.length > 0) {
+          const filterStr = personalCourses
+            .map((c) => `and(course_code.ilike.${c.course_code},batch_code.ilike.${c.batch_code})`)
+            .join(",");
+          const { data: fullData } = await supabase.from("timetables").select("*").or(filterStr);
+          if (fullData) scheduleClassReminders(fullData);
+      } else if (!isPersonalized) {
+          const { data: batchData } = await supabase.from("timetables").select("*").eq("batch_code", batchCode);
+          if (batchData) scheduleClassReminders(batchData);
       }
     } catch (error) {
       console.error("Error fetching timetable:", error);

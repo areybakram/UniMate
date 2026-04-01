@@ -30,6 +30,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "../../../supabaseClient";
 import { loadAttendance, calculateStats, AttendanceRecord } from "@/utils/attendanceService";
 import { useFocusEffect } from "expo-router";
+import { useNotifications } from "../../../Context/NotificationContext";
+import { registerForPushNotificationsAsync, scheduleClassReminders } from "../../../utils/notificationService";
 
 const { width } = Dimensions.get("window");
 
@@ -43,6 +45,7 @@ const StudentHome: React.FC = () => {
   const [todaySchedule, setTodaySchedule] = useState<any[]>([]);
   const [attendance, setAttendance] = useState<AttendanceRecord>({});
   const [isLoading, setIsLoading] = useState(true);
+  const { unreadCount } = useNotifications();
 
   const fetchHomeData = async () => {
     try {
@@ -77,12 +80,26 @@ const StudentHome: React.FC = () => {
       setStats(newStats);
       setAttendance(attendanceData);
       setTodaySchedule(data || []);
+
+      // Schedule notifications for the full week
+      const { data: fullTimetable, error: fullError } = await supabase
+        .from("timetables")
+        .select("*")
+        .or(filterStr);
+      
+      if (!fullError && fullTimetable) {
+        await scheduleClassReminders(fullTimetable);
+      }
     } catch (error) {
       console.error("Error fetching home data:", error);
     } finally {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    registerForPushNotificationsAsync();
+  }, []);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -140,8 +157,18 @@ const StudentHome: React.FC = () => {
             <Text style={styles.headerTitle}>UniMate</Text>
             <View style={styles.headerRight}>
               <SmallSOSButton />
-              <TouchableOpacity>
+              <TouchableOpacity 
+                onPress={() => router.push("/(screens)/notifications")}
+                style={styles.notificationBtn}
+              >
                 <Ionicons name="notifications" size={24} color="#fff" />
+                {unreadCount > 0 && (
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </Text>
+                  </View>
+                )}
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => {
@@ -338,6 +365,29 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 15,
+  },
+  notificationBtn: {
+    position: "relative",
+    padding: 2,
+  },
+  badge: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    backgroundColor: "#EF4444",
+    borderRadius: 10,
+    minWidth: 16,
+    height: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 3,
+    borderWidth: 1.5,
+    borderColor: "#2D3748",
+  },
+  badgeText: {
+    color: "#fff",
+    fontSize: 8,
+    fontWeight: "800",
   },
   headerTitle: {
     color: "#fff",
