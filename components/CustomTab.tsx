@@ -779,6 +779,9 @@ const TabBar = (props: any) => {
               {route.name === "FreeSlots" && (
                 <TimetableIcon width={20} height={20} color={getColor} />
               )}
+              {route.name === "Timetable" && (
+                <TimetableIcon width={20} height={20} color={getColor} />
+              )}
               {route.name === "Profile" && (
                 <ProfileIcon width={20} height={20} color={getColor} />
               )}

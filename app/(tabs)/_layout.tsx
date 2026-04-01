@@ -19,6 +19,7 @@ import ProfileScreen from "./Profile";
 import StudentFreeSlots from "./student/FreeSlots";
 import StudentHome from "./student/Home";
 import StudentRepository from "./student/Repository";
+import TimetableScreen from "./student/Timetable";
 
 // Guard
 import GuardDashboard from "./guard/Dashboard";
@@ -88,6 +89,7 @@ const TabsLayout = () => {
         {role === "student" && (
           <>
             <Tab.Screen name="Repository" component={StudentRepository} />
+            <Tab.Screen name="Timetable" component={TimetableScreen} />
             <Tab.Screen name="FreeSlots" component={StudentFreeSlots} />
           </>
         )}
@@ -106,6 +108,7 @@ const TabsLayout = () => {
             {/* <Tab.Screen name="Attendance" component={TeacherAttendance} /> */}
             {/* <Tab.Screen name="Classes" component={TeacherClasses} /> */}
             <Tab.Screen name="Repository" component={TeacherRepository} />
+            <Tab.Screen name="Timetable" component={TimetableScreen} />
             <Tab.Screen name="FreeSlots" component={StudentFreeSlots} />
           </>
         )}
