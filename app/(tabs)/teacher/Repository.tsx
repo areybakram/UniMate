@@ -1,5 +1,6 @@
 import ItemCard from "@/components/ItemCard";
 import UploadModal from "@/components/UploadModal";
+import DropdownModal from "@/components/DropdownModal";
 import { AuthContext } from "@/Context/AuthContext";
 import { supabase } from "@/supabaseClient";
 import { Ionicons } from "@expo/vector-icons";
@@ -37,6 +38,7 @@ const TeacherRepository = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedBatch, setSelectedBatch] = useState("All");
   const [isUploadModalVisible, setIsUploadModalVisible] = useState(false);
+  const [isBatchModalVisible, setIsBatchModalVisible] = useState(false);
 
   const fetchItems = async () => {
     try {
@@ -113,15 +115,7 @@ const TeacherRepository = () => {
   ] as string[];
 
   const handleBatchSelect = () => {
-    Alert.alert(
-      "Select Batch",
-      "Choose a batch to filter documents",
-      availableBatches.map((batch) => ({
-        text: batch,
-        onPress: () => setSelectedBatch(batch),
-      })),
-      { cancelable: true },
-    );
+    setIsBatchModalVisible(true);
   };
 
   const filteredData = items.filter((item) => {
@@ -349,6 +343,15 @@ const TeacherRepository = () => {
       <UploadModal
         visible={isUploadModalVisible}
         onClose={() => setIsUploadModalVisible(false)}
+      />
+
+      <DropdownModal
+        visible={isBatchModalVisible}
+        onClose={() => setIsBatchModalVisible(false)}
+        onSelect={(batch) => setSelectedBatch(batch)}
+        options={availableBatches}
+        selectedValue={selectedBatch}
+        title="Select Batch"
       />
     </View>
   );

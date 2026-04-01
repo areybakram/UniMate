@@ -1,5 +1,6 @@
 import ItemCard from "@/components/ItemCard";
 import UploadModal from "@/components/UploadModal";
+import DropdownModal from "@/components/DropdownModal";
 import { supabase } from "@/supabaseClient";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -46,6 +47,7 @@ const Repository = () => {
   const [selectedBatch, setSelectedBatch] = useState("All Batches");
   const [availableBatches, setAvailableBatches] = useState<string[]>([]);
   const [isUploadModalVisible, setIsUploadModalVisible] = useState(false);
+  const [isBatchModalVisible, setIsBatchModalVisible] = useState(false);
 
   const fetchAvailableBatches = async () => {
     try {
@@ -118,17 +120,7 @@ const Repository = () => {
   }, [selectedBatch]);
 
   const handleBatchSelect = () => {
-    const options = ["All Batches", ...availableBatches];
-
-    Alert.alert(
-      "Select Batch",
-      "Choose your batch to filter content",
-      options.map((batch) => ({
-        text: batch,
-        onPress: () => setSelectedBatch(batch),
-      })),
-      { cancelable: true },
-    );
+    setIsBatchModalVisible(true);
   };
 
   const onRefresh = useCallback(() => {
@@ -289,6 +281,15 @@ const Repository = () => {
       <UploadModal
         visible={isUploadModalVisible}
         onClose={() => setIsUploadModalVisible(false)}
+      />
+
+      <DropdownModal
+        visible={isBatchModalVisible}
+        onClose={() => setIsBatchModalVisible(false)}
+        onSelect={(batch) => setSelectedBatch(batch)}
+        options={["All Batches", ...availableBatches]}
+        selectedValue={selectedBatch}
+        title="Select Batch"
       />
     </View>
   );
