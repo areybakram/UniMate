@@ -12,10 +12,14 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Alert,
 } from "react-native";
 import Animated, { FadeInDown, FadeInRight } from "react-native-reanimated";
 import { supabase } from "../../../supabaseClient";
 import DropdownModal from "@/components/DropdownModal";
+import * as ImagePicker from "expo-image-picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { extractCoursesFromImage, ExtractedCourse } from "@/utils/geminiService";
 
 interface TimetableItem {
   id: string;
@@ -38,6 +42,10 @@ export default function TimetableScreen() {
   const [batchCode, setBatchCode] = useState("SP24-BCS-A");
   const [availableBatches, setAvailableBatches] = useState<string[]>([]);
   const [isBatchModalVisible, setIsBatchModalVisible] = useState(false);
+  const [isPersonalized, setIsPersonalized] = useState(false);
+  const [personalCourses, setPersonalCourses] = useState<ExtractedCourse[]>([]);
+  const [unmatchedCourses, setUnmatchedCourses] = useState<ExtractedCourse[]>([]);
+  const [isAiProcessing, setIsAiProcessing] = useState(false);
 
   const fetchAvailableBatches = async () => {
     try {
@@ -59,15 +67,44 @@ export default function TimetableScreen() {
   const fetchTimetable = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("timetables")
-        .select("*")
-        .eq("batch_code", batchCode)
-        .eq("day", selectedDay)
-        .order("start_time");
+      let query = supabase.from("timetables").select("*").eq("day", selectedDay);
 
-      if (error) throw error;
-      setClasses(data || []);
+      if (isPersonalized && personalCourses.length > 0) {
+        // Use ilike for case-insensitive matching in the logic tree
+        const filterStr = personalCourses
+          .map((c) => `and(course_code.ilike.${c.course_code},batch_code.ilike.${c.batch_code})`)
+          .join(",");
+        
+        console.log("--- FINAL SUPABASE FILTER ---");
+        console.log(filterStr);
+
+        // Fetch ALL personalized classes for ALL days to find unmatched ones
+        const { data: allPersonalData, error: allErr } = await supabase
+          .from("timetables")
+          .select("*")
+          .or(filterStr);
+
+        if (allErr) throw allErr;
+
+        // Find courses from Gemini that aren't in the DB at all (case-insensitive check)
+        const foundCourseCodes = new Set(allPersonalData?.map(c => c.course_code.toUpperCase()));
+        const missing = personalCourses.filter(pc => !foundCourseCodes.has(pc.course_code.toUpperCase()));
+        setUnmatchedCourses(missing);
+
+        // Now filter for the selected day
+        const dayClasses = allPersonalData?.filter(c => c.day === selectedDay).sort((a, b) => 
+          a.start_time.localeCompare(b.start_time)
+        );
+        setClasses(dayClasses || []);
+      } else {
+        // Simple mode: show everything for a single batch
+        const { data, error } = await query
+          .eq("batch_code", batchCode)
+          .order("start_time");
+
+        if (error) throw error;
+        setClasses(data || []);
+      }
     } catch (error) {
       console.error("Error fetching timetable:", error);
     } finally {
@@ -75,8 +112,75 @@ export default function TimetableScreen() {
     }
   };
 
+  const handlePersonalizeToggle = async () => {
+    if (personalCourses.length > 0) {
+      // Toggle if already has data
+      setIsPersonalized(!isPersonalized);
+    } else {
+      // Otherwise, open picker
+      await startPersonalizationFlow();
+    }
+  };
+
+  const startPersonalizationFlow = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      alert("Permission to access camera roll is required!");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 0.5,
+      base64: true,
+    });
+
+    if (!result.canceled && result.assets[0].base64) {
+      setIsAiProcessing(true);
+      try {
+        const extracted = await extractCoursesFromImage(result.assets[0].base64);
+        if (extracted && extracted.length > 0) {
+          setPersonalCourses(extracted);
+          setIsPersonalized(true);
+          await AsyncStorage.setItem("personal_timetable", JSON.stringify(extracted));
+          alert(`Success! Successfully extracted ${extracted.length} courses.`);
+        }
+      } catch (error: any) {
+        alert("Personalization Failed: " + error.message);
+      } finally {
+        setIsAiProcessing(false);
+      }
+    }
+  };
+
+  const loadPersonalizedData = async () => {
+    const savedData = await AsyncStorage.getItem("personal_timetable");
+    if (savedData) {
+      setPersonalCourses(JSON.parse(savedData));
+      // Keep isPersonalized as false by default as requested
+    }
+  };
+
+  const confirmDeletePersonal = () => {
+    Alert.alert(
+      "Delete Personalized Timetable?",
+      "This will remove your custom schedule. You will need to upload your registration card again to restore it.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete", style: "destructive", onPress: resetToBatch }
+      ]
+    );
+  };
+
+  const resetToBatch = async () => {
+    setIsPersonalized(false);
+    setUnmatchedCourses([]);
+    await AsyncStorage.removeItem("personal_timetable");
+  };
+
   useEffect(() => {
     fetchAvailableBatches();
+    loadPersonalizedData();
   }, []);
 
   useEffect(() => {
@@ -108,51 +212,53 @@ export default function TimetableScreen() {
     const isMissed = status === "missed";
     
     return (
-      <Animated.View
-        entering={FadeInDown.delay(index * 100)}
-        style={[
-          styles.cardContainer, 
-          isOngoing && styles.activeCard,
-          isMissed && styles.missedCard
-        ]}
-      >
-        <View style={styles.timeSection}>
-          <Text style={[styles.startTime, isMissed && styles.missedText]}>{item.start_time.slice(0, 5)}</Text>
-          <View style={styles.timeDivider} />
-          <Text style={[styles.endTime, isMissed && styles.missedText]}>{item.end_time.slice(0, 5)}</Text>
-        </View>
+      <View key={item.id || `${item.course_code}-${index}`}>
+        <Animated.View
+          entering={FadeInDown.delay(index * 100)}
+          style={[
+            styles.cardContainer, 
+            isOngoing && styles.activeCard,
+            isMissed && styles.missedCard
+          ]}
+        >
+          <View style={styles.timeSection}>
+            <Text style={[styles.startTime, isMissed && styles.missedText]}>{item.start_time.slice(0, 5)}</Text>
+            <View style={styles.timeDivider} />
+            <Text style={[styles.endTime, isMissed && styles.missedText]}>{item.end_time.slice(0, 5)}</Text>
+          </View>
 
-        <View style={styles.detailsSection}>
-          <View style={styles.subjectRow}>
-            <Text style={[styles.subjectText, isMissed && styles.missedText]}>{item.subject}</Text>
-            {isOngoing && (
-              <View style={styles.liveBadge}>
-                <View style={styles.liveDot} />
-                <Text style={styles.liveText}>ONGOING</Text>
-              </View>
-            )}
-            {isMissed && (
-              <View style={styles.missedBadge}>
-                <Ionicons name="close-circle" size={12} color="#ef4444" />
-                <Text style={styles.missedBadgeText}>MISSED</Text>
-              </View>
-            )}
-          </View>
-          
-          <Text style={styles.courseCode}>{item.course_code}</Text>
-          
-          <View style={styles.metaRow}>
-            <View style={styles.metaItem}>
-              <Ionicons name="person" size={14} color="#64748b" />
-              <Text style={styles.metaText}>{item.teacher_name}</Text>
+          <View style={styles.detailsSection}>
+            <View style={styles.subjectRow}>
+              <Text style={[styles.subjectText, isMissed && styles.missedText]}>{item.subject}</Text>
+              {isOngoing && (
+                <View style={styles.liveBadge}>
+                  <View style={styles.liveDot} />
+                  <Text style={styles.liveText}>ONGOING</Text>
+                </View>
+              )}
+              {isMissed && (
+                <View style={styles.missedBadge}>
+                  <Ionicons name="close-circle" size={12} color="#ef4444" />
+                  <Text style={styles.missedBadgeText}>MISSED</Text>
+                </View>
+              )}
             </View>
-            <View style={styles.metaItem}>
-              <Ionicons name="location" size={14} color="#64748b" />
-              <Text style={styles.metaText}>Room: {item.room}</Text>
+            
+            <Text style={styles.courseCode}>{item.course_code}</Text>
+            
+            <View style={styles.metaRow}>
+              <View style={styles.metaItem}>
+                <Ionicons name="person" size={14} color="#64748b" />
+                <Text style={styles.metaText}>{item.teacher_name}</Text>
+              </View>
+              <View style={styles.metaItem}>
+                <Ionicons name="location" size={14} color="#64748b" />
+                <Text style={styles.metaText}>Room: {item.room}</Text>
+              </View>
             </View>
           </View>
-        </View>
-      </Animated.View>
+        </Animated.View>
+      </View>
     );
   };
 
@@ -162,18 +268,32 @@ export default function TimetableScreen() {
       <LinearGradient colors={["#1e293b", "#334155"]} style={styles.header}>
         <View style={styles.headerTop}>
           <TouchableOpacity 
-            onPress={() => setIsBatchModalVisible(true)}
-            style={styles.batchSelectorContainer}
+            onPress={() => !isPersonalized && setIsBatchModalVisible(true)}
+            style={[styles.batchSelectorContainer, isPersonalized && { opacity: 0.95 }]}
+            activeOpacity={isPersonalized ? 1 : 0.7}
           >
-            <Text style={styles.welcomeText}>Select Batch</Text>
+            <Text style={styles.welcomeText}>{isPersonalized ? "University" : "Select Batch"}</Text>
             <View style={styles.batchRow}>
-              <Text style={styles.batchLabel}>{batchCode}</Text>
-              <Ionicons name="chevron-down" size={20} color="#fff" style={{ marginTop: 4 }} />
+              <Text style={styles.batchLabel}>{isPersonalized ? "Personal Schedule ✨" : batchCode}</Text>
+              {!isPersonalized && <Ionicons name="chevron-down" size={20} color="#fff" style={{ marginTop: 4 }} />}
             </View>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.calIcon}>
-            <Ionicons name="calendar-outline" size={24} color="#fff" />
-          </TouchableOpacity>
+          <View style={styles.headerRight}>
+            <TouchableOpacity 
+              onPress={handlePersonalizeToggle} 
+              onLongPress={personalCourses.length > 0 ? confirmDeletePersonal : undefined}
+              style={[
+                styles.calIcon,
+                personalCourses.length > 0 && { backgroundColor: "rgba(59, 130, 246, 0.3)" }
+              ]}
+            >
+              <Ionicons 
+                name={isPersonalized ? "briefcase" : personalCourses.length > 0 ? "briefcase-outline" : "sparkles"} 
+                size={22} 
+                color={isPersonalized ? "#fff" : personalCourses.length > 0 ? "#fff" : "#fff"} 
+              />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <ScrollView
@@ -204,26 +324,57 @@ export default function TimetableScreen() {
       </LinearGradient>
 
       <View style={styles.content}>
-        {isLoading ? (
+        {isAiProcessing ? (
+          <View style={styles.loader}>
+            <ActivityIndicator size="large" color="#3b82f6" />
+            <Text style={styles.processingText}>Gemini AI is analyzing your card...</Text>
+          </View>
+        ) : isLoading ? (
           <View style={styles.loader}>
             <ActivityIndicator size="large" color="#3b82f6" />
           </View>
-        ) : classes.length > 0 ? (
-          <FlatList
-            data={classes}
-            renderItem={renderClassCard}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.listContainer}
-            showsVerticalScrollIndicator={false}
-          />
         ) : (
-          <View style={styles.emptyState}>
-            <Ionicons name="cafe-outline" size={80} color="#e2e8f0" />
-            <Text style={styles.emptyTitle}>Academic Break!</Text>
-            <Text style={styles.emptySubtitle}>
-              No classes scheduled for {selectedDay}.
-            </Text>
-          </View>
+          <ScrollView contentContainerStyle={styles.listContainer} showsVerticalScrollIndicator={false}>
+            {/* UNMATCHED COURSES WARNING */}
+            {isPersonalized && unmatchedCourses.length > 0 && (
+              <View style={styles.unmatchedBox}>
+                <View style={styles.unmatchedHeader}>
+                  <Ionicons name="warning-outline" size={18} color="#991b1b" />
+                  <Text style={styles.unmatchedTitle}>Missing from Database</Text>
+                </View>
+                <Text style={styles.unmatchedSubtitle}>These courses were found on your card but aren't in our schedule system yet:</Text>
+                {unmatchedCourses.map((course, idx) => (
+                  <View key={idx} style={styles.unmatchedItem}>
+                    <Text style={styles.unmatchedItemText}>{course.subject} ({course.course_code})</Text>
+                    <Text style={styles.unmatchedBatch}>{course.batch_code}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {classes.length > 0 ? (
+              classes.map((item, index) => renderClassCard({ item, index }))
+            ) : (
+              <View style={styles.emptyState}>
+                <Ionicons name="cafe-outline" size={80} color="#e2e8f0" />
+                <Text style={styles.emptyTitle}>Academic Break!</Text>
+                <Text style={styles.emptySubtitle}>
+                  No classes scheduled for {selectedDay}.
+                </Text>
+              </View>
+            )}
+
+            {/* RESET HINT / BUTTON */}
+            {isPersonalized && (
+              <TouchableOpacity 
+                style={styles.resetPersonalBtn} 
+                onPress={confirmDeletePersonal}
+              >
+                <Ionicons name="trash-outline" size={16} color="#94a3b8" />
+                <Text style={styles.resetPersonalText}>Clear Personalized Timetable</Text>
+              </TouchableOpacity>
+            )}
+          </ScrollView>
         )}
       </View>
 
@@ -280,10 +431,76 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
   },
+  headerRight: {
+    flexDirection: "row",
+    gap: 12,
+  },
   calIcon: {
     backgroundColor: "rgba(255,255,255,0.15)",
     padding: 10,
+    borderRadius: 14,
+  },
+  resetIcon: {
+    backgroundColor: "rgba(255,100,100,0.2)",
+    padding: 10,
+    borderRadius: 14,
+  },
+  processingText: {
+    marginTop: 16,
+    color: "#64748b",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  unmatchedBox: {
+    backgroundColor: "#fef2f2",
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "#fee2e2",
+  },
+  unmatchedHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 8,
+  },
+  unmatchedTitle: {
+    color: "#991b1b",
+    fontSize: 14,
+    fontWeight: "800",
+    textTransform: "uppercase",
+  },
+  unmatchedSubtitle: {
+    color: "#b91c1c",
+    fontSize: 12,
+    marginBottom: 12,
+    lineHeight: 18,
+  },
+  unmatchedItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.5)",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     borderRadius: 12,
+    marginBottom: 6,
+  },
+  unmatchedItemText: {
+    color: "#450a0a",
+    fontSize: 13,
+    fontWeight: "600",
+    flex: 1,
+  },
+  unmatchedBatch: {
+    color: "#7f1d1d",
+    fontSize: 11,
+    fontWeight: "700",
+    backgroundColor: "#fee2e2",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
   },
   daySelector: {
     paddingHorizontal: 20,
@@ -461,5 +678,23 @@ const styles = StyleSheet.create({
     color: "#94a3b8",
     textAlign: "center",
     marginTop: 8,
+  },
+  resetPersonalBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    marginTop: 32,
+    paddingVertical: 16,
+    borderWidth: 1,
+    borderStyle: "dashed",
+    borderColor: "#e2e8f0",
+    borderRadius: 20,
+    backgroundColor: "rgba(241, 245, 249, 0.5)",
+  },
+  resetPersonalText: {
+    color: "#94a3b8",
+    fontSize: 13,
+    fontWeight: "700",
   },
 });
