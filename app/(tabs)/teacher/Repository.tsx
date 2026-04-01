@@ -177,16 +177,14 @@ const TeacherRepository = () => {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
 
-      <LinearGradient colors={["#2D3748", "#4A5568"]} style={styles.header}>
+      <LinearGradient colors={["#1e293b", "#334155"]} style={styles.header}>
         <View style={styles.headerTop}>
-          <TouchableOpacity onPress={() => router.back()}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
-          <View style={{ width: 24 }} />
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-            <View style={{ width: 24 }} />
-          </View>
+          <Text style={styles.headerTitle}>Digital Library</Text>
         </View>
+
         <View style={styles.tabContainer}>
           <TouchableOpacity
             style={[styles.tab, activeTab === "browse" && styles.activeTab]}
@@ -236,6 +234,10 @@ const TeacherRepository = () => {
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
+          <View style={styles.searchDivider} />
+          <TouchableOpacity onPress={handleBatchSelect}>
+            <Ionicons name="options-outline" size={20} color="#64748b" />
+          </TouchableOpacity>
         </View>
       </LinearGradient>
 
@@ -252,30 +254,7 @@ const TeacherRepository = () => {
           </View>
         )}
 
-        <View style={styles.batchContainer}>
-          <View style={styles.batchLeft}>
-            <Text style={styles.batchLabel}>Browsing for: </Text>
-            <TouchableOpacity
-              style={styles.batchSelector}
-              onPress={handleBatchSelect}
-            >
-              <Text style={styles.batchValue}>{selectedBatch}</Text>
-              <Ionicons name="chevron-down" size={16} color="#2D3748" />
-            </TouchableOpacity>
-          </View>
 
-          <TouchableOpacity
-            style={styles.inlineAddBtn}
-            onPress={() => setIsUploadModalVisible(true)}
-          >
-            <LinearGradient
-              colors={["#4A5568", "#2D3748"]}
-              style={styles.inlineAddGradient}
-            >
-              <Ionicons name="add" size={23} color="#fff" />
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
 
         {isLoading ? (
           <View
@@ -353,6 +332,19 @@ const TeacherRepository = () => {
         selectedValue={selectedBatch}
         title="Select Batch"
       />
+
+      {/* Upload FAB */}
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => setIsUploadModalVisible(true)}
+      >
+        <LinearGradient
+          colors={["#2D3748", "#4A5568"]}
+          style={styles.fabGradient}
+        >
+          <Ionicons name="add" size={32} color="#fff" />
+        </LinearGradient>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -371,13 +363,22 @@ const styles = StyleSheet.create({
   },
   headerTop: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
     alignItems: "center",
     marginBottom: 20,
+    gap: 15,
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerTitle: {
-    fontSize: 22,
-    fontWeight: "bold",
+    fontSize: 20,
+    fontWeight: "700",
     color: "#fff",
   },
   tabContainer: {
@@ -437,6 +438,13 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: "#1e293b",
+    paddingRight: 10,
+  },
+  searchDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: "#e2e8f0",
+    marginHorizontal: 10,
   },
   content: {
     flex: 1,
@@ -558,6 +566,23 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  fab: {
+    position: "absolute",
+    bottom: 30,
+    right: 20,
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+  },
+  fabGradient: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     justifyContent: "center",
     alignItems: "center",
   },

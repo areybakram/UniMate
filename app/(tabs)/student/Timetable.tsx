@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -355,18 +356,14 @@ export default function TimetableScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
       <LinearGradient colors={["#1e293b", "#334155"]} style={styles.header}>
+
         <View style={styles.headerTop}>
-          <TouchableOpacity 
-            onPress={() => !isPersonalized && setIsBatchModalVisible(true)}
-            style={[styles.batchSelectorContainer, isPersonalized && { opacity: 0.95 }]}
-            activeOpacity={isPersonalized ? 1 : 0.7}
-          >
-            <Text style={styles.welcomeText}>{isPersonalized ? "University" : "Select Batch"}</Text>
-            <View style={styles.batchRow}>
-              <Text style={styles.batchLabel}>{isPersonalized ? "Personal Schedule ✨" : batchCode}</Text>
-              {!isPersonalized && <Ionicons name="chevron-down" size={20} color="#fff" style={{ marginTop: 4 }} />}
-            </View>
-          </TouchableOpacity>
+          <View style={styles.headerLeft}>
+            <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+              <Ionicons name="arrow-back" size={24} color="#fff" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>TimeTable</Text>
+          </View>
           <View style={styles.headerRight}>
             <TouchableOpacity 
               onPress={handlePersonalizeToggle} 
@@ -377,12 +374,26 @@ export default function TimetableScreen() {
               ]}
             >
               <Ionicons 
-                name={isPersonalized ? "briefcase" : personalCourses.length > 0 ? "briefcase-outline" : "sparkles"} 
-                size={22} 
+                name={isPersonalized ? "briefcase" : personalCourses.length > 0 ? "briefcase-outline" : "camera-outline"} 
+                size={18} 
                 color={isPersonalized ? "#fff" : personalCourses.length > 0 ? "#fff" : "#fff"} 
               />
             </TouchableOpacity>
           </View>
+        </View>
+
+        <View style={styles.batchSelectorRow}>
+          <TouchableOpacity 
+            onPress={() => !isPersonalized && setIsBatchModalVisible(true)}
+            style={[styles.batchSelectorContainer, isPersonalized && { opacity: 0.95 }]}
+            activeOpacity={isPersonalized ? 1 : 0.7}
+          >
+            <Text style={styles.welcomeText}>{isPersonalized ? "University" : "Select Batch"}</Text>
+            <View style={styles.batchRow}>
+              <Text style={styles.batchLabel}>{isPersonalized ? "My Timetable" : batchCode}</Text>
+              {!isPersonalized && <Ionicons name="chevron-down" size={20} color="#fff" style={{ marginTop: 4 }} />}
+            </View>
+          </TouchableOpacity>
         </View>
 
         <ScrollView
@@ -510,8 +521,30 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 24,
-    marginBottom: 20,
+    paddingHorizontal: 20,
+    marginBottom: 5,
+  },
+  batchSelectorRow: {
+    paddingHorizontal: 20,
+    marginBottom: 15,
+  },
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 15,
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#fff",
   },
   welcomeText: {
     color: "#94a3b8",
@@ -524,7 +557,7 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
   batchSelectorContainer: {
-    flex: 1,
+    width: "100%",
   },
   batchRow: {
     flexDirection: "row",

@@ -52,7 +52,7 @@ const OnBoarding = () => {
 
       {/* ── Dark hero section ── */}
       <LinearGradient
-        colors={["#1A202C", "#2D3748"]}
+        colors={["#1e293b", "#334155"]}
         style={styles.hero}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -151,6 +151,11 @@ const OnBoarding = () => {
 
         {/* University name */}
         <Text style={styles.university}>COMSATS University Islamabad</Text>
+
+        {/* Footer signature */}
+        <View style={styles.signatureRow}>
+          <Text style={styles.signatureText}>Crafted with ❤️ by Team UniMate</Text>
+        </View>
       </Animated.View>
     </View>
   );
@@ -360,6 +365,18 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     letterSpacing: 0.4,
     marginTop: 4,
+  },
+  signatureRow: {
+    marginTop: 'auto',
+    marginBottom: 5,
+    opacity: 0.8,
+  },
+  signatureText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#64748b",
+    marginTop: 5,
+    // textTransform: "uppercase",
   },
 });
 

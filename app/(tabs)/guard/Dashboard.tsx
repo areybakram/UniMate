@@ -1,10 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
+import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useState } from "react";
 import {
   Alert,
   Dimensions,
   FlatList,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -138,6 +140,12 @@ const GuardDashboard = () => {
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="light-content" />
+      <LinearGradient colors={["#1e293b", "#334155"]} style={styles.header}>
+        <View style={styles.headerTop}>
+          <Text style={styles.headerTitle}>Security Alerts</Text>
+        </View>
+      </LinearGradient>
       <MapView
         style={styles.map}
         region={region}
@@ -183,9 +191,26 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F8FAFC",
   },
+  header: {
+    paddingTop: 50,
+    paddingBottom: 20,
+    borderBottomLeftRadius: 25,
+    borderBottomRightRadius: 25,
+  },
+  headerTop: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#fff",
+  },
   map: {
     width: width,
-    height: height * 0.45,
+    height: height * 0.4,
   },
   listContainer: {
     flex: 1,

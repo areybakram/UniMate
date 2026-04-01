@@ -160,7 +160,7 @@ const GuardHome: React.FC = () => {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#2D3748" }}>
+    <View style={{ flex: 1, backgroundColor: "#1e293b" }}>
       <CustomDrawer active={active} />
 
       <Animated.View
@@ -170,7 +170,7 @@ const GuardHome: React.FC = () => {
 
         {/* HERO SECTION */}
         <LinearGradient
-          colors={["#2D3748", "#4A5568"]}
+          colors={["#1e293b", "#334155"]}
           style={styles.heroSection}
         >
           <View style={styles.header}>

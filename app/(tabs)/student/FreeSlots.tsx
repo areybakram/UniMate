@@ -1,11 +1,16 @@
+import { Ionicons } from "@expo/vector-icons";
 import { Asset } from "expo-asset";
 import * as FileSystem from "expo-file-system/legacy"; // ✅ legacy API
+import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  StatusBar,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 import * as XLSX from "xlsx";
@@ -310,7 +315,15 @@ const FreeSlots = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>📅 Weekly Free Slots</Text>
+      <StatusBar barStyle="light-content" />
+      <LinearGradient colors={["#1e293b", "#334155"]} style={styles.header}>
+        <View style={styles.headerTop}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+            <Ionicons name="arrow-back" size={24} color="#fff" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Free Slots</Text>
+        </View>
+      </LinearGradient>
 
       <FlatList
         data={sections}
@@ -354,12 +367,33 @@ const FreeSlots = () => {
 export default FreeSlots;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 18, backgroundColor: "#f8fafb" },
-  title: {
-    fontSize: 22,
+  container: { flex: 1, backgroundColor: "#f8fafb" },
+  header: {
+    paddingTop: 60,
+    paddingBottom: 25,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    marginBottom: 10,
+  },
+  headerTop: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    gap: 15,
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  headerTitle: {
+    fontSize: 20,
     fontWeight: "700",
-    marginBottom: 14,
-    color: "#1b3a57",
+    color: "#fff",
   },
   dayBlock: {
     marginBottom: 22,

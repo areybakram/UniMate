@@ -119,17 +119,16 @@ export default function ProfileScreen() {
         >
           {/* TOP GRADIENT HEADER */}
           <LinearGradient
-            colors={["#2D3748", "#4A5568"]}
+            colors={["#1e293b", "#334155"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.header}
           >
             <View style={styles.headerTop}>
-              <TouchableOpacity onPress={() => router.back()}>
+              <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
                 <Ionicons name="arrow-back" size={24} color="#fff" />
               </TouchableOpacity>
-              <View style={{ width: 24 }} />
-              <View style={{ width: 24 }} />
+              <Text style={styles.headerTitle}>My Profile</Text>
             </View>
 
             {/* PROFILE PHOTO */}
@@ -401,14 +400,24 @@ const styles = StyleSheet.create({
   },
   headerTop: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
     alignItems: "center",
     marginBottom: 10,
+    gap: 15,
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerTitle: {
     color: "#fff",
     fontSize: 20,
-    fontWeight: "bold",
+    fontWeight: "700",
+    marginLeft: 15,
   },
   avatarContainer: {
     alignSelf: "center",

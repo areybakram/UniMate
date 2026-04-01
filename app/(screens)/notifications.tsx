@@ -44,20 +44,22 @@ const NotificationsScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="light-content" />
       
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={24} color="#1E293B" />
+      <LinearGradient colors={["#1e293b", "#334155"]} style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <Ionicons name="chevron-back" size={24} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Notifications</Text>
-        {notifications.length > 0 && (
+        {notifications.length > 0 ? (
           <TouchableOpacity onPress={clearAll} style={styles.clearButton}>
             <Text style={styles.clearText}>Clear All</Text>
           </TouchableOpacity>
+        ) : (
+          <View style={{ width: 40 }} />
         )}
-      </View>
+      </LinearGradient>
 
       {notifications.length > 0 ? (
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -121,25 +123,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 15,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    paddingTop: 15,
+    paddingBottom: 20,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
-  backButton: {
-    padding: 4,
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1E293B',
+    color: '#fff',
   },
   clearButton: {
     padding: 4,
   },
   clearText: {
     fontSize: 14,
-    color: '#EF4444',
+    color: '#FDA4AF',
     fontWeight: '600',
   },
   scrollContent: {

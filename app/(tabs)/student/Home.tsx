@@ -147,7 +147,7 @@ const StudentHome: React.FC = () => {
         <StatusBar barStyle="light-content" />
 
         <LinearGradient
-          colors={["#2D3748", "#4A5568"]}
+          colors={["#1e293b", "#334155"]}
           style={styles.heroSection}
         >
           <View style={styles.header}>
