@@ -1,52 +1,104 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+# ============================================================
+# UniMate - .gitignore
+# ============================================================
 
-# dependencies
+# ------------------------
+# Dependencies
+# ------------------------
 node_modules/
 
-# Expo
+# ------------------------
+# Environment & Secrets (NEVER commit these)
+# ------------------------
+.env
+.env.*
+*.env
+.env.local
+.env.development
+.env.production
+.env.staging
+.env.test
+frontend/.env
+frontend/.env.*
+backend/.env
+backend/.env.*
+
+# Supabase / API keys / service account files
+*.pem
+*.p8
+*.p12
+*.jks
+*.key
+*.mobileprovision
+google-services.json
+GoogleService-Info.plist
+service-account*.json
+
+# ------------------------
+# Expo / React Native
+# ------------------------
 .expo/
 dist/
 web-build/
 expo-env.d.ts
-
-# Native
-.kotlin/
-*.orig.*
-*.jks
-*.p8
-*.p12
-*.key
-*.mobileprovision
-
-# Metro
 .metro-health-check*
 
-# debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
-
-# macOS
-.DS_Store
-*.pem
-
-# local env files
-.env*.local
-.env
-
-# typescript
-*.tsbuildinfo
-
-app-example
-
-# Android build artifacts (C++ / Gradle / CMake caches - never commit these)
+# ------------------------
+# Android Build Artifacts
+# ------------------------
 frontend/android/app/.cxx/
 frontend/android/app/build/
 frontend/android/.gradle/
 frontend/android/build/
 frontend/android/local.properties
 
-# iOS build artifacts
+# ------------------------
+# iOS Build Artifacts
+# ------------------------
 frontend/ios/build/
 frontend/ios/Pods/
 frontend/ios/DerivedData/
+frontend/ios/*.xcworkspace/xcuserdata/
+
+# ------------------------
+# Native / Compiled
+# ------------------------
+.kotlin/
+*.orig.*
+*.tsbuildinfo
+*.class
+*.so
+*.o
+*.a
+
+# ------------------------
+# Logs & Debug
+# ------------------------
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+*.log
+logs/
+
+# ------------------------
+# OS Files
+# ------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ------------------------
+# Editor / IDE
+# ------------------------
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# ------------------------
+# Misc
+# ------------------------
+app-example
+coverage/
+.cache/
+tmp/
