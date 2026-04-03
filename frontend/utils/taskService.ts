@@ -11,15 +11,19 @@ export interface Task {
   createdAt: string; // ISO string
 }
 
-export const getTasks = async (): Promise<Task[]> => {
+export const getTasks = async (userId?: string): Promise<Task[]> => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return [];
+    let finalUserId = userId;
+    if (!finalUserId) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+      finalUserId = user.id;
+    }
 
     const { data, error } = await supabase
       .from("tasks")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("user_id", finalUserId)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
@@ -102,8 +106,8 @@ export const toggleTaskStatus = async (id: string, currentStatus: "todo" | "done
   await updateTask(id, { status: newStatus });
 };
 
-export const getTodayTasks = async (): Promise<Task[]> => {
-  const tasks = await getTasks();
+export const getTodayTasks = async (userId?: string): Promise<Task[]> => {
+  const tasks = await getTasks(userId);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   
@@ -112,4 +116,33 @@ export const getTodayTasks = async (): Promise<Task[]> => {
     taskEnd.setHours(0, 0, 0, 0);
     return taskEnd.getTime() === today.getTime();
   });
+};
+
+export const calculateWeeklyTaskStats = async (userId?: string) => {
+  const tasks = await getTasks(userId);
+  const now = new Date();
+  const weekData = [];
+  
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    d.setHours(0, 0, 0, 0);
+    const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+    
+    const createdCount = tasks.filter(t => {
+      const taskDate = new Date(t.createdAt);
+      taskDate.setHours(0, 0, 0, 0);
+      return taskDate.getTime() === d.getTime();
+    }).length;
+
+    const completedCount = tasks.filter(t => {
+      const taskDate = new Date(t.createdAt);
+      taskDate.setHours(0, 0, 0, 0);
+      return taskDate.getTime() === d.getTime() && t.status === "done";
+    }).length;
+    
+    weekData.push({ day: dayName, created: createdCount, completed: completedCount });
+  }
+  
+  return weekData;
 };

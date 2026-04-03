@@ -29,13 +29,15 @@ import { AuthContext } from "../../../Context/AuthContext";
 import { useDrawer } from "../../../Context/DrawerContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "../../../supabaseClient";
-import { loadAttendance, calculateStats, AttendanceRecord } from "@/utils/attendanceService";
+import { loadAttendance, calculateStats, AttendanceRecord, calculateOverallAttendanceRate, calculateWeeklyAttendanceTrends } from "@/utils/attendanceService";
 import { useFocusEffect } from "expo-router";
 import { useNotifications } from "../../../Context/NotificationContext";
 import { registerForPushNotificationsAsync, scheduleClassReminders, scheduleTaskReminders } from "../../../utils/notificationService";
-import { getTodayTasks, toggleTaskStatus, Task, getTasks } from "@/utils/taskService";
+import { getTodayTasks, toggleTaskStatus, Task, getTasks, calculateWeeklyTaskStats } from "@/utils/taskService";
+import { getUpcomingHolidays, Holiday } from "@/utils/holidayService";
 import TaskCard from "@/components/TaskCard";
 import AddTaskModal from "@/components/AddTaskModal";
+import { LineChart, ProgressChart } from "react-native-chart-kit";
 
 const { width } = Dimensions.get("window");
 
@@ -50,20 +52,65 @@ const StudentHome: React.FC = () => {
   const [attendance, setAttendance] = useState<AttendanceRecord>({});
   const [isLoading, setIsLoading] = useState(true);
   const [todayTasks, setTodayTasks] = useState<Task[]>([]);
-  const [visibleTaskCount, setVisibleTaskCount] = useState(5);
+  const [visibleTaskCount, setVisibleTaskCount] = useState(3);
   const [isAddTaskVisible, setIsAddTaskVisible] = useState(false);
   const { unreadCount } = useNotifications();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [weeklyTaskData, setWeeklyTaskData] = useState<{ day: string; created: number; completed: number }[]>([]);
+  const [weeklyAttendanceTrendData, setWeeklyAttendanceTrendData] = useState<{ day: string; scheduled: number; attended: number }[]>([]);
+  const [attendanceRate, setAttendanceRate] = useState(0);
+  const [holidays, setHolidays] = useState<Holiday[]>([]);
+  const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
 
-  const fetchHomeData = async () => {
+  const tooltipContent: Record<string, string> = {
+    tasks: "Tracks your productivity: 'Created' shows new tasks added, while 'Completed' tracks your progress over the last 7 days.",
+    attendance: "Compares 'Scheduled' classes against 'Attended' ones. The ring shows your overall attendance rate.",
+    holidays: "Shows all public and academic holidays for the current calendar month."
+  };
+
+  const refreshAnalytics = async (userId?: string) => {
+    const [weeklyTasks, attendanceTrends, overAllAttendance, upcomingHolidays] = await Promise.all([
+      calculateWeeklyTaskStats(userId),
+      calculateWeeklyAttendanceTrends(userId),
+      calculateOverallAttendanceRate(userId),
+      getUpcomingHolidays()
+    ]);
+    setWeeklyTaskData(weeklyTasks);
+    setWeeklyAttendanceTrendData(attendanceTrends);
+    setHolidays(upcomingHolidays);
+    setAttendanceRate(overAllAttendance);
+  };
+
+  const getRollingLabels = () => {
+    const labels = [];
+    const now = new Date();
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      labels.push(d.toLocaleDateString('en-US', { weekday: 'short' }));
+    }
+    return labels;
+  };
+
+  const fetchHomeData = async (forceFresh = false) => {
     try {
       setIsLoading(true);
 
-      // Read timetable from Supabase (migrated from AsyncStorage)
-      const { data: { user: supaUser } } = await supabase.auth.getUser();
-      let personalCourses: any[] = [];
+      // Use context data if available for instant UI
+      const supaUser = user || (await (supabase.auth.getUser() as any)).data.user;
+      if (!supaUser) return;
 
-      if (supaUser) {
+      // 1. Fetch Tasks & Holidays immediately (independent of timetable)
+      const tasksData = await getTodayTasks(supaUser.id);
+      setTodayTasks(tasksData);
+      await refreshAnalytics(supaUser.id);
+
+      // 2. Load Timetable from Profile (Context or DB)
+      // If forceFresh is true, we ignore context and go to DB
+      let personalCourses = !forceFresh ? (user as any)?.timetable_data || [] : [];
+      
+      if (personalCourses.length === 0 || forceFresh) {
+        // Backup: Try fetching from DB once if context is thin or forced
         const { data: profileData } = await supabase
           .from("profiles")
           .select("timetable_data")
@@ -72,11 +119,10 @@ const StudentHome: React.FC = () => {
         personalCourses = profileData?.timetable_data || [];
       }
 
+      // If still no courses, just return (Tasks/Holidays are already set)
       if (personalCourses.length === 0) {
         setStats({ total: 0, taken: 0, missed: 0 });
         setTodaySchedule([]);
-        const tasksData = await getTodayTasks();
-        setTodayTasks(tasksData);
         return;
       }
 
@@ -96,11 +142,8 @@ const StudentHome: React.FC = () => {
 
       if (error) throw error;
 
-      const attendanceData = await loadAttendance();
+      const attendanceData = await loadAttendance(supaUser.id);
       const newStats = calculateStats(data || [], attendanceData);
-      
-      const tasksData = await getTodayTasks();
-      setTodayTasks(tasksData);
       
       setStats(newStats);
       setAttendance(attendanceData);
@@ -115,6 +158,9 @@ const StudentHome: React.FC = () => {
       if (!fullError && fullTimetable) {
         await scheduleClassReminders(fullTimetable);
       }
+      
+      // Always reset visible count when data is freshly fetched
+      setVisibleTaskCount(3);
     } catch (error) {
       console.error("Error fetching home data:", error);
     } finally {
@@ -125,7 +171,7 @@ const StudentHome: React.FC = () => {
 
   const onRefresh = async () => {
     setIsRefreshing(true);
-    await fetchHomeData();
+    await fetchHomeData(true); // Force fresh fetch from DB
   };
 
   useEffect(() => {
@@ -134,9 +180,20 @@ const StudentHome: React.FC = () => {
 
   useFocusEffect(
     React.useCallback(() => {
-      fetchHomeData();
-    }, [])
+      // Reset count on every refocus
+      setVisibleTaskCount(3);
+      if (user) {
+        fetchHomeData();
+      }
+    }, [user])
   );
+
+  // Auto-fetch when session is restored or profile updates
+  useEffect(() => {
+    if (user) {
+      fetchHomeData();
+    }
+  }, [user]);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
@@ -162,7 +219,7 @@ const StudentHome: React.FC = () => {
   };
 
   const quickStats = [
-    { label: "Total Today", value: stats.total.toString(), icon: "book-outline", color: "#3B82F6" },
+    { label: "Classes Today", value: stats.total.toString(), icon: "book-outline", color: "#3B82F6" },
     { label: "Attended", value: stats.taken.toString(), icon: "checkmark-circle-outline", color: "#10B981" },
     { label: "Missed", value: stats.missed.toString(), icon: "alert-circle-outline", color: "#EF4444" },
     { label: "Tasks Today", value: todayTasks.filter(t => t.status === 'todo').length.toString(), icon: "time-outline", color: "#F59E0B" },
@@ -192,10 +249,10 @@ const StudentHome: React.FC = () => {
             const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
             const isCloseToBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 50;
             if (isCloseToBottom && visibleTaskCount < todayTasks.length) {
-              setVisibleTaskCount(prev => prev + 5);
+              setVisibleTaskCount(prev => prev + 3);
             }
           }}
-          scrollEventThrottle={400}
+          scrollEventThrottle={16}
         >
           <LinearGradient
             colors={["#1e293b", "#334155"]}
@@ -286,6 +343,193 @@ const StudentHome: React.FC = () => {
                 </View>
               </TouchableOpacity>
             ))}
+          </Animated.View>
+
+          {/* WEEKLY ANALYTICS SECTION (Horizontal Cases) */}
+          <Animated.View entering={FadeInDown.delay(150)} style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Weekly Overview</Text>
+            </View>
+            
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.insightsScrollContent}
+            >
+              {/* Box 1: Attendance Trends Chart + Circle */}
+              <View style={[styles.insightCard, { width: width * 0.9, paddingRight: 0 }]}>
+                <View style={styles.analyticsHeader}>
+                  <Text style={styles.insightLabel}>Attendance</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginRight: 15 }}>
+                     {/* Legends */}
+                    <View style={{ flexDirection: 'row', gap: 6 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                        <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(148, 163, 184, 0.5)' }} />
+                        <Text style={{ fontSize: 9, color: '#64748B' }}>Scheduled</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                        <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#3B82F6' }} />
+                        <Text style={{ fontSize: 9, color: '#64748B' }}>Attended</Text>
+                      </View>
+                    </View>
+                    {/* Icon at extreme right */}
+                    <TouchableOpacity onPress={() => setActiveTooltip('attendance')}>
+                      <Ionicons name="information-circle-outline" size={15} color="#64748B" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <LineChart
+                    data={{
+                      labels: weeklyAttendanceTrendData.length > 0 
+                        ? weeklyAttendanceTrendData.map(d => d.day) 
+                        : getRollingLabels(),
+                      datasets: [
+                        { 
+                          data: weeklyAttendanceTrendData.length > 0 ? weeklyAttendanceTrendData.map(d => d.scheduled || 0) : [0, 0, 0, 0, 0, 0, 0],
+                          color: (opacity = 1) => `rgba(148, 163, 184, 0.5)`, 
+                          strokeWidth: 2
+                        },
+                        { 
+                          data: weeklyAttendanceTrendData.length > 0 ? weeklyAttendanceTrendData.map(d => d.attended || 0) : [0, 0, 0, 0, 0, 0, 0],
+                          color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`, 
+                          strokeWidth: 2
+                        }
+                      ],
+                    }}
+                    width={width * 0.55}
+                    height={135}
+                    chartConfig={{
+                      backgroundColor: "#ffffff",
+                      backgroundGradientFrom: "#ffffff",
+                      backgroundGradientTo: "#ffffff",
+                      decimalPlaces: 0,
+                      color: (opacity = 1) => `rgba(100, 116, 139, ${opacity})`,
+                      labelColor: (opacity = 1) => `rgba(100, 116, 139, ${opacity})`,
+                      propsForLabels: { fontSize: 7 }
+                    }}
+                    bezier
+                    style={{ borderRadius: 12, paddingRight: 25 }}
+                    withVerticalLines={false}
+                    withHorizontalLines={true}
+                  />
+                  
+                  {/* Attendance Ring inside Box 1 */}
+                  <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', marginRight: 10 }}>
+                    <ProgressChart
+                      data={{
+                        labels: ["Rate"],
+                        data: [attendanceRate > 0 ? (attendanceRate > 1 ? 1 : attendanceRate) : 0.01]
+                      }}
+                      width={70}
+                      height={70}
+                      strokeWidth={5}
+                      radius={24}
+                      chartConfig={{
+                        backgroundColor: "#ffffff",
+                        backgroundGradientFrom: "#ffffff",
+                        backgroundGradientTo: "#ffffff",
+                        color: (opacity = 1) => `rgba(16, 185, 129, ${opacity})`,
+                      }}
+                      hideLegend={true}
+                    />
+                    <Text style={{ position: 'absolute', fontSize: 9, fontWeight: '800', color: '#10B981', bottom: 32 }}>
+                      {Math.round((attendanceRate > 1 ? 1 : (attendanceRate || 0)) * 100)}%
+                    </Text>
+                    <Text style={{ fontSize: 7, color: '#64748B', marginTop: -5 }}>Overall Attendance</Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Box 2: Task Overview Chart */}
+              <View style={[styles.insightCard, { width: width * 0.85 }]}>
+                <View style={styles.analyticsHeader}>
+                  <Text style={styles.insightLabel}>Task Overview</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                    {/* Legends */}
+                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                        <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#3B82F6' }} />
+                        <Text style={{ fontSize: 9, color: '#64748B' }}>Created</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                        <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#10B981' }} />
+                        <Text style={{ fontSize: 9, color: '#64748B' }}>Completed</Text>
+                      </View>
+                    </View>
+                    {/* Icon at extreme right */}
+                    <TouchableOpacity onPress={() => setActiveTooltip('tasks')}>
+                      <Ionicons name="information-circle-outline" size={15} color="#64748B" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+                <LineChart
+                  data={{
+                    labels: weeklyTaskData.length > 0 
+                      ? weeklyTaskData.map(d => d.day) 
+                      : getRollingLabels(),
+                    datasets: [
+                      { 
+                        data: weeklyTaskData.length > 0 ? weeklyTaskData.map(d => d.created || 0) : [0, 0, 0, 0, 0, 0, 0],
+                        color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`, 
+                        strokeWidth: 2
+                      },
+                      { 
+                        data: weeklyTaskData.length > 0 ? weeklyTaskData.map(d => d.completed || 0) : [0, 0, 0, 0, 0, 0, 0],
+                        color: (opacity = 1) => `rgba(16, 185, 129, ${opacity})`, 
+                        strokeWidth: 2
+                      }
+                    ],
+                  }}
+                  width={width * 0.8}
+                  height={135}
+                  chartConfig={{
+                    backgroundColor: "#ffffff",
+                    backgroundGradientFrom: "#ffffff",
+                    backgroundGradientTo: "#ffffff",
+                    decimalPlaces: 0,
+                    color: (opacity = 1) => `rgba(100, 116, 139, ${opacity})`,
+                    labelColor: (opacity = 1) => `rgba(100, 116, 139, ${opacity})`,
+                    style: { borderRadius: 12 },
+                    propsForDots: { r: "3", strokeWidth: "1.5", stroke: "#3b82f6" },
+                    propsForLabels: { fontSize: 7 }
+                  }}
+                  bezier
+                  style={{ borderRadius: 12, paddingRight: 35 }}
+                  withVerticalLines={false}
+                  withHorizontalLines={true}
+                />
+              </View>
+            </ScrollView>
+          </Animated.View>
+
+          {/* UPCOMING HOLIDAYS SECTION */}
+          <Animated.View entering={FadeInDown.delay(200)} style={styles.section}>
+            <View style={styles.holidayCard}>
+              <View style={[styles.holidayHeader, { justifyContent: 'space-between' }]}>
+                <Text style={styles.holidayTitle}>Holidays this Month</Text>
+                <TouchableOpacity onPress={() => setActiveTooltip('holidays')}>
+                  <Ionicons name="information-circle-outline" size={16} color="#1E293B" />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.holidayList}>
+                {holidays.length > 0 ? holidays.map((holiday, idx) => (
+                  <View key={holiday.id} style={[styles.holidayItem, idx === 0 && styles.holidayItemActive]}>
+                    <Text style={styles.holidayName} numberOfLines={1}>{holiday.name}</Text>
+                    <View style={styles.holidayDateBadge}>
+                      <Text style={styles.holidayDateText}>
+                        {new Date(holiday.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </Text>
+                    </View>
+                  </View>
+                )) : (
+                  <View style={{ alignItems: 'center', padding: 10 }}>
+                    <Text style={{ color: '#94A3B8', fontSize: 13 }}>No holidays this month</Text>
+                  </View>
+                )}
+              </View>
+            </View>
           </Animated.View>
 
           {/* SCHEDULE SECTION */}
@@ -411,6 +655,7 @@ const StudentHome: React.FC = () => {
                       await toggleTaskStatus(id, status);
                       const updatedToday = await getTodayTasks();
                       setTodayTasks(updatedToday);
+                      await refreshAnalytics();
                       const allTasks = await getTasks();
                       await scheduleTaskReminders(allTasks);
                     }}
@@ -432,6 +677,32 @@ const StudentHome: React.FC = () => {
           onClose={() => setIsAddTaskVisible(false)}
           onTaskAdded={fetchHomeData}
         />
+
+        {/* Global Tooltip UI */}
+        {activeTooltip && (
+          <TouchableOpacity 
+            activeOpacity={1} 
+            onPress={() => setActiveTooltip(null)}
+            style={styles.tooltipOverlay}
+          >
+            <Animated.View 
+              entering={FadeInDown.duration(300)}
+              style={styles.tooltipBox}
+            >
+              <View style={styles.tooltipHeader}>
+                <Ionicons name="information-circle" size={20} color="#3B82F6" />
+                <Text style={styles.tooltipTitle}>Quick Tip</Text>
+              </View>
+              <Text style={styles.tooltipText}>{tooltipContent[activeTooltip]}</Text>
+              <TouchableOpacity 
+                style={styles.tooltipCloseBtn}
+                onPress={() => setActiveTooltip(null)}
+              >
+                <Text style={styles.tooltipCloseText}>Got it</Text>
+              </TouchableOpacity>
+            </Animated.View>
+          </TouchableOpacity>
+        )}
 
         {active.value && (
           <TouchableOpacity
@@ -734,7 +1005,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#fff",
-    paddingHorizontal: 10,
+    paddingHorizontal: 6,
     paddingVertical: 5,
     borderRadius: 8,
     borderWidth: 1,
@@ -779,6 +1050,177 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: "900",
   },
+  insightsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  insightCard: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+  },
+  insightLabel: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#64748B",
+    marginBottom: 4,
+  },
+  attendancePercent: {
+    position: 'absolute',
+    alignSelf: 'center',
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#10B981',
+  },
+  insightsScrollContent: {
+    paddingRight: 20,
+    gap: 16,
+  },
+  progressContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    flex: 1,
+  },
+  analyticsBox: {
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  analyticsChartContainer: {
+    marginBottom: 20,
+  },
+  analyticsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  holidayCard: {
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+    marginBottom: 16,
+  },
+  holidayHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 8,
+  },
+  holidayIconContainer: {
+    backgroundColor: "#E0F2FE", // Cyan-ish background as in image
+    padding: 6,
+    borderRadius: 10,
+  },
+  holidayTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1E293B",
+    flex: 1,
+  },
+  holidayList: {
+    gap: 8,
+  },
+  holidayItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 6,
+    paddingHorizontal: 10, // Consistent padding for all items
+    borderRadius: 12,
+  },
+  holidayItemActive: {
+    backgroundColor: "#F8FAFC",
+  },
+  holidayName: {
+    fontSize: 15,
+    fontWeight: "500",
+    color: "#475569",
+    flex: 1, // Push date badge to the right
+    marginRight: 10,
+  },
+  holidayDateBadge: {
+    backgroundColor: "#CBD5E1",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    minWidth: 95, // Consistent width for dates
+    alignItems: 'center',
+  },
+  holidayDateText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#1E293B",
+  },
+  tooltipOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+    padding: 20,
+  },
+  tooltipBox: {
+    width: width * 0.8,
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 10,
+  },
+  tooltipHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  tooltipTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1E293B',
+  },
+  tooltipText: {
+    fontSize: 14,
+    color: '#475569',
+    lineHeight: 22,
+  },
+  tooltipCloseBtn: {
+    marginTop: 20,
+    backgroundColor: '#F1F5F9',
+    paddingVertical: 12,
+    borderRadius: 16,
+    alignItems: 'center',
+  },
+  tooltipCloseText: {
+    color: '#3B82F6',
+    fontWeight: '700',
+    fontSize: 15,
+  }
 });
 
 export default StudentHome;

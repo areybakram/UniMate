@@ -65,18 +65,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // listen to auth changes and update context
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log("Auth State Change Event:", event);
         try {
           if (session?.user) {
             const { id, email } = session.user;
             // fetch profile from profiles table (if exists)
-            const { data: profile, error } = await supabase
+            const { data: profile } = await supabase
               .from("profiles")
               .select("name, phone, Role, custom_profile_photo, timetable_data, attendance_data, chatbot_history")
               .eq("id", id)
               .single();
             
-            console.log("Auth State Change Profile:", profile);
-
             const usr: User = {
               id,
               email: email ?? "",
@@ -90,7 +89,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             };
             setUser(usr);
             await AsyncStorage.setItem("user", JSON.stringify(usr));
-          } else {
+          } else if (event === 'SIGNED_OUT') {
+            // ONLY wipe cache if user explicitly signs out
             setUser(null);
             await AsyncStorage.removeItem("user");
           }

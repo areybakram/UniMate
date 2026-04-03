@@ -10,14 +10,18 @@ export const getTodayDateKey = () => {
 };
 
 // Helper: fetch user's profile attendance
-const fetchProfile = async () => {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
+const fetchProfile = async (userId?: string) => {
+  let finalUserId = userId;
+  if (!finalUserId) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+    finalUserId = user.id;
+  }
 
   const { data } = await supabase
     .from("profiles")
-    .select("id, attendance_data")
-    .eq("id", user.id)
+    .select("id, attendance_data, timetable_data")
+    .eq("id", finalUserId)
     .single();
     
   return data;
@@ -58,8 +62,8 @@ export const removeAttendance = async (classId: string) => {
   await updateProfileAttendance(fullData);
 };
 
-export const loadAttendance = async (dateKey: string = getTodayDateKey()): Promise<AttendanceRecord> => {
-  const profile = await fetchProfile();
+export const loadAttendance = async (userId?: string, dateKey: string = getTodayDateKey()): Promise<AttendanceRecord> => {
+  const profile = await fetchProfile(userId);
   if (!profile) return {};
   
   const fullData = profile.attendance_data || {};
@@ -97,4 +101,73 @@ export const calculateStats = (classes: any[], attendance: AttendanceRecord) => 
     taken,
     missed,
   };
+};
+
+export const calculateOverallAttendanceRate = async (userId?: string) => {
+  const profile = await fetchProfile(userId);
+  if (!profile || !profile.attendance_data) return 0;
+
+  const fullData = profile.attendance_data;
+  let totalTaken = 0;
+  let totalMissed = 0;
+
+  // fullData is { "YYYY-MM-DD": { "classId": "taken" | "missed" } }
+  Object.values(fullData).forEach((dayData: any) => {
+    Object.values(dayData).forEach((status) => {
+      if (status === "taken") totalTaken++;
+      else if (status === "missed") totalMissed++;
+    });
+  });
+
+  const total = totalTaken + totalMissed;
+  if (total === 0) return 0;
+  return totalTaken / total;
+};
+
+export const calculateWeeklyAttendanceTrends = async (userId?: string) => {
+  const profile = await fetchProfile(userId);
+  if (!profile) return [];
+
+  const timetableData = profile.timetable_data || [];
+  const attendanceData = profile.attendance_data || {};
+  
+  if (timetableData.length === 0) return [];
+
+  // 1. Get all scheduled classes from Supabase matching the profile
+  const filterStr = timetableData
+    .map((c: any) => `and(course_code.ilike.${c.course_code},batch_code.ilike.${c.batch_code})`)
+    .join(",");
+
+  const { data: allTimetables } = await supabase
+    .from("timetables")
+    .select("*")
+    .or(filterStr);
+
+  const now = new Date();
+  const weekData = [];
+  const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    d.setHours(0, 0, 0, 0);
+    const dayName = DAYS[d.getDay()];
+    const dateKey = d.toISOString().split("T")[0];
+    const shortDay = d.toLocaleDateString('en-US', { weekday: 'short' });
+
+    // Count scheduled for this day name
+    const scheduledCount = (allTimetables || []).filter(item => item.day === dayName).length;
+
+    // Count attended (taken) for this date key
+    const dayAttendance = attendanceData[dateKey] || {};
+    const attendedCount = Object.values(dayAttendance).filter(v => v === "taken").length;
+
+    weekData.push({ 
+      day: shortDay, 
+      scheduled: scheduledCount, 
+      attended: attendedCount 
+    });
+  }
+
+  return weekData;
 };
