@@ -32,6 +32,7 @@ import { saveAttendance, loadAttendance, removeAttendance, AttendanceRecord, cle
 import { supabase } from "../../../supabaseClient";
 import DropdownModal from "@/components/DropdownModal";
 import { scheduleClassReminders } from "@/utils/notificationService";
+import { AuthContext } from "@/Context/AuthContext";
 
 const { width } = Dimensions.get("window");
 
@@ -41,6 +42,7 @@ interface TimetableItem {
   course_code: string;
   teacher_name: string;
   teacher_dept: string;
+  batch_code: string;
   day: string;
   start_time: string;
   end_time: string;
@@ -60,6 +62,8 @@ interface ClassCardProps {
 }
 
 const ClassCard: React.FC<ClassCardProps> = ({ item, index, isToday, isTaken, onMarkTaken, onResetTaken, status }) => {
+  const { user } = React.useContext(AuthContext) || {};
+  const isTeacher = user?.role === 'teacher';
   const isOngoing = status === "ongoing";
   const isFinished = status === "finished";
   const translateX = useSharedValue(0);
@@ -111,7 +115,7 @@ const ClassCard: React.FC<ClassCardProps> = ({ item, index, isToday, isTaken, on
             <View style={styles.subjectRow}>
               <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <Text style={[styles.subjectText, (isFinished || isTaken) && styles.finishedText]}>
-                  {item.subject}
+                  {isTeacher ? item.batch_code : item.subject}
                 </Text>
                 {isTaken && <Ionicons name="checkmark-circle" size={16} color="#10B981" />}
               </View>
@@ -130,13 +134,13 @@ const ClassCard: React.FC<ClassCardProps> = ({ item, index, isToday, isTaken, on
             </View>
             
             <Text style={[styles.courseCode, (isFinished || isTaken) && { color: "#94a3b8" }]}>
-              {item.course_code}
+              {isTeacher ? item.course_code : item.course_code}
             </Text>
             
             <View style={styles.metaRow}>
               <View style={styles.metaItem}>
-                <Ionicons name="person" size={14} color="#64748b" />
-                <Text style={styles.metaText}>{item.teacher_name}</Text>
+                <Ionicons name="book-outline" size={14} color="#64748b" />
+                <Text style={styles.metaText}>{isTeacher ? item.subject : item.teacher_name}</Text>
               </View>
               <View style={styles.metaItem}>
                 <Ionicons name="location" size={14} color="#64748b" />
@@ -151,6 +155,7 @@ const ClassCard: React.FC<ClassCardProps> = ({ item, index, isToday, isTaken, on
 };
 
 export default function TimetableScreen() {
+  const { user } = React.useContext(AuthContext) || {};
   const [selectedDay, setSelectedDay] = useState(DAYS[new Date().getDay() - 1] || DAYS[0]);
   const [classes, setClasses] = useState<TimetableItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -162,6 +167,17 @@ export default function TimetableScreen() {
   const [unmatchedCourses, setUnmatchedCourses] = useState<ExtractedCourse[]>([]);
   const [isAiProcessing, setIsAiProcessing] = useState(false);
   const [attendance, setAttendance] = useState<AttendanceRecord>({});
+
+  // Sync with AuthContext to pull from Supabase automatically
+  useEffect(() => {
+    if (user?.timetable_data && user.timetable_data.length > 0) {
+      setPersonalCourses(user.timetable_data);
+      setIsPersonalized(true);
+    } else {
+      setPersonalCourses([]);
+      setIsPersonalized(false);
+    }
+  }, [user?.timetable_data]);
 
   const fetchAvailableBatches = async () => {
     try {
@@ -186,19 +202,22 @@ export default function TimetableScreen() {
       let query = supabase.from("timetables").select("*").eq("day", selectedDay);
 
       if (isPersonalized && personalCourses.length > 0) {
-        const filterStr = personalCourses
-          .map((c) => `and(course_code.ilike.${c.course_code},batch_code.ilike.${c.batch_code})`)
-          .join(",");
+        // Query master timetable for specific assigned courses
+        // Use exact matching on course_code and batch_code for precision
+        const filterParts = personalCourses.map((c: any) => 
+          `and(course_code.ilike.${c.course_code.trim()},batch_code.ilike.${(c.batch_code || c.batch || "").trim()})`
+        );
         
         const { data: allPersonalData, error: allErr } = await supabase
           .from("timetables")
           .select("*")
-          .or(filterStr);
+          .or(filterParts.join(","));
 
         if (allErr) throw allErr;
 
+        // Check for missing matches
         const foundCourseCodes = new Set(allPersonalData?.map((c: any) => c.course_code.toUpperCase()));
-        const missing = personalCourses.filter(pc => !foundCourseCodes.has(pc.course_code.toUpperCase()));
+        const missing = personalCourses.filter((pc: any) => !foundCourseCodes.has(pc.course_code.toUpperCase()));
         setUnmatchedCourses(missing);
 
         const dayClasses = allPersonalData?.filter((c: any) => c.day === selectedDay).sort((a: any, b: any) => 
@@ -213,18 +232,6 @@ export default function TimetableScreen() {
         if (error) throw error;
         setClasses(data || []);
       }
-
-      // Re-sync notifications in background whenever timetable list changes significantly 
-      if (isPersonalized && personalCourses.length > 0) {
-          const filterStr = personalCourses
-            .map((c) => `and(course_code.ilike.${c.course_code},batch_code.ilike.${c.batch_code})`)
-            .join(",");
-          const { data: fullData } = await supabase.from("timetables").select("*").or(filterStr);
-          if (fullData) scheduleClassReminders(fullData);
-      } else if (!isPersonalized) {
-          const { data: batchData } = await supabase.from("timetables").select("*").eq("batch_code", batchCode);
-          if (batchData) scheduleClassReminders(batchData);
-      }
     } catch (error) {
       console.error("Error fetching timetable:", error);
     } finally {
@@ -236,63 +243,12 @@ export default function TimetableScreen() {
     if (personalCourses.length > 0) {
       setIsPersonalized(!isPersonalized);
     } else {
-      await startPersonalizationFlow();
-    }
-  };
-
-  const startPersonalizationFlow = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      alert("Permission to access camera roll is required!");
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      quality: 0.5,
-      base64: true,
-    });
-
-    if (!result.canceled && result.assets[0].base64) {
-      setIsAiProcessing(true);
-      try {
-        const extracted = await extractCoursesFromImage(result.assets[0].base64);
-        if (extracted && extracted.length > 0) {
-          setPersonalCourses(extracted);
-          setIsPersonalized(true);
-          
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            await supabase.from("profiles").update({ timetable_data: extracted }).eq("id", user.id);
-          }
-
-          alert(`Success! Successfully extracted ${extracted.length} courses.`);
-        }
-      } catch (error: any) {
-        alert("Personalization Failed: " + error.message);
-      } finally {
-        setIsAiProcessing(false);
-      }
+      router.push("/(screens)/Enrollment");
     }
   };
 
   const loadPersonalizedData = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      
-      const { data } = await supabase
-        .from("profiles")
-        .select("timetable_data")
-        .eq("id", user.id)
-        .single();
-
-      if (data && data.timetable_data && data.timetable_data.length > 0) {
-        setPersonalCourses(data.timetable_data);
-      }
-    } catch (err) {
-      console.log("Error loading personal timetable from Supabase", err);
-    }
+    // This is now handled by the useEffect syncing with AuthContext's user.timetable_data
   };
 
   const confirmDeletePersonal = () => {
@@ -311,15 +267,16 @@ export default function TimetableScreen() {
     setUnmatchedCourses([]);
     setPersonalCourses([]);
     
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      await supabase.from("profiles").update({ timetable_data: [] }).eq("id", user.id);
+    // Clear in Supabase via AuthContext
+    const { updateProfile }: any = React.useContext(AuthContext) || {};
+    if (updateProfile) {
+      await updateProfile({ timetable_data: [] });
     }
     
     await clearAllAttendance();
     await refreshAttendance();
     if (availableBatches.length > 0) {
-      setBatchCode(availableBatches[0]); // fallback to first available
+      setBatchCode(availableBatches[0]); 
     } else {
       setBatchCode("SP24-BCS-A"); 
     }
@@ -464,12 +421,23 @@ export default function TimetableScreen() {
                   <Text style={styles.unmatchedTitle}>Missing from Database</Text>
                 </View>
                 <Text style={styles.unmatchedSubtitle}>These courses were found on your card but aren't in our schedule system yet:</Text>
-                {unmatchedCourses.map((course, idx) => (
-                  <View key={idx} style={styles.unmatchedItem}>
-                    <Text style={styles.unmatchedItemText}>{course.subject} ({course.course_code})</Text>
-                    <Text style={styles.unmatchedBatch}>{course.batch_code}</Text>
-                  </View>
-                ))}
+                {unmatchedCourses.map((course, idx) => {
+                  const isTeacher = user?.role === 'teacher';
+                  return (
+                    <View key={idx} style={[styles.unmatchedItem, isTeacher && { flexDirection: 'column', alignItems: 'flex-start', gap: 2 }]}>
+                      <Text style={[styles.unmatchedItemText, isTeacher && { fontSize: 15, fontWeight: '800' }]}>
+                        {isTeacher ? (course.batch_code || (course as any).batch) : `${course.subject} (${course.course_code})`}
+                      </Text>
+                      {isTeacher ? (
+                        <Text style={{ fontSize: 13, color: '#450a0a', fontWeight: '500' }}>
+                          {course.subject} ({course.course_code})
+                        </Text>
+                      ) : (
+                        <Text style={styles.unmatchedBatch}>{course.batch_code}</Text>
+                      ) }
+                    </View>
+                  );
+                })}
               </View>
             )}
 
@@ -748,6 +716,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: "700",
     color: "#1e293b",
+    flexShrink: 1,
   },
   courseCode: {
     fontSize: 12,
@@ -758,17 +727,22 @@ const styles = StyleSheet.create({
   },
   metaRow: {
     flexDirection: "row",
-    gap: 15,
+    flexWrap: "wrap",
+    rowGap: 6,
+    columnGap: 15,
   },
   metaItem: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     gap: 4,
+    flexShrink: 1,
   },
   metaText: {
     fontSize: 12,
     color: "#64748b",
     fontWeight: "500",
+    flexShrink: 1,
+    marginTop: 1,
   },
   liveBadge: {
     flexDirection: "row",

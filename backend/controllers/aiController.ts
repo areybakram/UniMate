@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 
 export const extractCourses = async (req: Request, res: Response) => {
   try {
-    let { base64Image } = req.body;
+    let { base64Image, role } = req.body; // role can be 'student' or 'teacher'
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     const GEMINI_MODEL = "gemini-2.5-flash";
     const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
@@ -22,15 +22,32 @@ export const extractCourses = async (req: Request, res: Response) => {
       base64Image = base64Image.split("base64,")[1];
     }
 
-    const prompt = `
-      Analyze this University Registration Card image.
-      Extract all registered courses. For each, return:
-      - Course Code (e.g. CSC211)
-      - Batch/Section (e.g. SP24-BCS-A) 
-      - Subject Name
+    const isTeacher = role === 'teacher';
 
-      Return ONLY a raw JSON array: [{"course_code": "...", "batch_code": "...", "subject": "..."}]
-    `;
+    const prompt = isTeacher 
+      ? `
+        Analyze this University Document (Course Offering or Timetable).
+        Extract all courses assigned to the instructor. 
+        IMPORTANT: If a course is taught to multiple sections (e.g. Section A and Section B of FA24-BSE), you MUST return them as DIFFERENT objects in the array.
+        
+        For each section-course pair, return:
+        - course_code (e.g. CSC262)
+        - subject (e.g. Operating Systems)
+        - batch (Full string including session, program, and section suffix, e.g. FA24-BSE-A, SP24-BCS-B) 
+        - department (e.g. SE, CS, EE)
+        - instructor (Name mentioned on card, if any)
+
+        Return ONLY a raw JSON array: [{"course_code": "...", "subject": "...", "batch": "...", "department": "...", "instructor": "..."}]
+      `
+      : `
+        Analyze this University Registration Card image.
+        Extract all registered courses. For each, return:
+        - course_code (e.g. CSC211)
+        - batch_code (e.g. SP24-BCS-A) 
+        - subject
+
+        Return ONLY a raw JSON array: [{"course_code": "...", "batch_code": "...", "subject": "..."}]
+      `;
 
     const payload = {
       contents: [
@@ -63,13 +80,22 @@ export const extractCourses = async (req: Request, res: Response) => {
     const cleanedText = resultText.replace(/```json|```/g, "").trim();
     const extractedData = JSON.parse(cleanedText);
 
-    // Sanitize batch codes
+    // Sanitize batch codes for students or teachers
     const sanitizedData = extractedData.map((course: any) => {
-      const batchMatch = course.batch_code?.match(/(FA|SP)\d{2}-[A-Z0-9]+-[A-Z]/i);
-      return {
+      const batchValue = course.batch_code || course.batch || "";
+      const batchMatch = batchValue.match(/(FA|SP)\d{2}-[A-Z0-9]+-[A-Z]/i);
+      
+      const sanitized = {
         ...course,
-        batch_code: batchMatch ? batchMatch[0].toUpperCase() : (course.batch_code || "").split(' ')[0].trim()
+        batch_code: batchMatch ? batchMatch[0].toUpperCase() : (batchValue || "").split(' ')[0].trim()
       };
+
+      // Ensure consistent keys for teacher role if needed
+      if (isTeacher) {
+        sanitized.batch = sanitized.batch_code;
+      }
+      
+      return sanitized;
     });
 
     res.status(200).json(sanitizedData);
@@ -78,7 +104,7 @@ export const extractCourses = async (req: Request, res: Response) => {
     console.error("❌ Gemini Extraction Error Details:", errorDetails);
     
     res.status(500).json({ 
-      error: "Failed to extract data from the registration card.",
+      error: "Failed to extract data from the document.",
       details: typeof errorDetails === 'string' ? errorDetails : JSON.stringify(errorDetails)
     });
   }

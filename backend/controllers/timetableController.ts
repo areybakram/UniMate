@@ -119,6 +119,52 @@ export const getFreeSlots = (req: Request, res: Response) => {
   }
 };
 
+export const getTeacherSchedule = (req: Request, res: Response) => {
+  try {
+    const { courses, teacherName } = req.body; 
+    // courses: Array of { course_code, batch, department, subject }
+    // teacherName: string from current user's profile
+    
+    if (!courses || !Array.isArray(courses)) {
+      return res.status(400).json({ error: "Invalid courses data" });
+    }
+
+    if (!teacherName) {
+      return res.status(400).json({ error: "Teacher name is required for matching" });
+    }
+
+    const { results } = parseSchedule();
+    const normalizedTeacherName = teacherName.trim().toUpperCase();
+
+    const filtered = results.filter(item => {
+      const itemTitle = item.title.toUpperCase();
+      
+      return courses.some(c => {
+        const itemBatchCode = item.batch_code.trim().toUpperCase();
+        const extractedBatchCode = (c.batch || "").trim().toUpperCase();
+        
+        // Precise Batch & Section Match
+        const batchMatch = itemBatchCode === extractedBatchCode || itemBatchCode.includes(extractedBatchCode) || extractedBatchCode.includes(itemBatchCode);
+        
+        const courseCodeMatch = item.title.toUpperCase().includes(c.course_code.trim().toUpperCase());
+        const teacherMatch = itemTitle.includes(normalizedTeacherName);
+        
+        let deptMatch = true;
+        if (c.department) {
+          deptMatch = itemTitle.includes(c.department.trim().toUpperCase());
+        }
+
+        return courseCodeMatch && teacherMatch && batchMatch && deptMatch;
+      });
+    });
+    
+    res.status(200).json(filtered);
+  } catch (error: any) {
+    console.error("❌ Teacher Timetable Filter Error:", error);
+    res.status(500).json({ error: "Failed to filter teacher timetable." });
+  }
+};
+
 export const getPersonalizedTimetable = (req: Request, res: Response) => {
   try {
     const { courses } = req.body; // Array of { course_code, batch_code }
@@ -130,7 +176,7 @@ export const getPersonalizedTimetable = (req: Request, res: Response) => {
     
     const filtered = results.filter(item => 
       courses.some(c => 
-        item.course_code.trim().toUpperCase() === c.course_code.trim().toUpperCase() &&
+        item.title.toUpperCase().includes(c.course_code.trim().toUpperCase()) &&
         (item.batch_code.trim().toUpperCase() === c.batch_code.trim().toUpperCase() ||
          item.batch_code.trim().toUpperCase().includes(c.batch_code.trim().toUpperCase()) ||
          c.batch_code.trim().toUpperCase().includes(item.batch_code.trim().toUpperCase()))

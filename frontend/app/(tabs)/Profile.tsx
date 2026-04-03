@@ -397,6 +397,26 @@ export default function ProfileScreen() {
 
               <TouchableOpacity
                 style={styles.item}
+                onPress={() => router.push("/(screens)/Enrollment")}
+              >
+                <View style={styles.itemLeft}>
+                  <Ionicons
+                    name="school-outline"
+                    size={20}
+                    color="#3b82f6"
+                  />
+                  <View>
+                    <Text style={styles.itemText}>Academic Enrollment</Text>
+                    <Text style={{ fontSize: 11, color: "#94a3b8", marginTop: 1 }}>
+                      {user?.timetable_data?.length > 0 ? `Enrolled in ${user.timetable_data.length} courses` : "Not enrolled yet"}
+                    </Text>
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color="#94a3b8" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.item}
                 onPress={handleNotificationToggle}
                 activeOpacity={0.7}
               >

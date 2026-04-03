@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getFullSchedule, getBatchTimetable, getFreeSlots, getPersonalizedTimetable, getAvailableBatches } from '../controllers/timetableController';
+import { getFullSchedule, getBatchTimetable, getFreeSlots, getPersonalizedTimetable, getAvailableBatches, getTeacherSchedule } from '../controllers/timetableController';
 
 const router = Router();
 
@@ -22,5 +22,9 @@ router.get('/free-slots', getFreeSlots);
 // @route   POST /api/timetable/personalized
 // @desc    Get filtered results for a specific set of courses
 router.post('/personalized', getPersonalizedTimetable);
+
+// @route   POST /api/timetable/teacher
+// @desc    Get filtered results for a specific teacher based on courses and profile name
+router.post('/teacher', getTeacherSchedule);
 
 export default router;

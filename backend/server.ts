@@ -25,6 +25,6 @@ app.get('/health', (req, res) => {
 });
 
 app.listen(Number(PORT), '0.0.0.0', () => {
-  console.log(`🚀 UniMate Backend running on http://192.168.1.14:${PORT}`);
+  console.log(`🚀 UniMate Backend running on http://172.16.7.33:${PORT}`);
 });
 

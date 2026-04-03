@@ -103,6 +103,11 @@ const StudentHome: React.FC = () => {
       // 1. Fetch Tasks & Holidays immediately (independent of timetable)
       const tasksData = await getTodayTasks(supaUser.id);
       setTodayTasks(tasksData);
+      
+      // Schedule Task Notifications globally across the app
+      const allTasksData = await getTasks(supaUser.id);
+      await scheduleTaskReminders(allTasksData);
+
       await refreshAnalytics(supaUser.id);
 
       // 2. Load Timetable from Profile (Context or DB)
@@ -398,7 +403,7 @@ const StudentHome: React.FC = () => {
                       ],
                     }}
                     width={width * 0.55}
-                    height={135}
+                    height={120}
                     chartConfig={{
                       backgroundColor: "#ffffff",
                       backgroundGradientFrom: "#ffffff",
@@ -406,10 +411,10 @@ const StudentHome: React.FC = () => {
                       decimalPlaces: 0,
                       color: (opacity = 1) => `rgba(100, 116, 139, ${opacity})`,
                       labelColor: (opacity = 1) => `rgba(100, 116, 139, ${opacity})`,
-                      propsForLabels: { fontSize: 7 }
+                      propsForLabels: { fontSize: 9, fontWeight: '700' }
                     }}
                     bezier
-                    style={{ borderRadius: 12, paddingRight: 25 }}
+                    style={{ borderRadius: 12, paddingRight: 25, paddingBottom: 25 }}
                     withVerticalLines={false}
                     withHorizontalLines={true}
                   />
@@ -482,7 +487,7 @@ const StudentHome: React.FC = () => {
                     ],
                   }}
                   width={width * 0.8}
-                  height={135}
+                  height={120}
                   chartConfig={{
                     backgroundColor: "#ffffff",
                     backgroundGradientFrom: "#ffffff",
@@ -492,10 +497,10 @@ const StudentHome: React.FC = () => {
                     labelColor: (opacity = 1) => `rgba(100, 116, 139, ${opacity})`,
                     style: { borderRadius: 12 },
                     propsForDots: { r: "3", strokeWidth: "1.5", stroke: "#3b82f6" },
-                    propsForLabels: { fontSize: 7 }
+                    propsForLabels: { fontSize: 9, fontWeight: '700' }
                   }}
                   bezier
-                  style={{ borderRadius: 12, paddingRight: 35 }}
+                  style={{ borderRadius: 12, paddingRight: 35, paddingBottom: 25 }}
                   withVerticalLines={false}
                   withHorizontalLines={true}
                 />
@@ -815,18 +820,24 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     justifyContent: "space-between",
     gap: 12,
+    marginTop: 15,
     marginBottom: 25,
   },
   statCard: {
     width: "48%",
     backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 16,
+    padding: 12,
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
     borderWidth: 1,
     borderColor: "#E2E8F0",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
   },
   statIconBadge: {
     width: 36,
@@ -839,7 +850,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   statValue: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "700",
     color: "#1E293B",
   },
