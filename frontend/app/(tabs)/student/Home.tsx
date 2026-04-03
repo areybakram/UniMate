@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 import React, { useContext, useEffect, useState } from "react";
 import {
   Dimensions,
+  RefreshControl,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -52,18 +53,33 @@ const StudentHome: React.FC = () => {
   const [visibleTaskCount, setVisibleTaskCount] = useState(5);
   const [isAddTaskVisible, setIsAddTaskVisible] = useState(false);
   const { unreadCount } = useNotifications();
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const fetchHomeData = async () => {
     try {
       setIsLoading(true);
-      const savedData = await AsyncStorage.getItem("personal_timetable");
-      if (!savedData) {
+
+      // Read timetable from Supabase (migrated from AsyncStorage)
+      const { data: { user: supaUser } } = await supabase.auth.getUser();
+      let personalCourses: any[] = [];
+
+      if (supaUser) {
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("timetable_data")
+          .eq("id", supaUser.id)
+          .single();
+        personalCourses = profileData?.timetable_data || [];
+      }
+
+      if (personalCourses.length === 0) {
         setStats({ total: 0, taken: 0, missed: 0 });
         setTodaySchedule([]);
+        const tasksData = await getTodayTasks();
+        setTodayTasks(tasksData);
         return;
       }
 
-      const personalCourses = JSON.parse(savedData);
       const now = new Date();
       const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
       const currentDay = DAYS[now.getDay() - 1] || DAYS[0];
@@ -103,7 +119,13 @@ const StudentHome: React.FC = () => {
       console.error("Error fetching home data:", error);
     } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
     }
+  };
+
+  const onRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchHomeData();
   };
 
   useEffect(() => {
@@ -158,6 +180,14 @@ const StudentHome: React.FC = () => {
         <ScrollView 
           contentContainerStyle={{ paddingBottom: 100 }}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={onRefresh}
+              colors={["#3B82F6"]}
+              tintColor="#3B82F6"
+            />
+          }
           onScroll={({ nativeEvent }) => {
             const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
             const isCloseToBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 50;
