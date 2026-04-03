@@ -9,6 +9,10 @@ interface User {
   name?: string | null;
   phone?: string | null;
   role?: string | null;
+  custom_profile_photo?: string | null;
+  timetable_data?: any;
+  attendance_data?: any;
+  chatbot_history?: any;
 }
 
 interface AuthContextProps {
@@ -16,7 +20,14 @@ interface AuthContextProps {
   isLoading: boolean;
   login: (userData: User) => Promise<void>;
   logout: () => Promise<void>;
-  updateProfile: (updatedData: { name?: string; phone?: string }) => Promise<{ error?: any }>;
+  updateProfile: (updatedData: { 
+    name?: string; 
+    phone?: string; 
+    custom_profile_photo?: string | null;
+    timetable_data?: any;
+    attendance_data?: any;
+    chatbot_history?: any;
+  }) => Promise<{ error?: any }>;
   changePassword: (newPassword: string) => Promise<{ error?: any }>;
   signIn: (
     email: string,
@@ -60,7 +71,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             // fetch profile from profiles table (if exists)
             const { data: profile, error } = await supabase
               .from("profiles")
-              .select("name, phone, Role")
+              .select("name, phone, Role, custom_profile_photo, timetable_data, attendance_data, chatbot_history")
               .eq("id", id)
               .single();
             
@@ -72,6 +83,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               name: profile?.name ?? null,
               phone: profile?.phone ?? null,
               role: profile?.Role?.toLowerCase() ?? "student",
+              custom_profile_photo: profile?.custom_profile_photo ?? null,
+              timetable_data: profile?.timetable_data ?? [],
+              attendance_data: profile?.attendance_data ?? {},
+              chatbot_history: profile?.chatbot_history ?? [],
             };
             setUser(usr);
             await AsyncStorage.setItem("user", JSON.stringify(usr));
@@ -105,7 +120,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await AsyncStorage.removeItem("user");
   };
 
-  const updateProfile = async (updatedData: { name?: string; phone?: string }) => {
+  const updateProfile = async (updatedData: Partial<User>) => {
     if (!user) return { error: "No user logged in" };
     try {
       const { error } = await supabase
@@ -146,7 +161,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const { id, email: userEmail } = data.user;
         const { data: profile } = await supabase
           .from("profiles")
-          .select("name, phone, Role")
+          .select("name, phone, Role, custom_profile_photo, timetable_data, attendance_data, chatbot_history")
           .eq("id", id)
           .single();
         
@@ -158,6 +173,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           name: profile?.name ?? null,
           phone: profile?.phone ?? null,
           role: profile?.Role?.toLowerCase() ?? "student",
+          custom_profile_photo: profile?.custom_profile_photo ?? null,
+          timetable_data: profile?.timetable_data ?? [],
+          attendance_data: profile?.attendance_data ?? {},
+          chatbot_history: profile?.chatbot_history ?? [],
         };
         await AsyncStorage.setItem("user", JSON.stringify(usr));
         setUser(usr);

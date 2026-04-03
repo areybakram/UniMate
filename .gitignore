@@ -32,8 +32,21 @@ yarn-error.*
 
 # local env files
 .env*.local
+.env
 
 # typescript
 *.tsbuildinfo
 
 app-example
+
+# Android build artifacts (C++ / Gradle / CMake caches - never commit these)
+frontend/android/app/.cxx/
+frontend/android/app/build/
+frontend/android/.gradle/
+frontend/android/build/
+frontend/android/local.properties
+
+# iOS build artifacts
+frontend/ios/build/
+frontend/ios/Pods/
+frontend/ios/DerivedData/

@@ -4,8 +4,9 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { router } from "expo-router";
-import React, { useContext, useEffect } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { useContext, useEffect, useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View, Image } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { RFValue } from "react-native-responsive-fontsize";
 import { AuthContext } from "../Context/AuthContext";
 
@@ -27,6 +28,14 @@ const CustomDrawer = ({ active }: any) => {
   const auth = useContext(AuthContext);
   const user = auth?.user;
   const isLoading = auth?.isLoading;
+
+  const [customProfilePhoto, setCustomProfilePhoto] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user?.custom_profile_photo) {
+      setCustomProfilePhoto(user.custom_profile_photo);
+    }
+  }, [user]); // refresh if drawer toggles or user context updates
 
   // Redirect if not logged in
   useEffect(() => {
@@ -227,9 +236,13 @@ const CustomDrawer = ({ active }: any) => {
   return (
     <View style={styles.container}>
       <View style={styles.profileHeader}>
-        <View style={styles.avatarPlaceholder}>
-          <FontAwesome5 name="user-alt" size={30} color={"#2D3748"} />
-        </View>
+        {customProfilePhoto ? (
+          <Image source={{ uri: customProfilePhoto }} style={styles.avatarImage} />
+        ) : (
+          <View style={styles.avatarPlaceholder}>
+            <FontAwesome5 name="user-alt" size={30} color={"#2D3748"} />
+          </View>
+        )}
         <Text style={styles.drawerUserName}>{user?.name || "Guest User"}</Text>
         <Text style={styles.drawerUserRole}>{user?.role || "No Role"}</Text>
       </View>
@@ -300,6 +313,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 10,
+  },
+  avatarImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 18,
+    marginBottom: 10,
+    borderWidth: 2,
+    borderColor: "#E2E8F0",
   },
   drawerUserName: {
     color: "#2D3748",

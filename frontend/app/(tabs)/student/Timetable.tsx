@@ -17,7 +17,6 @@ import {
   Dimensions,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { extractCoursesFromImage, ExtractedCourse } from "@/utils/geminiService";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, { 
@@ -261,7 +260,12 @@ export default function TimetableScreen() {
         if (extracted && extracted.length > 0) {
           setPersonalCourses(extracted);
           setIsPersonalized(true);
-          await AsyncStorage.setItem("personal_timetable", JSON.stringify(extracted));
+          
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            await supabase.from("profiles").update({ timetable_data: extracted }).eq("id", user.id);
+          }
+
           alert(`Success! Successfully extracted ${extracted.length} courses.`);
         }
       } catch (error: any) {
@@ -273,9 +277,21 @@ export default function TimetableScreen() {
   };
 
   const loadPersonalizedData = async () => {
-    const savedData = await AsyncStorage.getItem("personal_timetable");
-    if (savedData) {
-      setPersonalCourses(JSON.parse(savedData));
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      const { data } = await supabase
+        .from("profiles")
+        .select("timetable_data")
+        .eq("id", user.id)
+        .single();
+
+      if (data && data.timetable_data && data.timetable_data.length > 0) {
+        setPersonalCourses(data.timetable_data);
+      }
+    } catch (err) {
+      console.log("Error loading personal timetable from Supabase", err);
     }
   };
 
@@ -294,7 +310,12 @@ export default function TimetableScreen() {
     setIsPersonalized(false);
     setUnmatchedCourses([]);
     setPersonalCourses([]);
-    await AsyncStorage.removeItem("personal_timetable");
+    
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await supabase.from("profiles").update({ timetable_data: [] }).eq("id", user.id);
+    }
+    
     await clearAllAttendance();
     await refreshAttendance();
     if (availableBatches.length > 0) {

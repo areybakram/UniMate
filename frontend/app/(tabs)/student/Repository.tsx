@@ -171,10 +171,19 @@ const Repository = () => {
       {/* Header Section */}
       <LinearGradient colors={["#1e293b", "#334155"]} style={styles.header}>
         <View style={styles.headerTop}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={24} color="#fff" />
+          <View style={styles.headerTitleGroup}>
+            <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+              <Ionicons name="arrow-back" size={24} color="#fff" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Digital Library</Text>
+          </View>
+          
+          <TouchableOpacity 
+            onPress={() => setIsUploadModalVisible(true)}
+            style={styles.headerAddBtn}
+          >
+            <Ionicons name="add-circle-outline" size={30} color="#fff" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Digital Library</Text>
         </View>
 
         <View style={styles.searchContainer}>
@@ -268,18 +277,6 @@ const Repository = () => {
         title="Select Batch"
       />
 
-      {/* Upload FAB */}
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => setIsUploadModalVisible(true)}
-      >
-        <LinearGradient
-          colors={["#2D3748", "#4A5568"]}
-          style={styles.fabGradient}
-        >
-          <Ionicons name="add" size={32} color="#fff" />
-        </LinearGradient>
-      </TouchableOpacity>
     </View>
   );
 };
@@ -298,10 +295,20 @@ const styles = StyleSheet.create({
   },
   headerTop: {
     flexDirection: "row",
-    justifyContent: "flex-start",
+    justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 20,
+  },
+  headerTitleGroup: {
+    flexDirection: "row",
+    alignItems: "center",
     gap: 15,
+  },
+  headerAddBtn: {
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
   },
   backBtn: {
     width: 40,

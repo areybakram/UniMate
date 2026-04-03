@@ -18,6 +18,7 @@ import {
   View,
 } from "react-native";
 import { AuthContext } from "../../Context/AuthContext";
+import * as ImagePicker from "expo-image-picker";
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -32,6 +33,61 @@ export default function ProfileScreen() {
   const [editedPhone, setEditedPhone] = useState(user?.phone || "");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [customProfilePhoto, setCustomProfilePhoto] = useState<string | null>(user?.custom_profile_photo || null);
+
+  useEffect(() => {
+    if (user?.custom_profile_photo) setCustomProfilePhoto(user.custom_profile_photo);
+  }, [user]);
+
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.5,
+      base64: true,
+    });
+
+    if (!result.canceled && result.assets[0].base64) {
+      const base64Uri = `data:image/jpeg;base64,${result.assets[0].base64}`;
+      setCustomProfilePhoto(base64Uri);
+      await updateProfile?.({ custom_profile_photo: base64Uri });
+    }
+  };
+
+  const takePhoto = async () => {
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+    
+    if (permissionResult.granted === false) {
+      Alert.alert("Permission Refused", "You need to grant camera permission to take a photo.");
+      return;
+    }
+
+    let result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.5,
+      base64: true,
+    });
+
+    if (!result.canceled && result.assets[0].base64) {
+      const base64Uri = `data:image/jpeg;base64,${result.assets[0].base64}`;
+      setCustomProfilePhoto(base64Uri);
+      await updateProfile?.({ custom_profile_photo: base64Uri });
+    }
+  };
+
+  const handleImagePickOptions = () => {
+    Alert.alert(
+      "Update Profile Picture",
+      "Choose an option",
+      [
+        { text: "Take Photo", onPress: takePhoto },
+        { text: "Choose from Gallery", onPress: pickImage },
+        { text: "Cancel", style: "cancel" }
+      ]
+    );
+  };
 
   // Redirect if not logged in
   useEffect(() => {
@@ -102,9 +158,6 @@ export default function ProfileScreen() {
     );
   }
 
-  // Replace with your local image
-  const profilePhoto = require("../../assets/profilephoto.jpeg");
-
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
       <StatusBar
@@ -133,7 +186,21 @@ export default function ProfileScreen() {
 
             {/* PROFILE PHOTO */}
             <View style={styles.avatarContainer}>
-              <Image source={profilePhoto} style={styles.avatar} />
+              <TouchableOpacity onPress={handleImagePickOptions} activeOpacity={0.8}>
+                {customProfilePhoto ? (
+                  <Image 
+                    source={{ uri: customProfilePhoto }} 
+                    style={styles.avatar} 
+                  />
+                ) : (
+                  <View style={[styles.avatar, styles.emptyAvatar]}>
+                    <Ionicons name="person" size={50} color="rgba(255,255,255,0.6)" />
+                  </View>
+                )}
+                <View style={styles.cameraIconBadge}>
+                  <Ionicons name="camera" size={16} color="#fff" />
+                </View>
+              </TouchableOpacity>
               <View style={styles.roleBadge}>
                 <Text style={styles.roleBadgeText}>
                   {(user.role || "student").toUpperCase()}
@@ -430,6 +497,24 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     borderWidth: 4,
     borderColor: "rgba(255,255,255,0.3)",
+  },
+  emptyAvatar: {
+    backgroundColor: "rgba(255,255,255,0.15)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  cameraIconBadge: {
+    position: "absolute",
+    bottom: 5,
+    left: 5,
+    backgroundColor: "#3b82f6",
+    padding: 6,
+    borderRadius: 15,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
   },
   roleBadge: {
     position: "absolute",

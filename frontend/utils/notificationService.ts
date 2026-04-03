@@ -15,6 +15,7 @@ Notifications.setNotificationHandler({
 });
 
 const SCHEDULED_IDS_KEY = 'unimate_scheduled_notifications';
+const TASK_SCHEDULED_IDS_KEY = 'unimate_scheduled_task_notifications';
 
 export const registerForPushNotificationsAsync = async () => {
   if (!Device.isDevice) {
@@ -135,7 +136,70 @@ export const scheduleClassReminders = async (timetable: TimetableItem[]) => {
   }
 };
 
+export const scheduleTaskReminders = async (tasks: any[]) => {
+  try {
+    // 1. Cancel previous task schedules
+    const storedIds = await AsyncStorage.getItem(TASK_SCHEDULED_IDS_KEY);
+    if (storedIds) {
+      const ids = JSON.parse(storedIds);
+      for (const id of ids) {
+        await Notifications.cancelScheduledNotificationAsync(id);
+      }
+    }
+
+    const scheduledIds: string[] = [];
+    const now = new Date();
+
+    for (const task of tasks) {
+      if (task.status === 'done') continue;
+
+      const endDate = new Date(task.endDate);
+      endDate.setHours(0, 0, 0, 0);
+
+      const dayBefore = new Date(endDate);
+      dayBefore.setDate(dayBefore.getDate() - 1);
+      dayBefore.setHours(18, 0, 0, 0); // 18:00 the day before
+
+      const dayOf = new Date(endDate);
+      dayOf.setHours(8, 0, 0, 0); // 08:00 the day of
+
+      // Schedule "Due Tomorrow"
+      if (dayBefore > now) {
+        const id1 = await Notifications.scheduleNotificationAsync({
+          content: {
+            title: `Task Due Tomorrow: ${task.title}`,
+            body: `Don't forget, "${task.title}" is due tomorrow!`,
+            data: { type: 'task_reminder', taskId: task.id },
+          },
+          trigger: { date: dayBefore, channelId: 'default' } as any,
+        });
+        scheduledIds.push(id1);
+      }
+
+      // Schedule "Due Today"
+      if (dayOf > now) {
+        const id2 = await Notifications.scheduleNotificationAsync({
+          content: {
+            title: `Task Due Today: ${task.title}`,
+            body: `Final reminder! "${task.title}" is due today.`,
+            data: { type: 'task_reminder', taskId: task.id },
+          },
+          trigger: { date: dayOf, channelId: 'default' } as any,
+        });
+        scheduledIds.push(id2);
+      }
+    }
+
+    await AsyncStorage.setItem(TASK_SCHEDULED_IDS_KEY, JSON.stringify(scheduledIds));
+  } catch (error) {
+    console.error('Error scheduling task notifications:', error);
+  }
+};
+
 export const cancelAllScheduledNotifications = async () => {
-  await Notifications.cancelAllScheduledNotificationsAsync();
-  await AsyncStorage.removeItem(SCHEDULED_IDS_KEY);
+    // This is problematic as it cancels EVERYTHING. 
+    // Usually called before re-scheduling classes.
+    await Notifications.cancelAllScheduledNotificationsAsync();
+    await AsyncStorage.removeItem(SCHEDULED_IDS_KEY);
+    await AsyncStorage.removeItem(TASK_SCHEDULED_IDS_KEY);
 };

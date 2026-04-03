@@ -31,7 +31,10 @@ import { supabase } from "../../../supabaseClient";
 import { loadAttendance, calculateStats, AttendanceRecord } from "@/utils/attendanceService";
 import { useFocusEffect } from "expo-router";
 import { useNotifications } from "../../../Context/NotificationContext";
-import { registerForPushNotificationsAsync, scheduleClassReminders } from "../../../utils/notificationService";
+import { registerForPushNotificationsAsync, scheduleClassReminders, scheduleTaskReminders } from "../../../utils/notificationService";
+import { getTodayTasks, toggleTaskStatus, Task, getTasks } from "@/utils/taskService";
+import TaskCard from "@/components/TaskCard";
+import AddTaskModal from "@/components/AddTaskModal";
 
 const { width } = Dimensions.get("window");
 
@@ -45,6 +48,9 @@ const StudentHome: React.FC = () => {
   const [todaySchedule, setTodaySchedule] = useState<any[]>([]);
   const [attendance, setAttendance] = useState<AttendanceRecord>({});
   const [isLoading, setIsLoading] = useState(true);
+  const [todayTasks, setTodayTasks] = useState<Task[]>([]);
+  const [visibleTaskCount, setVisibleTaskCount] = useState(5);
+  const [isAddTaskVisible, setIsAddTaskVisible] = useState(false);
   const { unreadCount } = useNotifications();
 
   const fetchHomeData = async () => {
@@ -76,6 +82,9 @@ const StudentHome: React.FC = () => {
 
       const attendanceData = await loadAttendance();
       const newStats = calculateStats(data || [], attendanceData);
+      
+      const tasksData = await getTodayTasks();
+      setTodayTasks(tasksData);
       
       setStats(newStats);
       setAttendance(attendanceData);
@@ -134,7 +143,7 @@ const StudentHome: React.FC = () => {
     { label: "Total Today", value: stats.total.toString(), icon: "book-outline", color: "#3B82F6" },
     { label: "Attended", value: stats.taken.toString(), icon: "checkmark-circle-outline", color: "#10B981" },
     { label: "Missed", value: stats.missed.toString(), icon: "alert-circle-outline", color: "#EF4444" },
-    { label: "Tasks", value: "4", icon: "time-outline", color: "#F59E0B" },
+    { label: "Tasks Today", value: todayTasks.filter(t => t.status === 'todo').length.toString(), icon: "time-outline", color: "#F59E0B" },
   ];
 
   return (
@@ -146,81 +155,98 @@ const StudentHome: React.FC = () => {
       >
         <StatusBar barStyle="light-content" />
 
-        <LinearGradient
-          colors={["#1e293b", "#334155"]}
-          style={styles.heroSection}
+        <ScrollView 
+          contentContainerStyle={{ paddingBottom: 100 }}
+          showsVerticalScrollIndicator={false}
+          onScroll={({ nativeEvent }) => {
+            const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
+            const isCloseToBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 50;
+            if (isCloseToBottom && visibleTaskCount < todayTasks.length) {
+              setVisibleTaskCount(prev => prev + 5);
+            }
+          }}
+          scrollEventThrottle={400}
         >
-          <View style={styles.header}>
-            <TouchableOpacity onPress={() => (active.value = !active.value)}>
-              <Ionicons name="menu" size={28} color="#fff" />
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>UniMate</Text>
-            <View style={styles.headerRight}>
-              <SmallSOSButton />
-              <TouchableOpacity 
-                onPress={() => router.push("/(screens)/notifications")}
-                style={styles.notificationBtn}
-              >
-                <Ionicons name="notifications" size={24} color="#fff" />
-                {unreadCount > 0 && (
-                  <View style={styles.badge}>
-                    <Text style={styles.badgeText}>
-                      {unreadCount > 9 ? '9+' : unreadCount}
-                    </Text>
-                  </View>
-                )}
+          <LinearGradient
+            colors={["#1e293b", "#334155"]}
+            style={styles.heroSection}
+          >
+            <View style={styles.header}>
+              <TouchableOpacity onPress={() => (active.value = !active.value)}>
+                <Ionicons name="menu" size={28} color="#fff" />
               </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => {
-                  if (logout) {
-                    logout();
-                    router.replace("/(auth)/who");
-                  }
-                }}
-              >
-                <Ionicons name="log-out-outline" size={24} color="#fff" />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <View style={styles.heroContent}>
-            <View style={styles.welcomeSection}>
-              <Text style={styles.greeting}>{getGreeting()},</Text>
-              <Text style={styles.userName}>
-                {user?.name || "Student Name"}
-              </Text>
-            </View>
-
-            <View style={styles.infoSection}>
-              <View style={styles.infoItem}>
-                <Ionicons name="school-outline" size={15} color="#90CDF4" />
-                <Text style={styles.infoText}>{user?.role || "Student"}</Text>
+              <Text style={styles.headerTitle}>UniMate</Text>
+              <View style={styles.headerRight}>
+                <SmallSOSButton />
+                <TouchableOpacity 
+                  onPress={() => router.push("/(screens)/notifications")}
+                  style={styles.notificationBtn}
+                >
+                  <Ionicons name="notifications" size={24} color="#fff" />
+                  {unreadCount > 0 && (
+                    <View style={styles.badge}>
+                      <Text style={styles.badgeText}>
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
+                    if (logout) {
+                      logout();
+                      router.replace("/(auth)/who");
+                    }
+                  }}
+                >
+                  <Ionicons name="log-out-outline" size={24} color="#fff" />
+                </TouchableOpacity>
               </View>
+            </View>
 
-              <View style={styles.infoItem}>
-                <Ionicons name="time-outline" size={15} color="#90CDF4" />
-                <Text style={styles.infoText}>
-                  {currentTime.toLocaleDateString([], {
-                    weekday: "short",
-                    month: "short",
-                    day: "numeric",
-                  })}{" "}
-                  •{" "}
-                  {currentTime.toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+            <View style={styles.heroContent}>
+              <View style={styles.welcomeSection}>
+                <Text style={styles.greeting}>{getGreeting()},</Text>
+                <Text style={styles.userName}>
+                  {user?.name || "Student Name"}
                 </Text>
               </View>
-            </View>
-          </View>
-        </LinearGradient>
 
-        <ScrollView style={styles.body} showsVerticalScrollIndicator={false}>
+              <View style={styles.infoSection}>
+                <View style={styles.infoItem}>
+                  <Ionicons name="school-outline" size={15} color="#90CDF4" />
+                  <Text style={styles.infoText}>{user?.role || "Student"}</Text>
+                </View>
+
+                <View style={styles.infoItem}>
+                  <Ionicons name="time-outline" size={15} color="#90CDF4" />
+                  <Text style={styles.infoText}>
+                    {currentTime.toLocaleDateString([], {
+                      weekday: "short",
+                      month: "short",
+                      day: "numeric",
+                    })}{" "}
+                    •{" "}
+                    {currentTime.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </LinearGradient>
+
+          <View style={styles.body}>
           {/* STATS SECTION */}
           <Animated.View entering={FadeInDown.delay(100)} style={styles.statsContainer}>
             {quickStats.map((stat, index) => (
-              <View key={index} style={styles.statCard}>
+              <TouchableOpacity 
+                key={index} 
+                style={styles.statCard}
+                onPress={() => stat.label.includes("Tasks") ? router.push("/(screens)/Tasks") : undefined}
+                activeOpacity={stat.label.includes("Tasks") ? 0.7 : 1}
+              >
                 <View style={[styles.statIconBadge, { backgroundColor: stat.color + '10' }]}>
                   <Ionicons name={stat.icon as any} size={20} color={stat.color} />
                 </View>
@@ -228,7 +254,7 @@ const StudentHome: React.FC = () => {
                   <Text style={styles.statValue}>{stat.value}</Text>
                   <Text style={styles.statLabel}>{stat.label}</Text>
                 </View>
-              </View>
+              </TouchableOpacity>
             ))}
           </Animated.View>
 
@@ -236,10 +262,6 @@ const StudentHome: React.FC = () => {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Today's Schedule</Text>
-              {/* <View style={styles.liveIndicator}>
-                <View style={styles.liveDot} />
-                <Text style={styles.liveText}>SYSTEM LIVE</Text>
-              </View> */}
             </View>
 
             {isLoading ? (
@@ -326,7 +348,60 @@ const StudentHome: React.FC = () => {
               </View>
             )}
           </View>
+
+          {/* TASKS SECTION */}
+          <View style={[styles.section, { marginTop: -10 }]}>
+            <View style={styles.sectionHeader}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Text style={styles.sectionTitle}>Today's Tasks</Text>
+                {todayTasks.filter(t => t.status === 'todo').length > 0 && (
+                   <View style={styles.countBadge}>
+                     <Text style={styles.countBadgeText}>{todayTasks.filter(t => t.status === 'todo').length}</Text>
+                   </View>
+                )}
+              </View>
+              <TouchableOpacity 
+                style={styles.headerAddBtn}
+                onPress={() => setIsAddTaskVisible(true)}
+              >
+                <Ionicons name="add-circle" size={10} color="#3B82F6" />
+                <Text style={styles.addBtnText}>Task</Text>
+              </TouchableOpacity>
+            </View>
+
+            {todayTasks.length > 0 ? (
+              <View style={[styles.taskTodayList, styles.taskTodayBox]}>
+                {todayTasks.slice(0, visibleTaskCount).map((task, index) => (
+                  <TaskCard 
+                    key={task.id} 
+                    item={task} 
+                    index={index} 
+                    compact={true} 
+                    onToggleStatus={async (id, status) => {
+                      await toggleTaskStatus(id, status);
+                      const updatedToday = await getTodayTasks();
+                      setTodayTasks(updatedToday);
+                      const allTasks = await getTasks();
+                      await scheduleTaskReminders(allTasks);
+                    }}
+                  />
+                ))}
+              </View>
+            ) : (
+              <View style={styles.emptyState}>
+                <Ionicons name="clipboard-outline" size={40} color="#CBD5E0" />
+                <Text style={styles.emptyText}>Zero tasks due today. Relax!</Text>
+              </View>
+            )}
+          </View>
+          </View>
         </ScrollView>
+
+        <AddTaskModal 
+          visible={isAddTaskVisible}
+          onClose={() => setIsAddTaskVisible(false)}
+          onTaskAdded={fetchHomeData}
+        />
 
         {active.value && (
           <TouchableOpacity
@@ -431,7 +506,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   body: {
-    flex: 1,
     padding: 20,
     backgroundColor: "#F1F5F9",
   },
@@ -625,6 +699,55 @@ const styles = StyleSheet.create({
     backgroundColor: "#3B82F6",
     borderTopRightRadius: 12,
     borderBottomRightRadius: 12,
+  },
+  headerAddBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    gap: 4,
+  },
+  addBtnText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#3B82F6",
+  },
+  taskTodayList: {
+    marginTop: 5,
+  },
+  taskTodayBox: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+  },
+  viewAllText: {
+    fontSize: 13,
+    color: "#3B82F6",
+    fontWeight: "700",
+  },
+  countBadge: {
+    backgroundColor: "#3B82F6",
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  countBadgeText: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "900",
   },
 });
 
