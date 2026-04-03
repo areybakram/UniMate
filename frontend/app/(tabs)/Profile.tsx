@@ -6,7 +6,9 @@ import { useContext, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Animated,
   Image,
+  Linking,
   Modal,
   SafeAreaView,
   ScrollView,
@@ -19,6 +21,9 @@ import {
 } from "react-native";
 import { AuthContext } from "../../Context/AuthContext";
 import * as ImagePicker from "expo-image-picker";
+import * as Notifications from "expo-notifications";
+import { useNotifications } from "../../Context/NotificationContext";
+import { cancelAllScheduledNotifications } from "../../utils/notificationService";
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -34,6 +39,57 @@ export default function ProfileScreen() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [customProfilePhoto, setCustomProfilePhoto] = useState<string | null>(user?.custom_profile_photo || null);
+  
+  const { isNotificationsEnabled, setNotificationsEnabled } = useNotifications();
+  const toggleAnim = useState(new Animated.Value(isNotificationsEnabled ? 1 : 0))[0];
+
+  // Sync animation with context state
+  useEffect(() => {
+    Animated.timing(toggleAnim, {
+      toValue: isNotificationsEnabled ? 1 : 0,
+      duration: 200,
+      useNativeDriver: false,
+    }).start();
+  }, [isNotificationsEnabled]);
+
+  const handleNotificationToggle = async () => {
+    const newValue = !isNotificationsEnabled;
+    
+    if (newValue) {
+      // First check current status
+      const { status: currentStatus } = await Notifications.getPermissionsAsync();
+      
+      if (currentStatus === "granted") {
+        await setNotificationsEnabled(true);
+      } else {
+        // Request permission
+        const { status: newStatus } = await Notifications.requestPermissionsAsync();
+        if (newStatus === "granted") {
+          await setNotificationsEnabled(true);
+          Alert.alert("Notifications Enabled", "You will now receive UniMate reminders and alerts.");
+        } else {
+          // If explicitly denied or failed, then show settings alert
+          Alert.alert(
+            "Permission Required",
+            "Notifications are blocked in system settings. Please enable them to receive alerts.",
+            [
+              { text: "Open Settings", onPress: () => Linking.openSettings() },
+              { text: "Cancel", style: "cancel" },
+            ]
+          );
+        }
+      }
+    } else {
+      // Just disable it in app state - no settings redirect
+      await setNotificationsEnabled(false);
+      // Explicitly cancel all scheduled notifications for instant effect
+      await cancelAllScheduledNotifications();
+    }
+  };
+
+  const animateToggle = (toValue: boolean) => {
+    // This is now handled by the useEffect syncing with context state
+  };
 
   useEffect(() => {
     if (user?.custom_profile_photo) setCustomProfilePhoto(user.custom_profile_photo);
@@ -339,16 +395,43 @@ export default function ProfileScreen() {
                 <Ionicons name="chevron-forward" size={16} color="#94a3b8" />
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.item}>
+              <TouchableOpacity
+                style={styles.item}
+                onPress={handleNotificationToggle}
+                activeOpacity={0.7}
+              >
                 <View style={styles.itemLeft}>
                   <Ionicons
-                    name="notifications-outline"
+                    name={isNotificationsEnabled ? "notifications" : "notifications-off-outline"}
                     size={20}
-                    color="#3b82f6"
+                    color={isNotificationsEnabled ? "#3b82f6" : "#94a3b8"}
                   />
-                  <Text style={styles.itemText}>Notification Preferences</Text>
+                  <View>
+                    <Text style={styles.itemText}>Notification Preferences</Text>
+                    <Text style={{ fontSize: 11, color: "#94a3b8", marginTop: 1 }}>
+                      {isNotificationsEnabled ? "Enabled" : "Disabled"}
+                    </Text>
+                  </View>
                 </View>
-                <Ionicons name="chevron-forward" size={16} color="#94a3b8" />
+                
+                {/* Custom Styled Toggle */}
+                <View style={[
+                  styles.toggleTrack,
+                  { backgroundColor: isNotificationsEnabled ? "#bfdbfe" : "#e2e8f0" }
+                ]}>
+                  <Animated.View style={[
+                    styles.toggleThumb,
+                    {
+                      transform: [{
+                        translateX: toggleAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [2, 18],
+                        })
+                      }],
+                      backgroundColor: isNotificationsEnabled ? "#3b82f6" : "#94a3b8",
+                    }
+                  ]} />
+                </View>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -696,5 +779,22 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "600",
     fontSize: 16,
+  },
+  toggleTrack: {
+    width: 37,
+    height: 18,
+    borderRadius: 15,
+    justifyContent: "center",
+    paddingHorizontal: 2,
+  },
+  toggleThumb: {
+    width: 15,
+    height: 15,
+    borderRadius: 10,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.5,
   },
 });

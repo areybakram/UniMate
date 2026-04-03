@@ -15,25 +15,33 @@ export interface Notification {
 interface NotificationContextType {
   notifications: Notification[];
   unreadCount: number;
+  isNotificationsEnabled: boolean;
   addNotification: (title: string, body: string, type: Notification['type'], data?: any) => Promise<void>;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   clearAll: () => Promise<void>;
+  setNotificationsEnabled: (value: boolean) => Promise<void>;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'unimate_notifications_history';
+const PREFERENCE_KEY = 'unimate_notifications_preference';
 
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(true);
 
-  // Load notifications from storage on mount
+  // Load notifications and preference from storage on mount
   useEffect(() => {
     loadNotifications();
+    loadPreference();
 
     // Listen for incoming notifications while the app is open
     const subscription = Notifications.addNotificationReceivedListener(notification => {
+      // Check if notifications are enabled before processing
+      if (!isNotificationsEnabled) return;
+      
       const { title, body, data } = notification.request.content;
       
       // Determine type from data or default to system
@@ -54,6 +62,26 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       }
     } catch (error) {
       console.error('Failed to load notifications:', error);
+    }
+  };
+
+  const loadPreference = async () => {
+    try {
+      const stored = await AsyncStorage.getItem(PREFERENCE_KEY);
+      if (stored !== null) {
+        setIsNotificationsEnabled(JSON.parse(stored));
+      }
+    } catch (error) {
+      console.error('Failed to load notification preference:', error);
+    }
+  };
+
+  const setNotificationsEnabled = async (value: boolean) => {
+    try {
+      await AsyncStorage.setItem(PREFERENCE_KEY, JSON.stringify(value));
+      setIsNotificationsEnabled(value);
+    } catch (error) {
+      console.error('Failed to save notification preference:', error);
     }
   };
 
@@ -103,10 +131,12 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       value={{
         notifications,
         unreadCount,
+        isNotificationsEnabled,
         addNotification,
         markAsRead,
         markAllAsRead,
         clearAll,
+        setNotificationsEnabled,
       }}
     >
       {children}

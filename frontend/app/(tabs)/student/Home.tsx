@@ -395,7 +395,7 @@ const StudentHome: React.FC = () => {
                 onPress={() => setIsAddTaskVisible(true)}
               >
                 <Ionicons name="add-circle" size={10} color="#3B82F6" />
-                <Text style={styles.addBtnText}>Task</Text>
+                <Text style={styles.addBtnText}>Add Task</Text>
               </TouchableOpacity>
             </View>
 
@@ -742,7 +742,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   addBtnText: {
-    fontSize: 11,
+    fontSize: 7,
     fontWeight: "700",
     color: "#3B82F6",
   },

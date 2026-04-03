@@ -16,6 +16,16 @@ Notifications.setNotificationHandler({
 
 const SCHEDULED_IDS_KEY = 'unimate_scheduled_notifications';
 const TASK_SCHEDULED_IDS_KEY = 'unimate_scheduled_task_notifications';
+const PREFERENCE_KEY = 'unimate_notifications_preference';
+
+const isNotificationsEnabled = async () => {
+  try {
+    const stored = await AsyncStorage.getItem(PREFERENCE_KEY);
+    return stored === null ? true : JSON.parse(stored);
+  } catch {
+    return true;
+  }
+};
 
 export const registerForPushNotificationsAsync = async () => {
   if (!Device.isDevice) {
@@ -69,6 +79,13 @@ interface TimetableItem {
 
 export const scheduleClassReminders = async (timetable: TimetableItem[]) => {
   try {
+    // Check if enabled
+    const enabled = await isNotificationsEnabled();
+    if (!enabled) {
+      await cancelAllScheduledNotifications();
+      return;
+    }
+
     // 1. Cancel previous schedules
     await cancelAllScheduledNotifications();
 
@@ -138,6 +155,21 @@ export const scheduleClassReminders = async (timetable: TimetableItem[]) => {
 
 export const scheduleTaskReminders = async (tasks: any[]) => {
   try {
+    // Check if enabled
+    const enabled = await isNotificationsEnabled();
+    if (!enabled) {
+      // Cancel previous task schedules
+      const storedIds = await AsyncStorage.getItem(TASK_SCHEDULED_IDS_KEY);
+      if (storedIds) {
+        const ids = JSON.parse(storedIds);
+        for (const id of ids) {
+          await Notifications.cancelScheduledNotificationAsync(id);
+        }
+      }
+      await AsyncStorage.removeItem(TASK_SCHEDULED_IDS_KEY);
+      return;
+    }
+
     // 1. Cancel previous task schedules
     const storedIds = await AsyncStorage.getItem(TASK_SCHEDULED_IDS_KEY);
     if (storedIds) {
