@@ -6,9 +6,10 @@ export interface BorrowRequest {
   item_name: string;
   reason: string;
   duration: string;
+  end_date?: string;
   status: "open" | "active" | "completed";
   created_at: string;
-  profiles?: { name: string; Role: string };
+  profiles?: { name: string; Role: string; batch?: string; phone?: string; registration_number?: string };
 }
 
 export interface BorrowOffer {
@@ -42,6 +43,7 @@ export const createBorrowRequest = async (data: Omit<BorrowRequest, "id" | "user
       item_name: data.item_name,
       reason: data.reason,
       duration: data.duration,
+      end_date: data.end_date,
       status: "open",
     }
   ]).select().single();
@@ -53,12 +55,13 @@ export const createBorrowRequest = async (data: Omit<BorrowRequest, "id" | "user
 export const getBorrowRequests = async (userIdFilter?: string): Promise<BorrowRequest[]> => {
   let query = supabase
     .from("borrow_requests")
-    .select("*, profiles!borrow_requests_user_id_fkey(name, Role)")
-    .eq("status", "open")
+    .select("*, profiles!borrow_requests_user_id_fkey(name, Role, batch, phone, registration_number)")
     .order("created_at", { ascending: false });
 
   if (userIdFilter) {
     query = query.eq("user_id", userIdFilter);
+  } else {
+    query = query.eq("status", "open");
   }
 
   const { data, error } = await query;
@@ -93,7 +96,7 @@ export const markAsHandedOver = async (requestId: string, recipientId: string) =
 export const getOffersByRequestId = async (requestId: string): Promise<BorrowOffer[]> => {
   const { data, error } = await supabase
     .from("borrow_offers")
-    .select("*, profiles!borrow_offers_lender_id_fkey(name, Role)")
+    .select("*, profiles!borrow_offers_lender_id_fkey(name, Role, batch, phone, registration_number)")
     .eq("request_id", requestId)
     .order("created_at", { ascending: false });
 

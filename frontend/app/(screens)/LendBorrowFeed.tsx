@@ -14,6 +14,8 @@ import {
   TouchableWithoutFeedback
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { scheduleReturnReminder } from '@/utils/notificationService';
 import { router } from 'expo-router';
 import Animated, { FadeInDown, Layout } from 'react-native-reanimated';
 import { 
@@ -43,6 +45,20 @@ export default function LendBorrowFeedScreen() {
   const [itemName, setItemName] = useState('');
   const [reason, setReason] = useState('');
   const [duration, setDuration] = useState('');
+  
+  // Date Picker States
+  const [fromDate, setFromDate] = useState(new Date());
+  const [toDate, setToDate] = useState(new Date(Date.now() + 86400000)); // Default +1 day
+  const [showFromPicker, setShowFromPicker] = useState(false);
+  const [showToPicker, setShowToPicker] = useState(false);
+
+  useEffect(() => {
+    // Auto-update duration string when dates change
+    const options:Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' };
+    const fromStr = fromDate.toLocaleDateString('en-US', options);
+    const toStr = toDate.toLocaleDateString('en-US', options);
+    setDuration(`${fromStr} - ${toStr}`);
+  }, [fromDate, toDate]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -80,7 +96,12 @@ export default function LendBorrowFeedScreen() {
       return;
     }
     try {
-      await createBorrowRequest({ item_name: itemName, reason, duration });
+      await createBorrowRequest({ 
+        item_name: itemName, 
+        reason, 
+        duration,
+        end_date: toDate.toISOString() 
+      });
       setIsModalVisible(false);
       setItemName(''); setReason(''); setDuration('');
       fetchData();
@@ -123,21 +144,28 @@ export default function LendBorrowFeedScreen() {
     );
   };
 
-  const handleHandoverToRecipient = async (requestId: string, recipientId: string, recipientName: string) => {
+  const handleMarkReceived = async (requestId: string, lenderId: string, lenderName: string) => {
     Alert.alert(
-      "Confirm Handover",
-      `Are you sure you want to hand over this item to ${recipientName}? This will close the request and create a record.`,
+      "Confirm Reception",
+      `Are you sure you received this item from ${lenderName}? This will close the request and create a record.`,
       [
         { text: "Cancel", style: "cancel" },
         { 
-          text: "Confirm Handover", 
+          text: "Confirm Received", 
           onPress: async () => {
             try {
-              await markAsHandedOver(requestId, recipientId);
+              await markAsHandedOver(requestId, lenderId);
+              
+              // Schedule return reminder notification
+              const request = myActivity.posts.find(p => p.id === requestId);
+              if (request && request.end_date) {
+                await scheduleReturnReminder(request.item_name, new Date(request.end_date));
+              }
+
               fetchData();
               Alert.alert("Success", "Record stored and request closed.");
             } catch (e) {
-              Alert.alert("Error", "Could not process handover.");
+              Alert.alert("Error", "Could not process reception.");
             }
           } 
         }
@@ -174,21 +202,29 @@ export default function LendBorrowFeedScreen() {
           <Text style={styles.activityType}>{type === 'post' ? 'MY POSTING' : 'MY OFFER'}</Text>
           <Text style={styles.activityTitle}>{item.item_name || item.borrow_requests?.item_name}</Text>
         </View>
-        <TouchableOpacity 
-          onPress={() => router.push({
-            pathname: "/(screens)/ChatRoom",
-            params: { 
-              roomId: type === 'post' ? `borrow_${item.id}_${user?.id}` : `borrow_${item.request_id}_${user?.id}`, 
-              title: item.item_name || item.borrow_requests?.item_name,
-              otherUser: type === 'post' ? 'Lenders' : item.borrow_requests?.profiles?.name
-            }
-          })}
-        >
-          <Ionicons name="chatbubble-ellipses-outline" size={24} color="#64748b" />
-        </TouchableOpacity>
+        {type === 'offer' && (
+          <TouchableOpacity 
+            onPress={() => router.push({
+              pathname: "/(screens)/ChatRoom",
+              params: { 
+                roomId: `borrow_${item.request_id}_${user?.id}`, 
+                title: item.borrow_requests?.item_name,
+                otherUser: item.borrow_requests?.profiles?.name
+              }
+            })}
+          >
+            <Ionicons name="chatbubble-ellipses-outline" size={24} color="#10b981" />
+          </TouchableOpacity>
+        )}
       </View>
 
-      {type === 'post' && item.offers && item.offers.length > 0 && (
+      {type === 'post' && item.status === 'open' && item.offers && item.offers.length === 0 && (
+        <View style={{ padding: 14, backgroundColor: '#f8fafc', borderTopWidth: 1, borderColor: '#e2e8f0' }}>
+          <Text style={{ fontSize: RFValue(11), color: '#64748b', fontWeight: '600' }}>Waiting for offers... Request is submitted and public.</Text>
+        </View>
+      )}
+
+      {type === 'post' && item.status === 'open' && item.offers && item.offers.length > 0 && (
         <View style={styles.interactionsList}>
           {item.offers.map((offer: any) => (
             <View key={offer.id} style={styles.interactionRow}>
@@ -208,17 +244,69 @@ export default function LendBorrowFeedScreen() {
                        }
                     })}
                   >
-                    <Ionicons name="chatbubble" size={16} color="#4f46e5" />
+                    <Ionicons name="chatbubble" size={16} color="#10b981" />
                   </TouchableOpacity>
                   <TouchableOpacity 
-                    style={styles.handoverBtn}
-                    onPress={() => handleHandoverToRecipient(item.id, offer.lender_id, offer.profiles?.name)}
+                    style={[styles.handoverBtn, { backgroundColor: '#eff6ff' }]}
+                    onPress={() => handleMarkReceived(item.id, offer.lender_id, offer.profiles?.name)}
                   >
-                    <Text style={styles.handoverText}>Handed Over</Text>
+                    <Text style={[styles.handoverText, { color: '#2563eb' }]}>Mark Received</Text>
                   </TouchableOpacity>
               </View>
             </View>
           ))}
+        </View>
+      )}
+
+      {type === 'post' && item.status === 'completed' && item.offers && (
+        <View style={styles.completedCard}>
+          <View style={styles.completedHeader}>
+            <Ionicons name="checkmark-circle" size={14} color="#10b981" />
+            <Text style={styles.completedTitle}>Item Received Successfully</Text>
+          </View>
+          
+          <View style={styles.completedDetailsRow}>
+            <Text style={styles.completedDetailText}><Text style={{fontWeight: '700'}}>Reason:</Text> {item.reason}</Text>
+            <Text style={styles.completedDetailText}><Text style={{fontWeight: '700'}}>Duration:</Text> {item.duration}</Text>
+          </View>
+
+          {item.offers.find((o:any) => o.lender_id === item.completed_with_id) && (() => {
+            const lender = item.offers.find((o:any) => o.lender_id === item.completed_with_id);
+            return (
+              <View style={styles.lenderInfoCard}>
+                <View style={styles.lenderAvatar}>
+                  <Text style={styles.lenderAvatarText}>{lender.profiles?.name?.[0] || '?'}</Text>
+                </View>
+                <View style={styles.lenderDetails}>
+                  <Text style={styles.lenderName}>{lender.profiles?.name}</Text>
+                  <View style={{ marginTop: 2 }}>
+                    <Text style={styles.lenderMetaLine}>
+                      ID: {lender.profiles?.registration_number || 'N/A'}
+                    </Text>
+                    <Text style={styles.lenderMetaLine}>
+                      Phone: {lender.profiles?.phone || 'N/A'}
+                    </Text>
+                    {lender.profiles?.batch && (
+                      <Text style={styles.lenderBatchLine}>Batch: {lender.profiles.batch}</Text>
+                    )}
+                  </View>
+                </View>
+                <TouchableOpacity 
+                  style={styles.keepChatBtn}
+                  onPress={() => router.push({
+                     pathname: "/(screens)/ChatRoom",
+                     params: { 
+                       roomId: `borrow_${item.id}_${lender.lender_id}`, 
+                       title: `Chat: ${lender.profiles?.name}`,
+                       otherUser: lender.profiles?.name
+                     }
+                  })}
+                >
+                  <Ionicons name="chatbubbles" size={16} color="#fff" />
+                </TouchableOpacity>
+              </View>
+            )
+          })()}
         </View>
       )}
     </Animated.View>
@@ -285,12 +373,54 @@ export default function LendBorrowFeedScreen() {
             <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
               <View style={styles.modalView}>
                 <Text style={styles.modalTitle}>Request Item</Text>
-                <TextInput placeholder="Item name" style={styles.systemInput} value={itemName} onChangeText={setItemName} />
-                <TextInput placeholder="Reason (e.g. Lost my charger)" style={styles.systemInput} value={reason} onChangeText={setReason} />
-                <TextInput placeholder="Duration (e.g. 2 days)" style={styles.systemInput} value={duration} onChangeText={setDuration} />
+                
+                <Text style={styles.label}>Item Name</Text>
+                <TextInput placeholder="e.g. Scientific Calculator" placeholderTextColor="#94a3b8" style={styles.systemInput} value={itemName} onChangeText={setItemName} />
+                
+                <Text style={styles.label}>Reason for Borrowing</Text>
+                <TextInput placeholder="e.g. Lost mine, need for exam" placeholderTextColor="#94a3b8" style={styles.systemInput} value={reason} onChangeText={setReason} />
+                
+                <Text style={styles.label}>Duration (Date Range)</Text>
+                <View style={styles.datePickerContainer}>
+                  <TouchableOpacity style={styles.dateBtn} onPress={() => setShowFromPicker(true)}>
+                    <Ionicons name="calendar-outline" size={16} color="#2563eb" />
+                    <Text style={styles.dateBtnText}>{fromDate.toLocaleDateString('en-GB')}</Text>
+                  </TouchableOpacity>
+                  <Ionicons name="arrow-forward" size={16} color="#cbd5e1" />
+                  <TouchableOpacity style={styles.dateBtn} onPress={() => setShowToPicker(true)}>
+                    <Ionicons name="calendar-outline" size={16} color="#2563eb" />
+                    <Text style={styles.dateBtnText}>{toDate.toLocaleDateString('en-GB')}</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {showFromPicker && (
+                  <DateTimePicker
+                    value={fromDate}
+                    mode="date"
+                    display="default"
+                    onChange={(e, date) => {
+                      setShowFromPicker(false);
+                      if (date) setFromDate(date);
+                    }}
+                  />
+                )}
+
+                {showToPicker && (
+                  <DateTimePicker
+                    value={toDate}
+                    mode="date"
+                    display="default"
+                    minimumDate={fromDate}
+                    onChange={(e, date) => {
+                      setShowToPicker(false);
+                      if (date) setToDate(date);
+                    }}
+                  />
+                )}
+
                 <View style={styles.modalActions}>
                   <TouchableOpacity onPress={() => setIsModalVisible(false)}><Text style={styles.modalCancel}>Cancel</Text></TouchableOpacity>
-                  <TouchableOpacity style={styles.modalSubmit} onPress={handleCreateRequest}><Text style={styles.modalSubmitText}>Post</Text></TouchableOpacity>
+                  <TouchableOpacity style={styles.modalSubmit} onPress={handleCreateRequest}><Text style={styles.modalSubmitText}>Post Request</Text></TouchableOpacity>
                 </View>
               </View>
             </TouchableWithoutFeedback>
@@ -337,18 +467,36 @@ const styles = StyleSheet.create({
   interactionName: { fontSize: RFValue(12), fontWeight: '700', color: '#1e293b' },
   interactionMsg: { fontSize: RFValue(11), color: '#64748b' },
   interactionActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  chatMiniBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#f1f5f9', justifyContent: 'center', alignItems: 'center' },
-  handoverBtn: { backgroundColor: '#dcfce7', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8 },
-  handoverText: { color: '#166534', fontSize: RFValue(10), fontWeight: '800' },
+  chatMiniBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#f0fdf4', justifyContent: 'center', alignItems: 'center' },
+  handoverBtn: { backgroundColor: '#eff6ff', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8 },
+  handoverText: { color: '#2563eb', fontSize: RFValue(10), fontWeight: '800' },
   systemFab: { position: 'absolute', bottom: 30, right: 30, width: 60, height: 60, borderRadius: 30, backgroundColor: '#2D3748', justifyContent: 'center', alignItems: 'center', elevation: 5 },
   emptyView: { alignItems: 'center', marginTop: 100 },
   emptyTxt: { color: '#94a3b8', fontSize: RFValue(13) },
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 },
-  modalView: { backgroundColor: '#fff', borderRadius: 16, padding: 24 },
-  modalTitle: { fontSize: RFValue(18), fontWeight: '800', color: '#2D3748', marginBottom: 20 },
-  systemInput: { backgroundColor: '#f8fafc', borderRadius: 10, padding: 14, marginBottom: 14, fontSize: RFValue(14), borderWidth: 1, borderColor: '#e2e8f0' },
-  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: 20, marginTop: 10 },
-  modalCancel: { color: '#64748b', fontWeight: '700' },
-  modalSubmit: { backgroundColor: '#2D3748', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 10 },
-  modalSubmitText: { color: '#fff', fontWeight: '700' }
+  modalView: { backgroundColor: '#fff', borderRadius: 20, padding: 24, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 10, elevation: 5 },
+  modalTitle: { fontSize: RFValue(18), fontWeight: '800', color: '#1e293b', marginBottom: 20 },
+  label: { fontSize: RFValue(11), fontWeight: '700', color: '#64748b', marginBottom: 6, marginLeft: 4 },
+  systemInput: { backgroundColor: '#f8fafc', borderRadius: 12, padding: 14, marginBottom: 16, fontSize: RFValue(13), borderWidth: 1, borderColor: '#e2e8f0', color: '#1e293b' },
+  datePickerContainer: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 20, backgroundColor: '#f8fafc', padding: 8, borderRadius: 12, borderWidth: 1, borderColor: '#e2e8f0' },
+  dateBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: '#fff', paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: '#e2e8f0' },
+  dateBtnText: { fontSize: RFValue(11), color: '#1e293b', fontWeight: '700' },
+  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: 24, marginTop: 10 },
+  modalCancel: { color: '#94a3b8', fontWeight: '700', fontSize: RFValue(13) },
+  modalSubmit: { backgroundColor: '#2563eb', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12, shadowColor: '#2563eb', shadowOpacity: 0.2, shadowRadius: 4, elevation: 3 },
+  modalSubmitText: { color: '#fff', fontWeight: '700', fontSize: RFValue(13) },
+  completedCard: { padding: 12, backgroundColor: '#fcfdfe', borderTopWidth: 1, borderColor: '#eef2f7' },
+  completedHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
+  completedTitle: { fontSize: RFValue(10), fontWeight: '800', color: '#10b981', textTransform: 'uppercase', letterSpacing: 0.5 },
+  completedDetailsRow: { marginBottom: 10, paddingLeft: 20 },
+  completedDetailText: { fontSize: RFValue(10), color: '#64748b', marginBottom: 2 },
+  lenderInfoCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', padding: 10, borderRadius: 10, borderWidth: 1, borderColor: '#e2e8f0' },
+  lenderAvatar: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#f1f5f9', justifyContent: 'center', alignItems: 'center', marginRight: 10 },
+  lenderAvatarText: { fontSize: RFValue(12), fontWeight: '800', color: '#475569' },
+  lenderDetails: { flex: 1 },
+  lenderName: { fontSize: RFValue(13), fontWeight: '800', color: '#1e293b' },
+  lenderMetaLine: { fontSize: RFValue(10), color: '#64748b', marginTop: 2, fontWeight: '600' },
+  lenderBatchLine: { fontSize: RFValue(9), color: '#2563eb', marginTop: 1, fontWeight: '700', textTransform: 'uppercase' },
+  keepChatBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#10b981', justifyContent: 'center', alignItems: 'center' },
+
 });

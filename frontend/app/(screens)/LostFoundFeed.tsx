@@ -182,7 +182,7 @@ export default function LostFoundFeedScreen() {
         )}
       </View>
 
-      {type === 'post' && item.claims && item.claims.length > 0 && (
+      {type === 'post' && item.status === 'open' && item.claims && item.claims.length > 0 && (
         <View style={styles.claimantsSection}>
           <Text style={styles.sectionHeading}>Coordinations ({item.claims.length}):</Text>
           {item.claims.map((claim: any) => (
@@ -203,17 +203,60 @@ export default function LostFoundFeedScreen() {
                        }
                     })}
                 >
-                  <Ionicons name="chatbubbles" size={18} color="#4f46e5" />
+                  <Ionicons name="chatbubbles" size={18} color="#10b981" />
                 </TouchableOpacity>
                 <TouchableOpacity 
                    style={styles.resolveInlineBtn}
                    onPress={() => handleResolveToClaimant(item.id, claim.claimer_id, claim.profiles?.name)}
                 >
-                  <Text style={styles.resolveInlineText}>Handed Over</Text>
+                  <Text style={styles.resolveInlineText}>Hand Over</Text>
                 </TouchableOpacity>
               </View>
             </View>
           ))}
+        </View>
+      )}
+
+      {type === 'post' && item.status === 'resolved' && (
+        <View style={styles.resolvedInfoCard}>
+           <View style={styles.resolvedHeader}>
+              <Ionicons name="checkmark-done-circle" size={14} color="#10b981" />
+              <Text style={styles.resolvedTitle}>Item Successfully Handed Over</Text>
+           </View>
+           {item.claims?.find((c: any) => c.claimer_id === item.resolved_with_id) && (() => {
+             const person = item.claims.find((c: any) => c.claimer_id === item.resolved_with_id);
+             return (
+               <View style={styles.personCompactCard}>
+                  <View style={styles.personDetails}>
+                     <Text style={styles.personName}>{person.profiles?.name}</Text>
+                     <View style={{ marginTop: 2 }}>
+                       <Text style={styles.personMetaLine}>
+                         ID: {person.profiles?.registration_number || 'N/A'}
+                       </Text>
+                       <Text style={styles.personMetaLine}>
+                         Phone: {person.profiles?.phone || 'N/A'}
+                       </Text>
+                       {person.profiles?.batch && (
+                         <Text style={styles.personBatchLine}>Batch: {person.profiles.batch}</Text>
+                       )}
+                     </View>
+                  </View>
+                 <TouchableOpacity 
+                   style={styles.keepChattingBtn}
+                   onPress={() => router.push({
+                     pathname: "/(screens)/ChatRoom",
+                     params: { 
+                       roomId: `lostfound_${item.id}_${person.claimer_id}`, 
+                       title: `Chat: ${person.profiles?.name}`,
+                       otherUser: person.profiles?.name
+                     }
+                   })}
+                 >
+                   <Ionicons name="chatbubbles" size={16} color="#fff" />
+                 </TouchableOpacity>
+               </View>
+             );
+           })()}
         </View>
       )}
     </Animated.View>
@@ -284,15 +327,39 @@ export default function LostFoundFeedScreen() {
             <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
               <View style={styles.modalBody}>
                 <Text style={styles.mTitle}>Report Incident</Text>
+                
+                <Text style={styles.mLabel}>Incident Type</Text>
                 <View style={styles.mToggleRow}>
-                  <TouchableOpacity onPress={() => setType('lost')} style={[styles.mModeBtn, type === 'lost' && styles.mModeActiveLost]}><Text style={[styles.mModeText, type === 'lost' && { color: '#fff' }]}>Lost</Text></TouchableOpacity>
-                  <TouchableOpacity onPress={() => setType('found')} style={[styles.mModeBtn, type === 'found' && styles.mModeActiveFound]}><Text style={[styles.mModeText, type === 'found' && { color: '#fff' }]}>Found</Text></TouchableOpacity>
+                  <TouchableOpacity onPress={() => setType('lost')} style={[styles.mModeBtn, type === 'lost' && styles.mModeActiveLost]}>
+                    <Text style={[styles.mModeText, type === 'lost' && { color: '#fff' }]}>Lost Item</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => setType('found')} style={[styles.mModeBtn, type === 'found' && styles.mModeActiveFound]}>
+                    <Text style={[styles.mModeText, type === 'found' && { color: '#fff' }]}>Found Item</Text>
+                  </TouchableOpacity>
                 </View>
-                <TextInput placeholder="Item name" style={styles.mInput} value={itemName} onChangeText={setItemName} />
-                <TextInput placeholder="Details (Color, location...)" style={[styles.mInput, { height: 100 }]} multiline value={description} onChangeText={setDescription} />
+
+                <Text style={styles.mLabel}>Item Name</Text>
+                <TextInput 
+                  placeholder="e.g. Blue Wallet" 
+                  placeholderTextColor="#94a3b8"
+                  style={styles.mInput} 
+                  value={itemName} 
+                  onChangeText={setItemName} 
+                />
+                
+                <Text style={styles.mLabel}>Details / Location</Text>
+                <TextInput 
+                  placeholder="e.g. Near Cafe, has some cash" 
+                  placeholderTextColor="#94a3b8"
+                  style={[styles.mInput, { height: 80 }]} 
+                  multiline 
+                  value={description} 
+                  onChangeText={setDescription} 
+                />
+                
                 <View style={styles.mFooter}>
                   <TouchableOpacity onPress={() => setIsModalVisible(false)}><Text style={styles.mCancel}>Cancel</Text></TouchableOpacity>
-                  <TouchableOpacity style={styles.mSubmit} onPress={handleCreatePost}><Text style={styles.mSubmitTxt}>Post</Text></TouchableOpacity>
+                  <TouchableOpacity style={styles.mSubmit} onPress={handleCreatePost}><Text style={styles.mSubmitTxt}>Submit Report</Text></TouchableOpacity>
                 </View>
               </View>
             </TouchableWithoutFeedback>
@@ -343,23 +410,35 @@ const styles = StyleSheet.create({
   claimantName: { fontSize: RFValue(12), fontWeight: '700', color: '#1e293b' },
   claimantMsg: { fontSize: RFValue(11), color: '#64748b' },
   claimantActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  chatIconBtn: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#f1f5f9', justifyContent: 'center', alignItems: 'center' },
-  resolveInlineBtn: { backgroundColor: '#f0fdf4', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6 },
-  resolveInlineText: { color: '#166534', fontSize: RFValue(10), fontWeight: '800' },
+  chatIconBtn: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#f0fdf4', justifyContent: 'center', alignItems: 'center' },
+  resolveInlineBtn: { backgroundColor: '#eff6ff', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6 },
+  resolveInlineText: { color: '#2563eb', fontSize: RFValue(10), fontWeight: '800' },
   sysFab: { position: 'absolute', bottom: 30, right: 30, width: 60, height: 60, borderRadius: 30, backgroundColor: '#2D3748', justifyContent: 'center', alignItems: 'center', elevation: 8 },
   nothingView: { alignItems: 'center', marginTop: 120 },
   nothingTxt: { color: '#94a3b8', fontSize: RFValue(13) },
   blurOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 25 },
   modalBody: { backgroundColor: '#fff', borderRadius: 16, padding: 24 },
-  mTitle: { fontSize: RFValue(18), fontWeight: '800', color: '#2D3748', marginBottom: 20 },
+  mTitle: { fontSize: RFValue(18), fontWeight: '800', color: '#1e293b', marginBottom: 20 },
+  mLabel: { fontSize: RFValue(11), fontWeight: '700', color: '#64748b', marginBottom: 6, marginLeft: 4 },
   mToggleRow: { flexDirection: 'row', gap: 12, marginBottom: 18 },
-  mModeBtn: { flex: 1, padding: 12, borderRadius: 10, borderWidth: 1.5, borderColor: '#f1f5f9', alignItems: 'center' },
+  mModeBtn: { flex: 1, padding: 12, borderRadius: 12, borderWidth: 1.5, borderColor: '#f1f5f9', alignItems: 'center' },
   mModeActiveLost: { backgroundColor: '#ef4444', borderColor: '#ef4444' },
   mModeActiveFound: { backgroundColor: '#22c55e', borderColor: '#22c55e' },
   mModeText: { fontWeight: '800', fontSize: RFValue(12), color: '#94a3b8' },
-  mInput: { backgroundColor: '#f8fafc', borderRadius: 10, padding: 14, marginBottom: 14, fontSize: RFValue(14), borderWidth: 1, borderColor: '#e2e8f0' },
-  mFooter: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: 20, marginTop: 10 },
-  mCancel: { color: '#64748b', fontWeight: '700' },
-  mSubmit: { backgroundColor: '#2D3748', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 10 },
-  mSubmitTxt: { color: '#fff', fontWeight: '700' }
+  mInput: { backgroundColor: '#f8fafc', borderRadius: 12, padding: 14, marginBottom: 16, fontSize: RFValue(13), borderWidth: 1, borderColor: '#e2e8f0', color: '#1e293b' },
+  mFooter: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: 24, marginTop: 10 },
+  mCancel: { color: '#94a3b8', fontWeight: '700', fontSize: RFValue(13) },
+  mSubmit: { backgroundColor: '#2563eb', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12, shadowColor: '#2563eb', shadowOpacity: 0.2, shadowRadius: 4, elevation: 3 },
+  mSubmitTxt: { color: '#fff', fontWeight: '700', fontSize: RFValue(13) },
+  resolvedInfoCard: { padding: 12, backgroundColor: '#fcfdfe', borderTopWidth: 1, borderColor: '#eef2f7' },
+  resolvedHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
+  resolvedTitle: { fontSize: RFValue(10), fontWeight: '800', color: '#10b981', textTransform: 'uppercase', letterSpacing: 0.5 },
+  personCompactCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', padding: 10, borderRadius: 10, borderWidth: 1, borderColor: '#e2e8f0' },
+  personAvatar: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#f1f5f9', justifyContent: 'center', alignItems: 'center', marginRight: 10 },
+  personAvatarTxt: { fontSize: RFValue(12), fontWeight: '800', color: '#475569' },
+  personDetails: { flex: 1 },
+  personName: { fontSize: RFValue(13), fontWeight: '800', color: '#1e293b' },
+  personMetaLine: { fontSize: RFValue(10), color: '#64748b', marginTop: 2, fontWeight: '600' },
+  personBatchLine: { fontSize: RFValue(9), color: '#2563eb', marginTop: 1, fontWeight: '700', textTransform: 'uppercase' },
+  keepChattingBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#10b981', justifyContent: 'center', alignItems: 'center' },
 });

@@ -235,3 +235,36 @@ export const cancelAllScheduledNotifications = async () => {
     await AsyncStorage.removeItem(SCHEDULED_IDS_KEY);
     await AsyncStorage.removeItem(TASK_SCHEDULED_IDS_KEY);
 };
+
+export const scheduleReturnReminder = async (itemName: string, returnDate: Date) => {
+  try {
+    const enabled = await isNotificationsEnabled();
+    if (!enabled) return;
+
+    // Schedule for 10:00 AM the day BEFORE the return date
+    const triggerDate = new Date(returnDate);
+    triggerDate.setDate(triggerDate.getDate() - 1);
+    triggerDate.setHours(10, 0, 0, 0);
+
+    // If the trigger date is already in the past (e.g., return is today/tomorrow), 
+    // schedule for 5 minutes from now as a safety reminder
+    const now = new Date();
+    if (triggerDate <= now) {
+      triggerDate.setTime(now.getTime() + 5 * 60 * 1000);
+    }
+
+    const id = await Notifications.scheduleNotificationAsync({
+      content: {
+        title: `📦 Return Reminder: ${itemName}`,
+        body: `You are scheduled to return "${itemName}" tomorrow. Please coordinate with the lender.`,
+        data: { type: 'return_reminder' },
+      },
+      trigger: { date: triggerDate, channelId: 'default' } as any,
+    });
+
+    console.log(`Scheduled return reminder for ${itemName} at ${triggerDate}`);
+    return id;
+  } catch (error) {
+    console.error('Error scheduling return reminder:', error);
+  }
+};

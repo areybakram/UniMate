@@ -9,7 +9,7 @@ export interface LostFoundPost {
   type: "lost" | "found";
   status: "open" | "resolved";
   created_at: string;
-  profiles?: { name: string; Role: string };
+  profiles?: { name: string; Role: string; batch?: string; phone?: string; registration_number?: string };
 }
 
 export interface LostFoundClaim {
@@ -19,7 +19,7 @@ export interface LostFoundClaim {
   message: string;
   status: "pending" | "accepted" | "rejected";
   created_at: string;
-  profiles?: { name: string; Role: string };
+  profiles?: { name: string; Role: string; batch?: string; phone?: string; registration_number?: string };
 }
 
 export const createLostFoundPost = async (data: Omit<LostFoundPost, "id" | "user_id" | "status" | "created_at">) => {
@@ -55,12 +55,13 @@ export const createLostFoundPost = async (data: Omit<LostFoundPost, "id" | "user
 export const getLostFoundPosts = async (userIdFilter?: string): Promise<LostFoundPost[]> => {
   let query = supabase
     .from("lost_found_posts")
-    .select("*, profiles!lost_found_posts_user_id_fkey(name, Role)")
-    .eq("status", "open")
+    .select("*, profiles!lost_found_posts_user_id_fkey(name, Role, batch, phone, registration_number)")
     .order("created_at", { ascending: false });
 
   if (userIdFilter) {
     query = query.eq("user_id", userIdFilter);
+  } else {
+    query = query.eq("status", "open");
   }
 
   const { data, error } = await query;
@@ -72,7 +73,7 @@ export const getLostFoundPosts = async (userIdFilter?: string): Promise<LostFoun
 export const getMyClaims = async (userId: string): Promise<LostFoundClaim[]> => {
   const { data, error } = await supabase
     .from("lost_found_claims")
-    .select("*, lost_found_posts(*, profiles!lost_found_posts_user_id_fkey(name))")
+    .select("*, lost_found_posts(*, profiles!lost_found_posts_user_id_fkey(name, batch, phone, registration_number))")
     .eq("claimer_id", userId)
     .order("created_at", { ascending: false });
 
@@ -95,7 +96,7 @@ export const markAsResolved = async (postId: string, recipientId: string) => {
 export const getClaimsByPostId = async (postId: string): Promise<LostFoundClaim[]> => {
   const { data, error } = await supabase
     .from("lost_found_claims")
-    .select("*, profiles!lost_found_claims_claimer_id_fkey(name, Role)")
+    .select("*, profiles!lost_found_claims_claimer_id_fkey(name, Role, batch, phone, registration_number)")
     .eq("post_id", postId)
     .order("created_at", { ascending: false });
 
@@ -124,7 +125,10 @@ export const resolvePost = async (postId: string, claimerId: string) => {
   // Mark post as resolved
   const { error } = await supabase
     .from("lost_found_posts")
-    .update({ status: "resolved" })
+    .update({ 
+      status: "resolved",
+      resolved_with_id: claimerId
+    })
     .eq("id", postId);
   
   if (error) throw error;
