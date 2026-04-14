@@ -14,6 +14,8 @@ interface User {
   timetable_data?: any;
   attendance_data?: any;
   chatbot_history?: any;
+  batch?: string | null;
+  registration_number?: string | null;
 }
 
 interface AuthContextProps {
@@ -39,7 +41,9 @@ interface AuthContextProps {
     email: string,
     phone: string,
     password: string,
-    role: string
+    role: string,
+    batch: string,
+    registrationNumber: string
   ) => Promise<{ error?: any; user?: User | null }>;
 }
 
@@ -73,7 +77,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             // fetch profile from profiles table (if exists)
             const { data: profile } = await supabase
               .from("profiles")
-              .select("name, phone, Role, custom_profile_photo, timetable_data, attendance_data, chatbot_history")
+              .select("name, phone, Role, custom_profile_photo, timetable_data, attendance_data, chatbot_history, batch, registration_number")
               .eq("id", id)
               .single();
             
@@ -87,6 +91,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               timetable_data: profile?.timetable_data ?? [],
               attendance_data: profile?.attendance_data ?? {},
               chatbot_history: profile?.chatbot_history ?? [],
+              batch: profile?.batch ?? null,
+              registration_number: profile?.registration_number ?? null,
             };
             setUser(usr);
             await AsyncStorage.setItem("user", JSON.stringify(usr));
@@ -165,7 +171,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const { id, email: userEmail } = data.user;
         const { data: profile } = await supabase
           .from("profiles")
-          .select("name, phone, Role, custom_profile_photo, timetable_data, attendance_data, chatbot_history")
+          .select("name, phone, Role, custom_profile_photo, timetable_data, attendance_data, chatbot_history, batch, registration_number")
           .eq("id", id)
           .single();
         
@@ -181,6 +187,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           timetable_data: profile?.timetable_data ?? [],
           attendance_data: profile?.attendance_data ?? {},
           chatbot_history: profile?.chatbot_history ?? [],
+          batch: profile?.batch ?? null,
+          registration_number: profile?.registration_number ?? null,
         };
         await AsyncStorage.setItem("user", JSON.stringify(usr));
         setUser(usr);
@@ -197,7 +205,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     email: string,
     phone: string,
     password: string,
-    role: string
+    role: string,
+    batch: string,
+    registrationNumber: string
   ) => {
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -227,6 +237,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           phone,
           Role: role || "student", 
           email, 
+          batch,
+          registration_number: registrationNumber,
         });
         const usr: User = {
           id,
@@ -234,6 +246,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           name: fullName,
           phone,
           role: (role || "student").toLowerCase(),
+          batch,
+          registration_number: registrationNumber,
         };
         await AsyncStorage.setItem("user", JSON.stringify(usr));
         setUser(usr);

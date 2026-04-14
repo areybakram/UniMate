@@ -7,42 +7,100 @@ import {
   TextInput, 
   TouchableOpacity, 
   KeyboardAvoidingView, 
-  Platform 
+  Platform,
+  Dimensions,
+  ActivityIndicator
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, router } from 'expo-router';
 import { AuthContext } from '@/Context/AuthContext';
 import { useSocket } from '@/hooks/useSocket';
+import { RFValue } from 'react-native-responsive-fontsize';
+import { LinearGradient } from 'expo-linear-gradient';
+import Animated, { SlideInRight, SlideInLeft } from 'react-native-reanimated';
+import { getChatHistory } from '@/utils/chatService';
+
+const { width } = Dimensions.get('window');
 
 interface Message {
   id?: string;
   senderId: string;
   text: string;
   timestamp: string;
+  sender_id?: string; // from DB
+  created_at?: string; // from DB
 }
 
 export default function ChatRoomScreen() {
-  const { roomId, title } = useLocalSearchParams();
+  const { roomId, title, otherUser } = useLocalSearchParams();
   const { user } = useContext(AuthContext) || {};
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
+  const [loadingHistory, setLoadingHistory] = useState(true);
   const flatListRef = useRef<FlatList>(null);
 
-  const { isConnected, sendMessage, onMessage } = useSocket(roomId as string);
+  const { socket, isConnected, sendMessage } = useSocket(roomId as string);
 
+  // 1. Load Conversation History
   useEffect(() => {
-    onMessage((msg: Message) => {
-      setMessages(prev => [...prev, msg]);
-    });
-  }, [onMessage]);
+    const loadHistory = async () => {
+      if (!roomId) return;
+      setLoadingHistory(true);
+      try {
+        console.log(`🔍 Fetching history for room: ${roomId}`);
+        const history = await getChatHistory(roomId as string);
+        console.log(`📜 History loaded: ${history.length} messages`);
+        // Map DB fields to component fields if needed
+        const mappedHistory = history.map(m => ({
+          id: m.id,
+          senderId: m.sender_id,
+          text: m.text,
+          timestamp: m.created_at
+        }));
+        setMessages(mappedHistory);
+      } catch (e) {
+        console.error("Error loading chat history:", e);
+      } finally {
+        setLoadingHistory(false);
+      }
+    };
+    loadHistory();
+  }, [roomId]);
+
+  // 2. Handle Real-time Messages
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNewMessage = (msg: any) => {
+        // Prevent duplication by checking ID if it exists
+        setMessages(prev => {
+            const exists = prev.some(m => (m.id && m.id === msg.id) || (m.timestamp === msg.timestamp && m.text === msg.text && m.senderId === msg.senderId));
+            if (exists) return prev;
+            
+            return [...prev, {
+                id: msg.id,
+                senderId: msg.senderId,
+                text: msg.text,
+                timestamp: msg.timestamp
+            }];
+        });
+    };
+
+    socket.on('receive_message', handleNewMessage);
+
+    return () => {
+      socket.off('receive_message', handleNewMessage);
+    };
+  }, [socket]);
 
   const handleSend = () => {
     if (!inputText.trim() || !user) return;
 
+    const timestamp = new Date().toISOString();
     const newMessage: Message = {
       senderId: user.id,
       text: inputText,
-      timestamp: new Date().toISOString(),
+      timestamp,
     };
 
     sendMessage({
@@ -50,101 +108,139 @@ export default function ChatRoomScreen() {
       ...newMessage
     });
 
+    // Optimistically add to list (optional, but good for UX)
+    // Actually, socket broadcast will return it. 
+    // To avoid waiting for broadcast, we can add it but the deduplication logic in handleNewMessage will catch it when it arrives from socket.
+    
     setInputText('');
   };
 
   const renderMessage = ({ item }: { item: Message }) => {
-    const isMine = item.senderId === user?.id;
+    const sender = item.senderId || item.sender_id;
+    const isMine = sender === user?.id;
+    
     return (
-      <View style={[styles.messageWrapper, isMine ? styles.myMessage : styles.theirMessage]}>
-        <View style={[styles.messageBubble, isMine ? styles.myBubble : styles.theirBubble]}>
+      <Animated.View 
+        entering={isMine ? SlideInRight : SlideInLeft}
+        style={[styles.messageWrapper, isMine ? styles.myWrapper : styles.theirWrapper]}
+      >
+        {!isMine && (
+          <View style={styles.miniAvatar}>
+            <Text style={styles.miniAvatarText}>{(otherUser as string)?.[0] || 'U'}</Text>
+          </View>
+        )}
+        <View style={[styles.bubble, isMine ? styles.myBubble : styles.theirBubble]}>
           <Text style={[styles.messageText, isMine ? styles.myText : styles.theirText]}>
             {item.text}
           </Text>
-          <Text style={styles.timestamp}>
-            {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          <Text style={[styles.timestampLabel, isMine ? styles.myTimestamp : styles.theirTimestamp]}>
+            {new Date(item.timestamp || item.created_at || "").toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </Text>
         </View>
-      </View>
+      </Animated.View>
     );
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-    >
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color="#1e293b" />
-        </TouchableOpacity>
-        <View style={styles.headerInfo}>
-          <Text style={styles.headerTitle}>{title || "Coordination Chat"}</Text>
-          <Text style={styles.headerStatus}>{isConnected ? "Online" : "Connecting..."}</Text>
+    <View style={styles.container}>
+      <LinearGradient colors={['#4f46e5', '#312e81']} style={styles.header}>
+        <View style={styles.headerContent}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+            <Ionicons name="chevron-back" size={28} color="#fff" />
+          </TouchableOpacity>
+          
+          <View style={styles.headerInfo}>
+            <Text style={styles.headerTitle} numberOfLines={1}>{title || "Coordination"}</Text>
+            <View style={styles.statusRow}>
+                <View style={[styles.statusDot, { backgroundColor: isConnected ? '#10b981' : '#f59e0b' }]} />
+                <Text style={styles.headerStatus}>{otherUser || (isConnected ? "Online" : "Connecting...")}</Text>
+            </View>
+          </View>
         </View>
-      </View>
+      </LinearGradient>
 
-      <FlatList
-        ref={flatListRef}
-        data={messages}
-        renderItem={renderMessage}
-        keyExtractor={(_, index) => index.toString()}
-        contentContainerStyle={styles.list}
-        onContentSizeChange={() => flatListRef.current?.scrollToEnd()}
-      />
+      <KeyboardAvoidingView 
+        style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      >
+        {loadingHistory ? (
+            <ActivityIndicator style={{ flex: 1 }} size="large" color="#4f46e5" />
+        ) : (
+            <FlatList
+              ref={flatListRef}
+              data={messages}
+              renderItem={renderMessage}
+              keyExtractor={(m, index) => m.id || index.toString()}
+              contentContainerStyle={styles.list}
+              onContentSizeChange={() => flatListRef.current?.scrollToEnd()}
+              showsVerticalScrollIndicator={false}
+              ListEmptyComponent={
+                <View style={styles.emptyState}>
+                  <Ionicons name="chatbubbles-outline" size={80} color="#e2e8f0" />
+                  <Text style={styles.emptyText}>No messages yet</Text>
+                  <Text style={styles.emptySub}>Start the coordination between you and {otherUser}</Text>
+                </View>
+              }
+            />
+        )}
 
-      <View style={styles.inputArea}>
-        <TextInput
-          style={styles.input}
-          placeholder="Type a message..."
-          value={inputText}
-          onChangeText={setInputText}
-          multiline
-        />
-        <TouchableOpacity style={styles.sendBtn} onPress={handleSend}>
-          <Ionicons name="send" size={24} color="#fff" />
-        </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+        <View style={styles.inputContainer}>
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={styles.input}
+              placeholder="Message..."
+              placeholderTextColor="#94a3b8"
+              value={inputText}
+              onChangeText={setInputText}
+              multiline
+            />
+            <TouchableOpacity 
+              style={[styles.sendBtn, !inputText.trim() && styles.sendBtnDisabled]} 
+              onPress={handleSend}
+              disabled={!inputText.trim()}
+            >
+              <Ionicons name="send" size={20} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8fafc' },
-  header: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    paddingTop: 50, 
-    paddingBottom: 15, 
-    paddingHorizontal: 20, 
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9'
-  },
-  backBtn: { marginRight: 15 },
+  header: { paddingTop: 60, paddingBottom: 20, paddingHorizontal: 20, borderBottomLeftRadius: 30, borderBottomRightRadius: 30 },
+  headerContent: { flexDirection: 'row', alignItems: 'center', gap: 15 },
+  backBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.15)', justifyContent: 'center', alignItems: 'center' },
   headerInfo: { flex: 1 },
-  headerTitle: { fontSize: 18, fontWeight: '800', color: '#1e293b' },
-  headerStatus: { fontSize: 12, color: '#10b981' },
-  list: { padding: 20 },
-  messageWrapper: { marginBottom: 15, maxWidth: '80%' },
-  myMessage: { alignSelf: 'flex-end' },
-  theirMessage: { alignSelf: 'flex-start' },
-  messageBubble: { padding: 12, borderRadius: 20 },
-  myBubble: { backgroundColor: '#4f46e5', borderBottomRightRadius: 4 },
-  theirBubble: { backgroundColor: '#e2e8f0', borderBottomLeftRadius: 4 },
-  messageText: { fontSize: 15, lineHeight: 22 },
+  headerTitle: { fontSize: RFValue(17), fontWeight: '900', color: '#fff' },
+  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 },
+  statusDot: { width: 8, height: 8, borderRadius: 4 },
+  headerStatus: { fontSize: RFValue(11), color: 'rgba(255,255,255,0.8)', fontWeight: '600' },
+  keyboardView: { flex: 1 },
+  list: { padding: 20, paddingBottom: 40 },
+  messageWrapper: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 18, gap: 8 },
+  myWrapper: { alignSelf: 'flex-end' },
+  theirWrapper: { alignSelf: 'flex-start' },
+  miniAvatar: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#1e293b', justifyContent: 'center', alignItems: 'center' },
+  miniAvatarText: { color: '#fff', fontSize: RFValue(12), fontWeight: '900' },
+  bubble: { paddingHorizontal: 16, paddingVertical: 12, borderRadius: 22, maxWidth: width * 0.7 },
+  myBubble: { backgroundColor: '#2D3748', borderBottomRightRadius: 4, elevation: 5, shadowColor: '#2D3748', shadowOpacity: 0.2, shadowRadius: 10 },
+  theirBubble: { backgroundColor: '#fff', borderBottomLeftRadius: 4, elevation: 3, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 5 },
+  messageText: { fontSize: RFValue(14), lineHeight: 22 },
   myText: { color: '#fff' },
   theirText: { color: '#1e293b' },
-  timestamp: { fontSize: 10, color: 'rgba(0,0,0,0.4)', marginTop: 4, alignSelf: 'flex-end' },
-  inputArea: { 
-    flexDirection: 'row', 
-    alignItems: 'flex-end', 
-    padding: 15, 
-    backgroundColor: '#fff', 
-    borderTopWidth: 1, 
-    borderTopColor: '#f1f5f9' 
-  },
-  input: { flex: 1, backgroundColor: '#f1f5f9', borderRadius: 20, paddingHorizontal: 15, paddingVertical: 10, fontSize: 16, maxHeight: 100 },
-  sendBtn: { marginLeft: 10, width: 45, height: 45, borderRadius: 22.5, backgroundColor: '#4f46e5', justifyContent: 'center', alignItems: 'center' }
+  timestampLabel: { fontSize: RFValue(9), marginTop: 6, opacity: 0.6 },
+  myTimestamp: { color: '#fff', alignSelf: 'flex-end' },
+  theirTimestamp: { color: '#64748b', alignSelf: 'flex-start' },
+  emptyState: { alignItems: 'center', marginTop: 100, paddingHorizontal: 40 },
+  emptyText: { color: '#1e293b', fontSize: RFValue(16), fontWeight: '900', marginTop: 15 },
+  emptySub: { color: '#94a3b8', fontSize: RFValue(12), textAlign: 'center', marginTop: 8 },
+  inputContainer: { padding: 20, backgroundColor: 'transparent' },
+  inputWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 30, paddingHorizontal: 15, paddingVertical: 8, elevation: 12, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 15 },
+  input: { flex: 1, fontSize: RFValue(14), color: '#1e293b', paddingHorizontal: 10, maxHeight: 100 },
+  sendBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#4f46e5', justifyContent: 'center', alignItems: 'center' },
+  sendBtnDisabled: { backgroundColor: '#e2e8f0' }
 });

@@ -176,24 +176,16 @@ const CustomDrawer = ({ active }: any) => {
             />
           </>
         );
-      default: // student
+    default: // student
         return (
           <>
             <DrawerItem
-              icon={
-                <FontAwesome5 name="user-circle" size={24} color={"#2D3748"} />
-              }
+              icon={<FontAwesome5 name="user-circle" size={24} color={"#2D3748"} />}
               label="Profile"
               onPress={() => router.push("/(tabs)/Profile" as any)}
             />
             <DrawerItem
-              icon={
-                <MaterialCommunityIcons
-                  name="map-marker"
-                  size={25}
-                  color={"#2D3748"}
-                />
-              }
+              icon={<MaterialCommunityIcons name="map-marker" size={25} color={"#2D3748"} />}
               label="Explore Campus"
               onPress={() => router.push("/Modules/Tagging" as any)}
             />
@@ -203,11 +195,24 @@ const CustomDrawer = ({ active }: any) => {
               onPress={() => router.push("/Modules/Navigation" as any)}
             />
             <DrawerItem
-              icon={
-                <MaterialIcons name="local-offer" size={24} color={"#2D3748"} />
-              }
+              icon={<MaterialIcons name="local-offer" size={24} color={"#2D3748"} />}
               label="Emergency"
               onPress={() => router.push("/(screens)/emergency" as any)}
+            />
+            <DrawerItem
+              icon={<Ionicons name="play-circle" size={24} color={"#2D3748"} />}
+              label="Semester Story"
+              onPress={() => router.push("/(screens)/StoryMode" as any)}
+            />
+            <DrawerItem
+              icon={<Ionicons name="repeat" size={24} color={"#059669"} />}
+              label="Lend & Borrow"
+              onPress={() => router.push("/(screens)/LendBorrowFeed" as any)}
+            />
+            <DrawerItem
+              icon={<Ionicons name="search" size={24} color={"#1e293b"} />}
+              label="Lost & Found"
+              onPress={() => router.push("/(screens)/LostFoundFeed" as any)}
             />
             <DrawerItem
               icon={

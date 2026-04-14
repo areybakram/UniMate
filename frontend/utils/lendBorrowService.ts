@@ -25,6 +25,17 @@ export const createBorrowRequest = async (data: Omit<BorrowRequest, "id" | "user
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Unauthorized");
 
+  // Prevent duplicate open requests for the same item
+  const { data: existing } = await supabase
+    .from("borrow_requests")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("item_name", data.item_name)
+    .in("status", ["open", "active"])
+    .maybeSingle();
+  
+  if (existing) throw new Error("ALREADY_SUBMITTED");
+
   const { data: result, error } = await supabase.from("borrow_requests").insert([
     {
       user_id: user.id,
@@ -39,11 +50,51 @@ export const createBorrowRequest = async (data: Omit<BorrowRequest, "id" | "user
   return result;
 };
 
-export const getBorrowRequests = async (): Promise<BorrowRequest[]> => {
-  const { data, error } = await supabase
+export const getBorrowRequests = async (userIdFilter?: string): Promise<BorrowRequest[]> => {
+  let query = supabase
     .from("borrow_requests")
-    .select("*, profiles(name, Role)")
+    .select("*, profiles!borrow_requests_user_id_fkey(name, Role)")
     .eq("status", "open")
+    .order("created_at", { ascending: false });
+
+  if (userIdFilter) {
+    query = query.eq("user_id", userIdFilter);
+  }
+
+  const { data, error } = await query;
+
+  if (error) throw error;
+  return data as any;
+};
+
+export const getMyOffers = async (userId: string): Promise<BorrowOffer[]> => {
+  const { data, error } = await supabase
+    .from("borrow_offers")
+    .select("*, borrow_requests(*, profiles!borrow_requests_user_id_fkey(name))")
+    .eq("lender_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return data as any;
+};
+
+export const markAsHandedOver = async (requestId: string, recipientId: string) => {
+  const { error } = await supabase
+    .from("borrow_requests")
+    .update({ 
+      status: "completed",
+      completed_with_id: recipientId // User needs to add this column to borrow_requests
+    })
+    .eq("id", requestId);
+  
+  if (error) throw error;
+};
+
+export const getOffersByRequestId = async (requestId: string): Promise<BorrowOffer[]> => {
+  const { data, error } = await supabase
+    .from("borrow_offers")
+    .select("*, profiles!borrow_offers_lender_id_fkey(name, Role)")
+    .eq("request_id", requestId)
     .order("created_at", { ascending: false });
 
   if (error) throw error;

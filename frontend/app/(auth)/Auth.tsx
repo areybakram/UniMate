@@ -62,6 +62,14 @@ const registerSchema = yup.object().shape({
     .string()
     .oneOf([yup.ref("password")], "Passwords must match")
     .required("Confirm Password is required"),
+  batch: yup
+    .string()
+    .matches(/^[A-Z]{2}[0-9]{2}$/, "Invalid Batch format (e.g. FA22, SP22)")
+    .required("Batch is required"),
+  registrationNumber: yup
+    .string()
+    .matches(/^[A-Z]{2}[0-9]{2}-[A-Z]{3,4}-[0-9]{3}$/, "Invalid format (e.g. FA22-BCS-110)")
+    .required("Registration Number is required"),
 });
 
 const InputField = ({
@@ -96,7 +104,7 @@ const InputField = ({
             secureTextEntry={secureTextEntry}
             keyboardType={keyboardType}
             maxLength={maxLength}
-            autoCapitalize="none"
+            autoCapitalize={name === 'email' || name === 'password' || name === 'confirmPassword' ? "none" : "characters"}
           />
         )}
       />
@@ -135,8 +143,10 @@ const Auth: React.FC = () => {
       phoneNumber: "",
       password: "",
       confirmPassword: "",
+      batch: "",
+      registrationNumber: "",
     },
-  });
+});
 
   useEffect(() => {
     reset();
@@ -161,6 +171,8 @@ const Auth: React.FC = () => {
           data.phoneNumber,
           data.password,
           role,
+          data.batch.toUpperCase(),
+          data.registrationNumber.toUpperCase()
         );
         if (res.error) {
           Alert.alert("Sign Up Failed", res.error.message || String(res.error));
@@ -280,15 +292,31 @@ const Auth: React.FC = () => {
                     />
 
                     {activeTab === "Register" && (
-                      <InputField
-                        control={control}
-                        name="phoneNumber"
-                        placeholder="92..."
-                        icon="call-outline"
-                        keyboardType="phone-pad"
-                        maxLength={12}
-                        error={errors.phoneNumber}
-                      />
+                      <>
+                        <InputField
+                          control={control}
+                          name="batch"
+                          placeholder="Batch (e.g. FA22)"
+                          icon="calendar-outline"
+                          error={errors.batch}
+                        />
+                        <InputField
+                          control={control}
+                          name="registrationNumber"
+                          placeholder="Reg No (e.g. FA22-BCS-110)"
+                          icon="id-card-outline"
+                          error={errors.registrationNumber}
+                        />
+                        <InputField
+                          control={control}
+                          name="phoneNumber"
+                          placeholder="92..."
+                          icon="call-outline"
+                          keyboardType="phone-pad"
+                          maxLength={12}
+                          error={errors.phoneNumber}
+                        />
+                      </>
                     )}
 
                     <InputField

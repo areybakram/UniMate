@@ -296,7 +296,9 @@ const TeacherHome: React.FC = () => {
               <View style={styles.infoSection}>
                 <View style={styles.infoItem}>
                   <Ionicons name="school-outline" size={16} color="#90CDF4" />
-                  <Text style={styles.infoText}>{user?.role || "Teacher"}</Text>
+                  <Text style={styles.infoText}>
+                    {user?.batch || "Faculty"}
+                  </Text>
                 </View>
 
                 <View style={styles.infoItem}>
@@ -612,8 +614,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#1E293B",
   },
   heroSection: {
-    paddingTop: 50,
-    paddingBottom: 25,
+    paddingTop: 45,
+    paddingBottom: 20,
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
     shadowColor: "#000",
@@ -627,7 +629,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 24,
-    marginBottom: 20,
+    marginBottom: 15,
     position: "relative",
   },
   headerRight: {

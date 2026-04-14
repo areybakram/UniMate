@@ -307,7 +307,9 @@ const StudentHome: React.FC = () => {
               <View style={styles.infoSection}>
                 <View style={styles.infoItem}>
                   <Ionicons name="school-outline" size={15} color="#90CDF4" />
-                  <Text style={styles.infoText}>{user?.role || "Student"}</Text>
+                  <Text style={styles.infoText}>
+                    {user?.batch || "Welcome"}
+                  </Text>
                 </View>
 
                 <View style={styles.infoItem}>
@@ -350,58 +352,6 @@ const StudentHome: React.FC = () => {
             ))}
           </Animated.View>
 
-          {/* CAMPUS FEATURES SECTION */}
-          <Animated.View entering={FadeInDown.delay(120)} style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Campus Hub</Text>
-              <TouchableOpacity 
-                style={[styles.debugBtn, { opacity: 0.5 }]} 
-                onPress={async () => {
-                  if (!user) return;
-                  try {
-                    const res = await fetch('http://172.16.7.33:5000/api/debug/mock-data', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ userId: user.id })
-                    });
-                    const data = await res.json();
-                    if (data.success) Alert.alert("Success", "Mock data injected! Refresh to see changes.");
-                  } catch (e) {
-                    Alert.alert("Error", "Could not connect to backend");
-                  }
-                }}
-              >
-                <Ionicons name="bug-outline" size={14} color="#64748b" />
-                <Text style={styles.debugText}>Mock Data</Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.featuresGrid}>
-              <TouchableOpacity 
-                style={[styles.featureCard, { backgroundColor: '#4f46e5' }]} 
-                onPress={() => router.push("/(screens)/StoryMode")}
-              >
-                <Ionicons name="play-circle" size={32} color="#fff" />
-                <Text style={styles.featureLabel}>Semester Story</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={[styles.featureCard, { backgroundColor: '#1e293b' }]} 
-                onPress={() => router.push("/(screens)/LostFoundFeed")}
-              >
-                <Ionicons name="search" size={32} color="#fff" />
-                <Text style={styles.featureLabel}>Lost & Found</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={[styles.featureCard, { backgroundColor: '#059669' }]} 
-                onPress={() => router.push("/(screens)/LendBorrowFeed")}
-              >
-                <Ionicons name="repeat" size={32} color="#fff" />
-                <Text style={styles.featureLabel}>Lend & Borrow</Text>
-              </TouchableOpacity>
-            </View>
-          </Animated.View>
 
           {/* WEEKLY ANALYTICS SECTION (Horizontal Cases) */}
           <Animated.View entering={FadeInDown.delay(150)} style={styles.section}>
@@ -782,8 +732,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#2D3748",
   },
   heroSection: {
-    paddingTop: 50,
-    paddingBottom: 30,
+    paddingTop: 45,
+    paddingBottom: 20,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
     paddingHorizontal: 20,
@@ -792,7 +742,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 25,
+    marginBottom: 15,
     position: "relative",
   },
   headerRight: {

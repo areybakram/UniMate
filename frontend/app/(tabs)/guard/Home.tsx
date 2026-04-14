@@ -220,7 +220,9 @@ const GuardHome: React.FC = () => {
                   size={15}
                   color="#90CDF4"
                 />
-                <Text style={styles.infoText}>{user?.role || "Guard"}</Text>
+                <Text style={styles.infoText}>
+                  {user?.batch || "Security Team"}
+                </Text>
               </View>
 
               <View style={styles.infoItem}>
@@ -322,8 +324,8 @@ const GuardHome: React.FC = () => {
 
 const styles = StyleSheet.create({
   heroSection: {
-    paddingTop: 50,
-    paddingBottom: 30,
+    paddingTop: 45,
+    paddingBottom: 20,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
   },
@@ -332,7 +334,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: 15,
     position: "relative",
   },
   headerRight: {

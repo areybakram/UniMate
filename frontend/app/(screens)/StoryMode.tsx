@@ -97,7 +97,7 @@ export default function StoryModeScreen() {
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#4f46e5" />
+        <ActivityIndicator size="large" color="#2D3748" />
         <Text style={styles.loaderText}>Generating your semester story...</Text>
       </View>
     );
