@@ -2,6 +2,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createContext, ReactNode, useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
+import { logUsageEvent } from "../utils/usageService";
 
 interface User {
   id: string;
@@ -89,6 +90,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             };
             setUser(usr);
             await AsyncStorage.setItem("user", JSON.stringify(usr));
+            
+            // Log app open event
+            logUsageEvent(id, "app_open", { time: new Date().toLocaleTimeString() });
           } else if (event === 'SIGNED_OUT') {
             // ONLY wipe cache if user explicitly signs out
             setUser(null);

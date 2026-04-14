@@ -350,6 +350,59 @@ const StudentHome: React.FC = () => {
             ))}
           </Animated.View>
 
+          {/* CAMPUS FEATURES SECTION */}
+          <Animated.View entering={FadeInDown.delay(120)} style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Campus Hub</Text>
+              <TouchableOpacity 
+                style={[styles.debugBtn, { opacity: 0.5 }]} 
+                onPress={async () => {
+                  if (!user) return;
+                  try {
+                    const res = await fetch('http://172.16.7.33:5000/api/debug/mock-data', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ userId: user.id })
+                    });
+                    const data = await res.json();
+                    if (data.success) Alert.alert("Success", "Mock data injected! Refresh to see changes.");
+                  } catch (e) {
+                    Alert.alert("Error", "Could not connect to backend");
+                  }
+                }}
+              >
+                <Ionicons name="bug-outline" size={14} color="#64748b" />
+                <Text style={styles.debugText}>Mock Data</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.featuresGrid}>
+              <TouchableOpacity 
+                style={[styles.featureCard, { backgroundColor: '#4f46e5' }]} 
+                onPress={() => router.push("/(screens)/StoryMode")}
+              >
+                <Ionicons name="play-circle" size={32} color="#fff" />
+                <Text style={styles.featureLabel}>Semester Story</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={[styles.featureCard, { backgroundColor: '#1e293b' }]} 
+                onPress={() => router.push("/(screens)/LostFoundFeed")}
+              >
+                <Ionicons name="search" size={32} color="#fff" />
+                <Text style={styles.featureLabel}>Lost & Found</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={[styles.featureCard, { backgroundColor: '#059669' }]} 
+                onPress={() => router.push("/(screens)/LendBorrowFeed")}
+              >
+                <Ionicons name="repeat" size={32} color="#fff" />
+                <Text style={styles.featureLabel}>Lend & Borrow</Text>
+              </TouchableOpacity>
+            </View>
+          </Animated.View>
+
           {/* WEEKLY ANALYTICS SECTION (Horizontal Cases) */}
           <Animated.View entering={FadeInDown.delay(150)} style={styles.section}>
             <View style={styles.sectionHeader}>
@@ -838,6 +891,38 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 10,
+  },
+  featuresGrid: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  featureCard: {
+    flex: 1,
+    height: 100,
+    borderRadius: 20,
+    padding: 15,
+    justifyContent: 'space-between',
+    elevation: 4,
+  },
+  featureLabel: {
+    color: '#fff',
+    fontWeight: '800',
+    fontSize: 12,
+  },
+  debugBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#fff',
+    padding: 6,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  debugText: {
+    fontSize: 10,
+    color: '#64748b',
+    fontWeight: '700',
   },
   statIconBadge: {
     width: 36,

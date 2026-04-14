@@ -1,106 +1,3 @@
-// {
-//   "expo": {
-//     "name": "UniMate",
-//     "slug": "UniMate",
-//     "version": "1.0.0",
-//     "orientation": "portrait",
-//     "icon": "./assets/icons/gradstudent.png",
-//     "scheme": "unimate",
-//     "userInterfaceStyle": "automatic",
-//     "newArchEnabled": true,
-//     "ios": {
-//       "supportsTablet": true
-//     },
-//     "android": {
-//       "adaptiveIcon": {
-//         "foregroundImage": "./assets/icons/gradstudent.png",
-//         "backgroundColor": "#ffffff"
-//       },
-//       "edgeToEdgeEnabled": true,
-//       "package": "com.arybb.UniMate"
-//     },
-//     "web": {
-//       "bundler": "metro",
-//       "output": "static",
-//       "favicon": "./assets/icons/gradstudent.png"
-//     },
-//     "plugins": [
-//       "expo-router",
-//       [
-//         "expo-splash-screen",
-//         {
-//           "image": "./assets/icons/gradstudent.png",
-//           "imageWidth": 200,
-//           "resizeMode": "contain",
-//           "backgroundColor": "#ffffff"
-//         }
-//       ]
-//     ],
-//     "experiments": {
-//       "typedRoutes": true
-//     }
-//   }
-// }
-
-
-// {
-//   "expo": {
-//     "name": "UniMate",
-//     "slug": "UniMate",
-//     "version": "1.0.0",
-//     "orientation": "portrait",
-//     "icon": "./assets/icons/gradstudent.png",
-//     "scheme": "unimate",
-//     "userInterfaceStyle": "automatic",
-//     "newArchEnabled": true,
-
-//     "ios": {
-//       "supportsTablet": true,
-//       "config": {
-//         "googleMapsApiKey": "AIzaSyDikCIg0SVUM6RBFMmmF7jt0lcuZt8esPM"
-//       }
-//     },
-
-//     "android": {
-//       "adaptiveIcon": {
-//         "foregroundImage": "./assets/icons/gradstudent.png",
-//         "backgroundColor": "#ffffff"
-//       },
-//       "edgeToEdgeEnabled": true,
-//       "package": "com.arybb.UniMate",
-//       "config": {
-//         "googleMaps": {
-//           "apiKey": "AIzaSyDikCIg0SVUM6RBFMmmF7jt0lcuZt8esPM"
-//         }
-//       }
-//     },
-
-//     "web": {
-//       "bundler": "metro",
-//       "output": "static",
-//       "favicon": "./assets/icons/gradstudent.png"
-//     },
-
-//     "plugins": [
-//       "expo-router",
-//       [
-//         "expo-splash-screen",
-//         {
-//           "image": "./assets/icons/gradstudent.png",
-//           "imageWidth": 200,
-//           "resizeMode": "contain",
-//           "backgroundColor": "#ffffff"
-//         }
-//       ]
-//     ],
-
-//     "experiments": {
-//       "typedRoutes": true
-//     }
-//   }
-// }
-
-
 {
   "expo": {
     "name": "UniMate",
@@ -111,7 +8,6 @@
     "scheme": "unimate",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-
     "ios": {
       "supportsTablet": true,
       "config": {
@@ -121,7 +17,6 @@
         "NSLocationWhenInUseUsageDescription": "We need your location to show it on the map"
       }
     },
-
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/icons/gradstudent.png",
@@ -138,15 +33,12 @@
           "apiKey": "AIzaSyDikCIg0SVUM6RBFMmmF7jt0lcuZt8esPM"
         }
       }
-      
     },
-
     "web": {
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/icons/gradstudent.png"
     },
-
     "plugins": [
       "expo-router",
       [
@@ -157,9 +49,11 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker",
+      "expo-font",
+      "expo-web-browser"
     ],
-
     "experiments": {
       "typedRoutes": true
     }

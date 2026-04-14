@@ -2,7 +2,7 @@ import axios from 'axios';
 import { Platform } from 'react-native';
 
 // Use the specified backend IP for local network communication
-const BASE_URL = 'http://172.16.7.33:5000/api';
+const BASE_URL = 'http://172.16.7.33:5001/api';
 
 
 const apiClient = axios.create({
