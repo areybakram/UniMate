@@ -275,12 +275,12 @@ export default function LostFoundFeedScreen() {
       <View style={styles.filterArea}>
         <View style={styles.tabBackground}>
           <TouchableOpacity style={[styles.tab, activeTab === 'community' && styles.tabActive]} onPress={() => setActiveTab('community')}>
-            <Ionicons name="search-outline" size={16} color={activeTab === 'community' ? '#2D3748' : '#64748b'} />
-            <Text style={[styles.tabTxt, activeTab === 'community' && styles.tabTxtActive]}>L&F Feed</Text>
+            <Ionicons name="earth-outline" size={16} color={activeTab === 'community' ? '#2D3748' : '#64748b'} />
+            <Text style={[styles.tabTxt, activeTab === 'community' && styles.tabTxtActive]}>Public Feed</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.tab, activeTab === 'activity' && styles.tabActive]} onPress={() => setActiveTab('activity')}>
-            <Ionicons name="folder-open-outline" size={16} color={activeTab === 'activity' ? '#2D3748' : '#64748b'} />
-            <Text style={[styles.tabTxt, activeTab === 'activity' && styles.tabTxtActive]}>My Handlings</Text>
+            <Ionicons name="list" size={16} color={activeTab === 'activity' ? '#2D3748' : '#64748b'} />
+            <Text style={[styles.tabTxt, activeTab === 'activity' && styles.tabTxtActive]}>My Postings</Text>
           </TouchableOpacity>
         </View>
 
@@ -386,7 +386,7 @@ const styles = StyleSheet.create({
   typeBtnActive: { borderColor: '#2D3748', backgroundColor: '#f1f5f9' },
   typeBtnTxt: { fontSize: RFValue(10), color: '#94a3b8', fontWeight: '800', textTransform: 'uppercase' },
   listContainer: { padding: 16, paddingBottom: 100 },
-  rowItem: { backgroundColor: '#fff', borderRadius: 10, paddingVertical: 12, marginBottom: 10, borderWidth: 1, borderColor: '#e2e8f0' },
+  rowItem: { backgroundColor: '#fff', borderRadius: 10, paddingVertical: 8, marginBottom: 8, borderWidth: 1, borderColor: '#e2e8f0' },
   rowMain: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingRight: 14 },
   typeMarker: { width: 4, height: 40, borderRadius: 2 },
   rowContent: { flex: 1 },
@@ -398,15 +398,15 @@ const styles = StyleSheet.create({
   metaUser: { fontSize: RFValue(9), color: '#94a3b8', fontWeight: '600' },
   metaDate: { fontSize: RFValue(9), color: '#cbd5e1' },
   contactBtn: { width: 36, height: 36, borderRadius: 18, borderWith: 1, borderColor: '#f1f5f9', justifyContent: 'center', alignItems: 'center' },
-  activityBox: { backgroundColor: '#fff', borderRadius: 12, marginBottom: 14, borderWidth: 1, borderColor: '#e2e8f0' },
-  activityTop: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 },
+  activityBox: { backgroundColor: '#fff', borderRadius: 12, marginBottom: 10, borderWidth: 1, borderColor: '#e2e8f0' },
+  activityTop: { flexDirection: 'row', alignItems: 'center', padding: 10, gap: 12 },
   activitySmallLabel: { fontSize: RFValue(8), fontWeight: '900', color: '#94a3b8', letterSpacing: 1 },
   activityMainTitle: { fontSize: RFValue(14), fontWeight: '800', color: '#101828', marginTop: 2 },
   statusIndicator: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
   statusIndicatorText: { fontSize: RFValue(9), fontWeight: '800', textTransform: 'capitalize' },
-  claimantsSection: { padding: 12, backgroundColor: '#fafafa', borderTopWidth: 1, borderTopColor: '#f1f5f9' },
+  claimantsSection: { padding: 10, backgroundColor: '#fafafa', borderTopWidth: 1, borderTopColor: '#f1f5f9' },
   sectionHeading: { fontSize: RFValue(10), fontWeight: '800', color: '#64748b', marginBottom: 10 },
-  claimantRow: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#fff', padding: 10, borderRadius: 8, marginBottom: 8, borderWidth: 1, borderColor: '#f1f5f9' },
+  claimantRow: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#fff', padding: 8, borderRadius: 8, marginBottom: 6, borderWidth: 1, borderColor: '#f1f5f9' },
   claimantName: { fontSize: RFValue(12), fontWeight: '700', color: '#1e293b' },
   claimantMsg: { fontSize: RFValue(11), color: '#64748b' },
   claimantActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
@@ -430,10 +430,10 @@ const styles = StyleSheet.create({
   mCancel: { color: '#94a3b8', fontWeight: '700', fontSize: RFValue(13) },
   mSubmit: { backgroundColor: '#2563eb', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12, shadowColor: '#2563eb', shadowOpacity: 0.2, shadowRadius: 4, elevation: 3 },
   mSubmitTxt: { color: '#fff', fontWeight: '700', fontSize: RFValue(13) },
-  resolvedInfoCard: { padding: 12, backgroundColor: '#fcfdfe', borderTopWidth: 1, borderColor: '#eef2f7' },
+  resolvedInfoCard: { padding: 10, backgroundColor: '#fcfdfe', borderTopWidth: 1, borderColor: '#eef2f7' },
   resolvedHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
   resolvedTitle: { fontSize: RFValue(10), fontWeight: '800', color: '#10b981', textTransform: 'uppercase', letterSpacing: 0.5 },
-  personCompactCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', padding: 10, borderRadius: 10, borderWidth: 1, borderColor: '#e2e8f0' },
+  personCompactCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', padding: 8, borderRadius: 10, borderWidth: 1, borderColor: '#e2e8f0' },
   personAvatar: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#f1f5f9', justifyContent: 'center', alignItems: 'center', marginRight: 10 },
   personAvatarTxt: { fontSize: RFValue(12), fontWeight: '800', color: '#475569' },
   personDetails: { flex: 1 },

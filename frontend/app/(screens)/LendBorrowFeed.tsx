@@ -176,9 +176,6 @@ export default function LendBorrowFeedScreen() {
   const renderMarketItem = ({ item, index }: { item: BorrowRequest, index: number }) => (
     <Animated.View entering={FadeInDown.delay(index * 100)} layout={Layout.springify()} style={styles.listItem}>
       <View style={styles.listMain}>
-        <View style={styles.avatarMini}>
-          <Text style={styles.avatarText}>{item.profiles?.name?.[0]}</Text>
-        </View>
         <View style={styles.itemContent}>
           <Text style={styles.itemTitle}>{item.item_name}</Text>
           <Text style={styles.itemSub} numberOfLines={1}>{item.reason}</Text>
@@ -274,9 +271,6 @@ export default function LendBorrowFeedScreen() {
             const lender = item.offers.find((o:any) => o.lender_id === item.completed_with_id);
             return (
               <View style={styles.lenderInfoCard}>
-                <View style={styles.lenderAvatar}>
-                  <Text style={styles.lenderAvatarText}>{lender.profiles?.name?.[0] || '?'}</Text>
-                </View>
                 <View style={styles.lenderDetails}>
                   <Text style={styles.lenderName}>{lender.profiles?.name}</Text>
                   <View style={{ marginTop: 2 }}>
@@ -328,7 +322,7 @@ export default function LendBorrowFeedScreen() {
             style={[styles.tabItem, activeTab === 'market' && styles.tabItemActive]} 
             onPress={() => setActiveTab('market')}
           >
-            <Ionicons name="apps" size={16} color={activeTab === 'market' ? '#2D3748' : '#64748b'} />
+            <Ionicons name="earth-outline" size={16} color={activeTab === 'market' ? '#2D3748' : '#64748b'} />
             <Text style={[styles.tabText, activeTab === 'market' && styles.tabTextActive]}>Public Feed</Text>
           </TouchableOpacity>
           <TouchableOpacity 
@@ -443,7 +437,7 @@ const styles = StyleSheet.create({
   tabText: { color: '#64748b', fontSize: RFValue(12), fontWeight: '700' },
   tabTextActive: { color: '#2D3748' },
   listPadding: { padding: 16, paddingBottom: 100 },
-  listItem: { backgroundColor: '#fff', borderRadius: 12, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: '#e2e8f0' },
+  listItem: { backgroundColor: '#fff', borderRadius: 12, padding: 10, marginBottom: 8, borderWidth: 1, borderColor: '#e2e8f0' },
   listMain: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   avatarMini: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#f1f5f9', justifyContent: 'center', alignItems: 'center' },
   avatarText: { fontSize: RFValue(16), fontWeight: '700', color: '#64748b' },
@@ -456,13 +450,13 @@ const styles = StyleSheet.create({
   timestampText: { fontSize: RFValue(9), color: '#94a3b8' },
   actionBtn: { backgroundColor: '#eff6ff', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
   actionBtnText: { color: '#2563eb', fontSize: RFValue(11), fontWeight: '800' },
-  activityItem: { backgroundColor: '#fff', borderRadius: 12, paddingVertical: 12, marginBottom: 16, borderWidth: 1, borderColor: '#e2e8f0', overflow: 'hidden' },
+  activityItem: { backgroundColor: '#fff', borderRadius: 12, paddingVertical: 8, marginBottom: 10, borderWidth: 1, borderColor: '#e2e8f0', overflow: 'hidden' },
   activityHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, gap: 12 },
   statusLine: { width: 4, height: 35, borderRadius: 2 },
   activityType: { fontSize: RFValue(8), fontWeight: '900', color: '#94a3b8', letterSpacing: 0.5 },
   activityTitle: { fontSize: RFValue(14), fontWeight: '800', color: '#1e293b' },
-  interactionsList: { marginTop: 12, borderTopWidth: 1, borderTopColor: '#f1f5f9', backgroundColor: '#fafafa' },
-  interactionRow: { flexDirection: 'row', alignItems: 'center', padding: 12, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
+  interactionsList: { marginTop: 8, borderTopWidth: 1, borderTopColor: '#f1f5f9', backgroundColor: '#fafafa' },
+  interactionRow: { flexDirection: 'row', alignItems: 'center', padding: 8, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
   interactionUser: { flex: 1 },
   interactionName: { fontSize: RFValue(12), fontWeight: '700', color: '#1e293b' },
   interactionMsg: { fontSize: RFValue(11), color: '#64748b' },
@@ -485,12 +479,12 @@ const styles = StyleSheet.create({
   modalCancel: { color: '#94a3b8', fontWeight: '700', fontSize: RFValue(13) },
   modalSubmit: { backgroundColor: '#2563eb', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12, shadowColor: '#2563eb', shadowOpacity: 0.2, shadowRadius: 4, elevation: 3 },
   modalSubmitText: { color: '#fff', fontWeight: '700', fontSize: RFValue(13) },
-  completedCard: { padding: 12, backgroundColor: '#fcfdfe', borderTopWidth: 1, borderColor: '#eef2f7' },
+  completedCard: { padding: 10, backgroundColor: '#fcfdfe', borderTopWidth: 1, borderColor: '#eef2f7' },
   completedHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
   completedTitle: { fontSize: RFValue(10), fontWeight: '800', color: '#10b981', textTransform: 'uppercase', letterSpacing: 0.5 },
   completedDetailsRow: { marginBottom: 10, paddingLeft: 20 },
   completedDetailText: { fontSize: RFValue(10), color: '#64748b', marginBottom: 2 },
-  lenderInfoCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', padding: 10, borderRadius: 10, borderWidth: 1, borderColor: '#e2e8f0' },
+  lenderInfoCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', padding: 8, borderRadius: 10, borderWidth: 1, borderColor: '#e2e8f0' },
   lenderAvatar: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#f1f5f9', justifyContent: 'center', alignItems: 'center', marginRight: 10 },
   lenderAvatarText: { fontSize: RFValue(12), fontWeight: '800', color: '#475569' },
   lenderDetails: { flex: 1 },

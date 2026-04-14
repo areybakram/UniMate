@@ -61,13 +61,7 @@ const CustomDrawer = ({ active }: any) => {
         return (
           <>
             <DrawerItem
-              icon={
-                <MaterialCommunityIcons
-                  name="map-marker"
-                  size={25}
-                  color={"#2D3748"}
-                />
-              }
+              icon={<Ionicons name="location-outline" size={24} color={"#2D3748"} />}
               label="Explore Campus"
               onPress={() => router.push("/Modules/Tagging" as any)}
             />
@@ -102,13 +96,7 @@ const CustomDrawer = ({ active }: any) => {
         return (
           <>
             <DrawerItem
-              icon={
-                <MaterialCommunityIcons
-                  name="map-marker"
-                  size={25}
-                  color={"#2D3748"}
-                />
-              }
+              icon={<Ionicons name="location-outline" size={24} color={"#2D3748"} />}
               label="Explore Campus"
               onPress={() => router.push("/Modules/Tagging" as any)}
             />
@@ -119,9 +107,7 @@ const CustomDrawer = ({ active }: any) => {
               onPress={() => router.push("/Modules/Navigation" as any)}
             />
             <DrawerItem
-              icon={
-                <MaterialIcons name="local-offer" size={24} color={"#2D3748"} />
-              }
+              icon={<Ionicons name="alert-circle-outline" size={24} color={"#2D3748"} />}
               label="Emergency"
               onPress={() => router.push("/(screens)/emergency" as any)}
             />
@@ -166,7 +152,7 @@ const CustomDrawer = ({ active }: any) => {
         return (
           <>
             <DrawerItem
-              icon={<MaterialCommunityIcons name="map-marker" size={25} color={"#2D3748"} />}
+              icon={<Ionicons name="location-outline" size={24} color={"#2D3748"} />}
               label="Explore Campus"
               onPress={() => router.push("/Modules/Tagging" as any)}
             />
@@ -176,22 +162,22 @@ const CustomDrawer = ({ active }: any) => {
               onPress={() => router.push("/Modules/Navigation" as any)}
             />
             <DrawerItem
-              icon={<MaterialIcons name="local-offer" size={24} color={"#2D3748"} />}
+              icon={<Ionicons name="alert-circle-outline" size={24} color={"#2D3748"} />}
               label="Emergency"
               onPress={() => router.push("/(screens)/emergency" as any)}
             />
             <DrawerItem
-              icon={<Ionicons name="play-circle" size={24} color={"#2D3748"} />}
+              icon={<Ionicons name="play-circle-outline" size={24} color={"#2D3748"} />}
               label="Semester Story"
               onPress={() => router.push("/(screens)/StoryMode" as any)}
             />
             <DrawerItem
-              icon={<Ionicons name="repeat" size={24} color={"#059669"} />}
+              icon={<Ionicons name="repeat-outline" size={24} color={"#2D3748"} />}
               label="Lend & Borrow"
               onPress={() => router.push("/(screens)/LendBorrowFeed" as any)}
             />
             <DrawerItem
-              icon={<Ionicons name="search" size={24} color={"#1e293b"} />}
+              icon={<Ionicons name="search-outline" size={24} color={"#2D3748"} />}
               label="Lost & Found"
               onPress={() => router.push("/(screens)/LostFoundFeed" as any)}
             />
