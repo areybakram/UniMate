@@ -62,13 +62,6 @@ const CustomDrawer = ({ active }: any) => {
           <>
             <DrawerItem
               icon={
-                <FontAwesome5 name="user-shield" size={24} color={"#2D3748"} />
-              }
-              label="Profile"
-              onPress={() => router.push("/(tabs)/Profile" as any)}
-            />
-            <DrawerItem
-              icon={
                 <MaterialCommunityIcons
                   name="map-marker"
                   size={25}
@@ -108,13 +101,6 @@ const CustomDrawer = ({ active }: any) => {
       case "teacher":
         return (
           <>
-            <DrawerItem
-              icon={
-                <FontAwesome5 name="user-tie" size={24} color={"#2D3748"} />
-              }
-              label="Profile"
-              onPress={() => router.push("/(tabs)/Profile" as any)}
-            />
             <DrawerItem
               icon={
                 <MaterialCommunityIcons
@@ -180,11 +166,6 @@ const CustomDrawer = ({ active }: any) => {
         return (
           <>
             <DrawerItem
-              icon={<FontAwesome5 name="user-circle" size={24} color={"#2D3748"} />}
-              label="Profile"
-              onPress={() => router.push("/(tabs)/Profile" as any)}
-            />
-            <DrawerItem
               icon={<MaterialCommunityIcons name="map-marker" size={25} color={"#2D3748"} />}
               label="Explore Campus"
               onPress={() => router.push("/Modules/Tagging" as any)}
@@ -240,7 +221,15 @@ const CustomDrawer = ({ active }: any) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.profileHeader}>
+      <TouchableOpacity 
+        style={styles.profileHeader}
+        activeOpacity={0.7}
+        onPress={() => {
+          active.value = false;
+          closeDrawer();
+          router.push("/(tabs)/Profile" as any);
+        }}
+      >
         {customProfilePhoto ? (
           <Image source={{ uri: customProfilePhoto }} style={styles.avatarImage} />
         ) : (
@@ -250,7 +239,7 @@ const CustomDrawer = ({ active }: any) => {
         )}
         <Text style={styles.drawerUserName}>{user?.name || "Guest User"}</Text>
         <Text style={styles.drawerUserRole}>{user?.role || "No Role"}</Text>
-      </View>
+      </TouchableOpacity>
       <View style={styles.contentContainer}>{renderDrawerItems()}</View>
 
       {/* <TouchableOpacity style={styles.containerdeleted} onPress={logoutPress}>

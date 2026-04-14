@@ -62,10 +62,6 @@ const registerSchema = yup.object().shape({
     .string()
     .oneOf([yup.ref("password")], "Passwords must match")
     .required("Confirm Password is required"),
-  batch: yup
-    .string()
-    .matches(/^[A-Z]{2}[0-9]{2}$/, "Invalid Batch format (e.g. FA22, SP22)")
-    .required("Batch is required"),
   registrationNumber: yup
     .string()
     .matches(/^[A-Z]{2}[0-9]{2}-[A-Z]{3,4}-[0-9]{3}$/, "Invalid format (e.g. FA22-BCS-110)")
@@ -143,7 +139,6 @@ const Auth: React.FC = () => {
       phoneNumber: "",
       password: "",
       confirmPassword: "",
-      batch: "",
       registrationNumber: "",
     },
 });
@@ -165,13 +160,14 @@ const Auth: React.FC = () => {
           router.replace(`/(tabs)/${userRole.toLowerCase()}/Home` as any);
         }
       } else {
+        const extractedBatch = data.registrationNumber.split('-')[0].toUpperCase();
         const res = await auth.signUp(
           data.fullName,
           data.email,
           data.phoneNumber,
           data.password,
           role,
-          data.batch.toUpperCase(),
+          extractedBatch,
           data.registrationNumber.toUpperCase()
         );
         if (res.error) {
@@ -295,13 +291,6 @@ const Auth: React.FC = () => {
                       <>
                         <InputField
                           control={control}
-                          name="batch"
-                          placeholder="Batch (e.g. FA22)"
-                          icon="calendar-outline"
-                          error={errors.batch}
-                        />
-                        <InputField
-                          control={control}
                           name="registrationNumber"
                           placeholder="Reg No (e.g. FA22-BCS-110)"
                           icon="id-card-outline"
@@ -310,7 +299,7 @@ const Auth: React.FC = () => {
                         <InputField
                           control={control}
                           name="phoneNumber"
-                          placeholder="92..."
+                          placeholder="Contact Number"
                           icon="call-outline"
                           keyboardType="phone-pad"
                           maxLength={12}

@@ -9,7 +9,9 @@ import {
   Modal, 
   ActivityIndicator,
   Alert,
-  Dimensions
+  Dimensions,
+  Keyboard,
+  TouchableWithoutFeedback
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -278,18 +280,22 @@ export default function LendBorrowFeedScreen() {
       </TouchableOpacity>
 
       <Modal visible={isModalVisible} animationType="fade" transparent>
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalView}>
-            <Text style={styles.modalTitle}>Request Item</Text>
-            <TextInput placeholder="Item name" style={styles.systemInput} value={itemName} onChangeText={setItemName} />
-            <TextInput placeholder="Reason (e.g. Lost my charger)" style={styles.systemInput} value={reason} onChangeText={setReason} />
-            <TextInput placeholder="Duration (e.g. 2 days)" style={styles.systemInput} value={duration} onChangeText={setDuration} />
-            <View style={styles.modalActions}>
-              <TouchableOpacity onPress={() => setIsModalVisible(false)}><Text style={styles.modalCancel}>Cancel</Text></TouchableOpacity>
-              <TouchableOpacity style={styles.modalSubmit} onPress={handleCreateRequest}><Text style={styles.modalSubmitText}>Post</Text></TouchableOpacity>
-            </View>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.modalBackdrop}>
+            <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
+              <View style={styles.modalView}>
+                <Text style={styles.modalTitle}>Request Item</Text>
+                <TextInput placeholder="Item name" style={styles.systemInput} value={itemName} onChangeText={setItemName} />
+                <TextInput placeholder="Reason (e.g. Lost my charger)" style={styles.systemInput} value={reason} onChangeText={setReason} />
+                <TextInput placeholder="Duration (e.g. 2 days)" style={styles.systemInput} value={duration} onChangeText={setDuration} />
+                <View style={styles.modalActions}>
+                  <TouchableOpacity onPress={() => setIsModalVisible(false)}><Text style={styles.modalCancel}>Cancel</Text></TouchableOpacity>
+                  <TouchableOpacity style={styles.modalSubmit} onPress={handleCreateRequest}><Text style={styles.modalSubmitText}>Post</Text></TouchableOpacity>
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
           </View>
-        </View>
+        </TouchableWithoutFeedback>
       </Modal>
     </View>
   );

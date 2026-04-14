@@ -9,7 +9,9 @@ import {
   Modal, 
   ActivityIndicator,
   Alert,
-  Dimensions
+  Dimensions,
+  Keyboard,
+  TouchableWithoutFeedback
 } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -277,21 +279,25 @@ export default function LostFoundFeedScreen() {
       </TouchableOpacity>
 
       <Modal visible={isModalVisible} animationType="fade" transparent>
-        <View style={styles.blurOverlay}>
-          <View style={styles.modalBody}>
-            <Text style={styles.mTitle}>Report Incident</Text>
-            <View style={styles.mToggleRow}>
-              <TouchableOpacity onPress={() => setType('lost')} style={[styles.mModeBtn, type === 'lost' && styles.mModeActiveLost]}><Text style={[styles.mModeText, type === 'lost' && { color: '#fff' }]}>Lost</Text></TouchableOpacity>
-              <TouchableOpacity onPress={() => setType('found')} style={[styles.mModeBtn, type === 'found' && styles.mModeActiveFound]}><Text style={[styles.mModeText, type === 'found' && { color: '#fff' }]}>Found</Text></TouchableOpacity>
-            </View>
-            <TextInput placeholder="Item name" style={styles.mInput} value={itemName} onChangeText={setItemName} />
-            <TextInput placeholder="Details (Color, location...)" style={[styles.mInput, { height: 100 }]} multiline value={description} onChangeText={setDescription} />
-            <View style={styles.mFooter}>
-              <TouchableOpacity onPress={() => setIsModalVisible(false)}><Text style={styles.mCancel}>Cancel</Text></TouchableOpacity>
-              <TouchableOpacity style={styles.mSubmit} onPress={handleCreatePost}><Text style={styles.mSubmitTxt}>Post</Text></TouchableOpacity>
-            </View>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.blurOverlay}>
+            <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
+              <View style={styles.modalBody}>
+                <Text style={styles.mTitle}>Report Incident</Text>
+                <View style={styles.mToggleRow}>
+                  <TouchableOpacity onPress={() => setType('lost')} style={[styles.mModeBtn, type === 'lost' && styles.mModeActiveLost]}><Text style={[styles.mModeText, type === 'lost' && { color: '#fff' }]}>Lost</Text></TouchableOpacity>
+                  <TouchableOpacity onPress={() => setType('found')} style={[styles.mModeBtn, type === 'found' && styles.mModeActiveFound]}><Text style={[styles.mModeText, type === 'found' && { color: '#fff' }]}>Found</Text></TouchableOpacity>
+                </View>
+                <TextInput placeholder="Item name" style={styles.mInput} value={itemName} onChangeText={setItemName} />
+                <TextInput placeholder="Details (Color, location...)" style={[styles.mInput, { height: 100 }]} multiline value={description} onChangeText={setDescription} />
+                <View style={styles.mFooter}>
+                  <TouchableOpacity onPress={() => setIsModalVisible(false)}><Text style={styles.mCancel}>Cancel</Text></TouchableOpacity>
+                  <TouchableOpacity style={styles.mSubmit} onPress={handleCreatePost}><Text style={styles.mSubmitTxt}>Post</Text></TouchableOpacity>
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
           </View>
-        </View>
+        </TouchableWithoutFeedback>
       </Modal>
     </View>
   );
