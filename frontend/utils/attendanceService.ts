@@ -41,10 +41,33 @@ const updateProfileAttendance = async (attendanceData: any) => {
 };
 
 export const saveAttendance = async (classId: string, status: "taken" | "missed") => {
-  const dateKey = getTodayDateKey();
-  const profile = await fetchProfile();
+  const [semester, profile] = await Promise.all([
+    getActiveSemester(),
+    fetchProfile()
+  ]);
+
+  if (!semester) {
+    console.warn("No active semester found. Attendance cannot be marked.");
+    return;
+  }
+
+  const today = new Date();
+  const start = new Date(semester.start_date);
+  const end = new Date(semester.end_date);
+
+  // Set times to 00:00:00 for accurate day comparison
+  today.setHours(0, 0, 0, 0);
+  start.setHours(0, 0, 0, 0);
+  end.setHours(0, 0, 0, 0);
+
+  if (today < start || today > end) {
+    console.warn("Today's date is outside the active semester range.");
+    return;
+  }
+
   if (!profile) return;
 
+  const dateKey = getTodayDateKey();
   const fullData = profile.attendance_data || {};
   if (!fullData[dateKey]) fullData[dateKey] = {};
   

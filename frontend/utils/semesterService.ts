@@ -39,6 +39,23 @@ export const getActiveSemester = async (): Promise<SemesterConfig | null> => {
   }
 };
 
+export const getCurrentWeek = (startDate: string): number => {
+  const start = new Date(startDate);
+  const now = new Date();
+  
+  // Find the Monday of the start week
+  const startDay = start.getDay(); // 0 is Sunday, 1 is Monday...
+  const diffToMonday = (startDay === 0 ? -6 : 1 - startDay);
+  const mondayOfStartWeek = new Date(start);
+  mondayOfStartWeek.setDate(mondayOfStartWeek.getDate() + diffToMonday);
+  mondayOfStartWeek.setHours(0, 0, 0, 0);
+
+  const diffInMs = now.getTime() - mondayOfStartWeek.getTime();
+  const diffInWeeks = Math.floor(diffInMs / (7 * 24 * 60 * 60 * 1000));
+  
+  return diffInWeeks + 1; // 1-indexed week number
+};
+
 export const clearSemesterCache = () => {
   cachedSemester = null;
 };
