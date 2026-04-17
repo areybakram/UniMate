@@ -24,7 +24,8 @@ import {
   getClaimsByPostId,
   markAsResolved,
   LostFoundPost, 
-  LostFoundClaim 
+  LostFoundClaim,
+  DateFilter
 } from '@/utils/lostFoundService';
 import { AuthContext } from '@/Context/AuthContext';
 import { RFValue } from 'react-native-responsive-fontsize';
@@ -37,8 +38,10 @@ export default function LostFoundFeedScreen() {
   const [posts, setPosts] = useState<LostFoundPost[]>([]);
   const [myActivity, setMyActivity] = useState<{ posts: (LostFoundPost & { claims?: LostFoundClaim[] })[], claims: LostFoundClaim[] }>({ posts: [], claims: [] });
   const [filter, setFilter] = useState<'all' | 'lost' | 'found'>('all');
+  const [dateFilter, setDateFilter] = useState<DateFilter>('today');
   const [loading, setLoading] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
   
   // New Post Form
   const [itemName, setItemName] = useState('');
@@ -48,16 +51,19 @@ export default function LostFoundFeedScreen() {
   const fetchData = async () => {
     setLoading(true);
     try {
+      const postsData = await getLostFoundPosts(
+        activeTab === 'activity' ? user?.id : undefined,
+        dateFilter
+      );
+
       if (activeTab === 'community') {
-        const data = await getLostFoundPosts();
-        setPosts(data.filter(p => p.user_id !== user?.id));
+        setPosts(postsData.filter(p => p.user_id !== user?.id));
       } else {
-        const [posts, claims] = await Promise.all([
-          getLostFoundPosts(user?.id),
+        const [claims] = await Promise.all([
           getMyClaims(user.id!)
         ]);
         
-        const postsWithClaims = await Promise.all(posts.map(async (p) => {
+        const postsWithClaims = await Promise.all(postsData.map(async (p) => {
           const postClaims = await getClaimsByPostId(p.id);
           return { ...p, claims: postClaims };
         }));
@@ -73,7 +79,7 @@ export default function LostFoundFeedScreen() {
 
   useEffect(() => {
     fetchData();
-  }, [activeTab]);
+  }, [activeTab, dateFilter]);
 
   const handleCreatePost = async () => {
     if (!itemName || !description) {
@@ -174,10 +180,24 @@ export default function LostFoundFeedScreen() {
         <View style={{ flex: 1 }}>
           <Text style={styles.activitySmallLabel}>{type === 'post' ? `MY ${item.type.toUpperCase()} REPORT` : 'MY INTEREST'}</Text>
           <Text style={styles.activityMainTitle}>{item.item_name || item.lost_found_posts?.item_name}</Text>
+          {type === 'post' && (
+            <View style={{ marginTop: 4, gap: 2 }}>
+              <Text style={styles.activityDateText}>Posted on: {new Date(item.created_at).toLocaleDateString()}</Text>
+              {item.status === 'resolved' && item.resolved_at && (
+                <Text style={[styles.activityDateText, { color: '#10b981' }]}>
+                  Resolved on: {new Date(item.resolved_at).toLocaleDateString()}
+                </Text>
+              )}
+            </View>
+          )}
         </View>
         {type === 'post' && (
-           <View style={[styles.statusIndicator, { backgroundColor: item.status === 'open' ? '#dcfce7' : '#f1f5f9' }]}>
-             <Text style={[styles.statusIndicatorText, { color: item.status === 'open' ? '#166534' : '#64748b' }]}>{item.status}</Text>
+           <View style={[styles.statusIndicator, { backgroundColor: item.status === 'resolved' ? 'transparent' : '#f1f5f9' }]}>
+             {item.status === 'resolved' ? (
+               <Ionicons name="checkmark-circle" size={20} color="#10b981" />
+             ) : (
+               <Text style={[styles.statusIndicatorText, { color: '#64748b' }]}>{item.status}</Text>
+             )}
            </View>
         )}
       </View>
@@ -218,42 +238,34 @@ export default function LostFoundFeedScreen() {
       )}
 
       {type === 'post' && item.status === 'resolved' && (
-        <View style={styles.resolvedInfoCard}>
-           <View style={styles.resolvedHeader}>
-              <Ionicons name="checkmark-done-circle" size={14} color="#10b981" />
-              <Text style={styles.resolvedTitle}>Item Successfully Handed Over</Text>
-           </View>
+        <View style={styles.resolutionFooter}>
            {item.claims?.find((c: any) => c.claimer_id === item.resolved_with_id) && (() => {
              const person = item.claims.find((c: any) => c.claimer_id === item.resolved_with_id);
              return (
-               <View style={styles.personCompactCard}>
-                  <View style={styles.personDetails}>
-                     <Text style={styles.personName}>{person.profiles?.name}</Text>
-                     <View style={{ marginTop: 2 }}>
-                       <Text style={styles.personMetaLine}>
-                         ID: {person.profiles?.registration_number || 'N/A'}
-                       </Text>
-                       <Text style={styles.personMetaLine}>
-                         Phone: {person.profiles?.phone || 'N/A'}
-                       </Text>
-                       {person.profiles?.batch && (
-                         <Text style={styles.personBatchLine}>Batch: {person.profiles.batch}</Text>
-                       )}
-                     </View>
+               <View style={styles.resolutionInner}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.resolutionText}>Handover Details:</Text>
+                    <View style={styles.resMiniDetails}>
+                      <Text style={styles.resMiniText}>ID: {person.profiles?.registration_number || 'N/A'}</Text>
+                      <Text style={styles.resMiniText}>PH: {person.profiles?.phone || 'N/A'}</Text>
+                      {person.profiles?.batch && (
+                        <Text style={styles.resMiniText}>Batch: {person.profiles.batch}</Text>
+                      )}
+                    </View>
                   </View>
-                 <TouchableOpacity 
-                   style={styles.keepChattingBtn}
-                   onPress={() => router.push({
-                     pathname: "/(screens)/ChatRoom",
-                     params: { 
-                       roomId: `lostfound_${item.id}_${person.claimer_id}`, 
-                       title: `Chat: ${person.profiles?.name}`,
-                       otherUser: person.profiles?.name
-                     }
-                   })}
-                 >
-                   <Ionicons name="chatbubbles" size={16} color="#fff" />
-                 </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={styles.resolutionChatBtn}
+                    onPress={() => router.push({
+                      pathname: "/(screens)/ChatRoom",
+                      params: { 
+                        roomId: `lostfound_${item.id}_${person.claimer_id}`, 
+                        title: `Chat: ${person.profiles?.name}`,
+                        otherUser: person.profiles?.name
+                      }
+                    })}
+                  >
+                    <Ionicons name="chatbubbles" size={16} color="#10b981" />
+                  </TouchableOpacity>
                </View>
              );
            })()}
@@ -284,14 +296,38 @@ export default function LostFoundFeedScreen() {
           </TouchableOpacity>
         </View>
 
-        {activeTab === 'community' && (
-          <View style={styles.miniTypeFilter}>
-            {['all', 'lost', 'found'].map((f) => (
-              <TouchableOpacity key={f} style={[styles.typeBtn, filter === f && styles.typeBtnActive]} onPress={() => setFilter(f as any)}>
-                <Text style={[styles.typeBtnTxt, filter === f && { color: '#2D3748' }]}>{f}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+        <View style={styles.filterControlRow}>
+          <View style={{ flex: 1 }} />
+          <TouchableOpacity 
+            style={[styles.filterToggleBtn, showFilters && styles.filterToggleBtnActive]} 
+            onPress={() => setShowFilters(!showFilters)}
+          >
+            <Ionicons name={showFilters ? "chevron-up" : "options-outline"} size={18} color={showFilters ? "#fff" : "#2D3748"} />
+          </TouchableOpacity>
+        </View>
+
+        {showFilters && (
+          <Animated.View entering={FadeInDown.duration(300)} style={styles.expandedFilters}>
+            <Text style={styles.filterGroupLabel}>Item Type</Text>
+            <View style={styles.miniTypeFilter}>
+              {['all', 'lost', 'found'].map((f) => (
+                <TouchableOpacity key={f} style={[styles.typeBtn, filter === f && styles.typeBtnActive]} onPress={() => setFilter(f as any)}>
+                  <Text style={[styles.typeBtnTxt, filter === f && { color: '#2D3748' }]}>{f}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={[styles.filterGroupLabel, { marginTop: 16 }]}>Time Period</Text>
+            <View style={styles.miniTypeFilter}>
+              {['today', 'yesterday', 'week', 'all'].map((df) => (
+                <TouchableOpacity key={df} style={[styles.dateBtnPill, dateFilter === df && styles.dateBtnPillActive]} onPress={() => setDateFilter(df as any)}>
+                  <Text style={[styles.dateBtnPillTxt, dateFilter === df && { color: '#fff' }]}>
+                    {df === 'week' ? 'Last 7 Days' : df.charAt(0).toUpperCase() + df.slice(1)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </Animated.View>
         )}
       </View>
 
@@ -313,7 +349,7 @@ export default function LostFoundFeedScreen() {
           keyExtractor={(item, index) => index.toString()}
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
-          ListEmptyComponent={<View style={styles.nothingView}><Text style={styles.nothingTxt}>No active handlings</Text></View>}
+          ListEmptyComponent={<View style={styles.nothingView}><Text style={styles.nothingTxt}>No findings for this period</Text></View>}
         />
       )}
 
@@ -385,7 +421,18 @@ const styles = StyleSheet.create({
   typeBtn: { paddingVertical: 4, paddingHorizontal: 12, borderRadius: 10, borderWidth: 1, borderColor: '#e2e8f0', backgroundColor: '#fff' },
   typeBtnActive: { borderColor: '#2D3748', backgroundColor: '#f1f5f9' },
   typeBtnTxt: { fontSize: RFValue(10), color: '#94a3b8', fontWeight: '800', textTransform: 'uppercase' },
+  dateBtnPill: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 20, backgroundColor: '#f1f5f9', borderWidth: 1, borderColor: '#e2e8f0' },
+  dateBtnPillActive: { backgroundColor: '#2D3748', borderColor: '#2D3748' },
+  dateBtnPillTxt: { fontSize: RFValue(9), color: '#64748b', fontWeight: '700' },
   listContainer: { padding: 16, paddingBottom: 100 },
+  filterControlRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
+  activeTags: { flexDirection: 'row', gap: 6 },
+  tagPill: { backgroundColor: '#fef2f2', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  tagPillText: { fontSize: RFValue(10), color: '#ef4444', fontWeight: '800', textTransform: 'uppercase' },
+  filterToggleBtn: { width: 36, height: 36, borderRadius: 10, backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#e2e8f0' },
+  filterToggleBtnActive: { backgroundColor: '#2D3748', borderColor: '#2D3748' },
+  expandedFilters: { backgroundColor: '#fff', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#e2e8f0', marginTop: 8 },
+  filterGroupLabel: { fontSize: RFValue(9), fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 10, marginLeft: 4 },
   rowItem: { backgroundColor: '#fff', borderRadius: 10, paddingVertical: 8, marginBottom: 8, borderWidth: 1, borderColor: '#e2e8f0' },
   rowMain: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingRight: 14 },
   typeMarker: { width: 4, height: 40, borderRadius: 2 },
@@ -402,6 +449,7 @@ const styles = StyleSheet.create({
   activityTop: { flexDirection: 'row', alignItems: 'center', padding: 10, gap: 12 },
   activitySmallLabel: { fontSize: RFValue(8), fontWeight: '900', color: '#94a3b8', letterSpacing: 1 },
   activityMainTitle: { fontSize: RFValue(14), fontWeight: '800', color: '#101828', marginTop: 2 },
+  activityDateText: { fontSize: RFValue(9), color: '#94a3b8', fontWeight: '600' },
   statusIndicator: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
   statusIndicatorText: { fontSize: RFValue(9), fontWeight: '800', textTransform: 'capitalize' },
   claimantsSection: { padding: 10, backgroundColor: '#fafafa', borderTopWidth: 1, borderTopColor: '#f1f5f9' },
@@ -430,15 +478,12 @@ const styles = StyleSheet.create({
   mCancel: { color: '#94a3b8', fontWeight: '700', fontSize: RFValue(13) },
   mSubmit: { backgroundColor: '#2563eb', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12, shadowColor: '#2563eb', shadowOpacity: 0.2, shadowRadius: 4, elevation: 3 },
   mSubmitTxt: { color: '#fff', fontWeight: '700', fontSize: RFValue(13) },
-  resolvedInfoCard: { padding: 10, backgroundColor: '#fcfdfe', borderTopWidth: 1, borderColor: '#eef2f7' },
-  resolvedHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
-  resolvedTitle: { fontSize: RFValue(10), fontWeight: '800', color: '#10b981', textTransform: 'uppercase', letterSpacing: 0.5 },
-  personCompactCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', padding: 8, borderRadius: 10, borderWidth: 1, borderColor: '#e2e8f0' },
-  personAvatar: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#f1f5f9', justifyContent: 'center', alignItems: 'center', marginRight: 10 },
-  personAvatarTxt: { fontSize: RFValue(12), fontWeight: '800', color: '#475569' },
-  personDetails: { flex: 1 },
-  personName: { fontSize: RFValue(13), fontWeight: '800', color: '#1e293b' },
-  personMetaLine: { fontSize: RFValue(10), color: '#64748b', marginTop: 2, fontWeight: '600' },
-  personBatchLine: { fontSize: RFValue(9), color: '#2563eb', marginTop: 1, fontWeight: '700', textTransform: 'uppercase' },
-  keepChattingBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#10b981', justifyContent: 'center', alignItems: 'center' },
+  mSubmitTxt: { color: '#fff', fontWeight: '700', fontSize: RFValue(13) },
+  resolutionFooter: { padding: 12, borderTopWidth: 1, borderColor: '#f1f5f9', backgroundColor: '#fcfdfd' },
+  resolutionInner: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  resolutionText: { fontSize: RFValue(11), color: '#64748b', fontWeight: '500' },
+  resolutionName: { color: '#1e293b', fontWeight: '800' },
+  resMiniDetails: { marginTop: 4, gap: 1 },
+  resMiniText: { fontSize: RFValue(8), color: '#94a3b8', fontWeight: '700' },
+  resolutionChatBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#f0fdf4', justifyContent: 'center', alignItems: 'center' },
 });

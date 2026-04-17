@@ -9,8 +9,10 @@ export interface LostFoundPost {
   type: "lost" | "found";
   status: "open" | "resolved";
   created_at: string;
+  resolved_at?: string;
   profiles?: { name: string; Role: string; batch?: string; phone?: string; registration_number?: string };
 }
+
 
 export interface LostFoundClaim {
   id: string;
@@ -52,7 +54,9 @@ export const createLostFoundPost = async (data: Omit<LostFoundPost, "id" | "user
   return result;
 };
 
-export const getLostFoundPosts = async (userIdFilter?: string): Promise<LostFoundPost[]> => {
+export type DateFilter = 'today' | 'yesterday' | 'week' | 'all';
+
+export const getLostFoundPosts = async (userIdFilter?: string, dateFilter: DateFilter = 'all'): Promise<LostFoundPost[]> => {
   let query = supabase
     .from("lost_found_posts")
     .select("*, profiles!lost_found_posts_user_id_fkey(name, Role, batch, phone, registration_number)")
@@ -64,11 +68,33 @@ export const getLostFoundPosts = async (userIdFilter?: string): Promise<LostFoun
     query = query.eq("status", "open");
   }
 
+  if (dateFilter !== 'all') {
+    const now = new Date();
+    let startDate = new Date();
+    
+    if (dateFilter === 'today') {
+      startDate.setHours(0, 0, 0, 0);
+    } else if (dateFilter === 'yesterday') {
+      startDate.setDate(now.getDate() - 1);
+      startDate.setHours(0, 0, 0, 0);
+      const endDate = new Date();
+      endDate.setDate(now.getDate() - 1);
+      endDate.setHours(23, 59, 59, 999);
+      query = query.lte('created_at', endDate.toISOString());
+    } else if (dateFilter === 'week') {
+      startDate.setDate(now.getDate() - 7);
+      startDate.setHours(0, 0, 0, 0);
+    }
+    
+    query = query.gte('created_at', startDate.toISOString());
+  }
+
   const { data, error } = await query;
 
   if (error) throw error;
   return data as any;
 };
+
 
 export const getMyClaims = async (userId: string): Promise<LostFoundClaim[]> => {
   const { data, error } = await supabase
@@ -86,12 +112,14 @@ export const markAsResolved = async (postId: string, recipientId: string) => {
     .from("lost_found_posts")
     .update({ 
       status: "resolved",
-      resolved_with_id: recipientId // User needs to add this column to lost_found_posts
+      resolved_with_id: recipientId,
+      resolved_at: new Date().toISOString()
     })
     .eq("id", postId);
   
   if (error) throw error;
 };
+
 
 export const getClaimsByPostId = async (postId: string): Promise<LostFoundClaim[]> => {
   const { data, error } = await supabase

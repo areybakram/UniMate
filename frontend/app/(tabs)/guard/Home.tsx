@@ -221,7 +221,7 @@ const GuardHome: React.FC = () => {
                   color="#90CDF4"
                 />
                 <Text style={styles.infoText}>
-                  {user?.registration_number || "Security Team"}
+                  ID: {user?.registration_number || "Service ID"}
                 </Text>
               </View>
 

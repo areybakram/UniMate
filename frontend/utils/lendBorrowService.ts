@@ -9,6 +9,7 @@ export interface BorrowRequest {
   end_date?: string;
   status: "open" | "active" | "completed";
   created_at: string;
+  resolved_at?: string;
   profiles?: { name: string; Role: string; batch?: string; phone?: string; registration_number?: string };
 }
 
@@ -52,7 +53,9 @@ export const createBorrowRequest = async (data: Omit<BorrowRequest, "id" | "user
   return result;
 };
 
-export const getBorrowRequests = async (userIdFilter?: string): Promise<BorrowRequest[]> => {
+export type DateFilter = 'today' | 'yesterday' | 'week' | 'all';
+
+export const getBorrowRequests = async (userIdFilter?: string, dateFilter: DateFilter = 'all'): Promise<BorrowRequest[]> => {
   let query = supabase
     .from("borrow_requests")
     .select("*, profiles!borrow_requests_user_id_fkey(name, Role, batch, phone, registration_number)")
@@ -64,11 +67,33 @@ export const getBorrowRequests = async (userIdFilter?: string): Promise<BorrowRe
     query = query.eq("status", "open");
   }
 
+  if (dateFilter !== 'all') {
+    const now = new Date();
+    let startDate = new Date();
+    
+    if (dateFilter === 'today') {
+      startDate.setHours(0, 0, 0, 0);
+    } else if (dateFilter === 'yesterday') {
+      startDate.setDate(now.getDate() - 1);
+      startDate.setHours(0, 0, 0, 0);
+      const endDate = new Date();
+      endDate.setDate(now.getDate() - 1);
+      endDate.setHours(23, 59, 59, 999);
+      query = query.lte('created_at', endDate.toISOString());
+    } else if (dateFilter === 'week') {
+      startDate.setDate(now.getDate() - 7);
+      startDate.setHours(0, 0, 0, 0);
+    }
+    
+    query = query.gte('created_at', startDate.toISOString());
+  }
+
   const { data, error } = await query;
 
   if (error) throw error;
   return data as any;
 };
+
 
 export const getMyOffers = async (userId: string): Promise<BorrowOffer[]> => {
   const { data, error } = await supabase
@@ -86,7 +111,8 @@ export const markAsHandedOver = async (requestId: string, recipientId: string) =
     .from("borrow_requests")
     .update({ 
       status: "completed",
-      completed_with_id: recipientId // User needs to add this column to borrow_requests
+      completed_with_id: recipientId,
+      resolved_at: new Date().toISOString()
     })
     .eq("id", requestId);
   

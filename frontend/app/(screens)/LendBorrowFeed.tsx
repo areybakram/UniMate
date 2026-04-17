@@ -26,7 +26,8 @@ import {
   getOffersByRequestId,
   markAsHandedOver,
   BorrowRequest, 
-  BorrowOffer 
+  BorrowOffer,
+  DateFilter
 } from '@/utils/lendBorrowService';
 import { AuthContext } from '@/Context/AuthContext';
 import { RFValue } from 'react-native-responsive-fontsize';
@@ -38,7 +39,9 @@ export default function LendBorrowFeedScreen() {
   const [activeTab, setActiveTab] = useState<'market' | 'activity'>('market');
   const [requests, setRequests] = useState<BorrowRequest[]>([]);
   const [myActivity, setMyActivity] = useState<{ posts: (BorrowRequest & { offers?: BorrowOffer[] })[], offers: BorrowOffer[] }>({ posts: [], offers: [] });
+  const [dateFilter, setDateFilter] = useState<DateFilter>('today');
   const [loading, setLoading] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   
   // New Request Form
@@ -64,11 +67,11 @@ export default function LendBorrowFeedScreen() {
     setLoading(true);
     try {
       if (activeTab === 'market') {
-        const data = await getBorrowRequests();
+        const data = await getBorrowRequests(undefined, dateFilter);
         setRequests(data.filter(r => r.user_id !== user?.id));
       } else {
         const [posts, offers] = await Promise.all([
-          getBorrowRequests(user?.id),
+          getBorrowRequests(user?.id, dateFilter),
           getMyOffers(user.id!)
         ]);
         
@@ -88,7 +91,7 @@ export default function LendBorrowFeedScreen() {
 
   useEffect(() => {
     fetchData();
-  }, [activeTab]);
+  }, [activeTab, dateFilter]);
 
   const handleCreateRequest = async () => {
     if (!itemName || !reason || !duration) {
@@ -198,7 +201,26 @@ export default function LendBorrowFeedScreen() {
         <View style={{ flex: 1 }}>
           <Text style={styles.activityType}>{type === 'post' ? 'MY POSTING' : 'MY OFFER'}</Text>
           <Text style={styles.activityTitle}>{item.item_name || item.borrow_requests?.item_name}</Text>
+          {type === 'post' && (
+            <View style={{ marginTop: 4, gap: 2 }}>
+              <Text style={styles.activityDateLabel}>Requested on: {new Date(item.created_at).toLocaleDateString()}</Text>
+              {item.status === 'completed' && item.resolved_at && (
+                <Text style={[styles.activityDateLabel, { color: '#059669' }]}>
+                  Completed on: {new Date(item.resolved_at).toLocaleDateString()}
+                </Text>
+              )}
+            </View>
+          )}
         </View>
+        {type === 'post' && (
+          <View style={[styles.lbStatusBadge, { backgroundColor: item.status === 'completed' ? 'transparent' : (item.status === 'active' ? '#dcfce7' : '#f1f5f9') }]}>
+            {item.status === 'completed' ? (
+              <Ionicons name="checkmark-circle" size={20} color="#10b981" />
+            ) : (
+              <Text style={[styles.lbStatusText, { color: item.status === 'active' ? '#166534' : '#64748b' }]}>{item.status}</Text>
+            )}
+          </View>
+        )}
         {type === 'offer' && (
           <TouchableOpacity 
             onPress={() => router.push({
@@ -256,47 +278,33 @@ export default function LendBorrowFeedScreen() {
       )}
 
       {type === 'post' && item.status === 'completed' && item.offers && (
-        <View style={styles.completedCard}>
-          <View style={styles.completedHeader}>
-            <Ionicons name="checkmark-circle" size={14} color="#10b981" />
-            <Text style={styles.completedTitle}>Item Received Successfully</Text>
-          </View>
-          
-          <View style={styles.completedDetailsRow}>
-            <Text style={styles.completedDetailText}><Text style={{fontWeight: '700'}}>Reason:</Text> {item.reason}</Text>
-            <Text style={styles.completedDetailText}><Text style={{fontWeight: '700'}}>Duration:</Text> {item.duration}</Text>
-          </View>
-
+        <View style={styles.completionFooter}>
           {item.offers.find((o:any) => o.lender_id === item.completed_with_id) && (() => {
             const lender = item.offers.find((o:any) => o.lender_id === item.completed_with_id);
             return (
-              <View style={styles.lenderInfoCard}>
-                <View style={styles.lenderDetails}>
-                  <Text style={styles.lenderName}>{lender.profiles?.name}</Text>
-                  <View style={{ marginTop: 2 }}>
-                    <Text style={styles.lenderMetaLine}>
-                      ID: {lender.profiles?.registration_number || 'N/A'}
-                    </Text>
-                    <Text style={styles.lenderMetaLine}>
-                      Phone: {lender.profiles?.phone || 'N/A'}
-                    </Text>
+              <View style={styles.completionInner}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.completionText}>Handover Details:</Text>
+                  <View style={styles.compMiniDetails}>
+                    <Text style={styles.compMiniText}>ID: {lender.profiles?.registration_number || 'N/A'}</Text>
+                    <Text style={styles.compMiniText}>PH: {lender.profiles?.phone || 'N/A'}</Text>
                     {lender.profiles?.batch && (
-                      <Text style={styles.lenderBatchLine}>Batch: {lender.profiles.batch}</Text>
+                      <Text style={styles.compMiniText}>Batch: {lender.profiles.batch}</Text>
                     )}
                   </View>
                 </View>
                 <TouchableOpacity 
-                  style={styles.keepChatBtn}
-                  onPress={() => router.push({
-                     pathname: "/(screens)/ChatRoom",
-                     params: { 
-                       roomId: `borrow_${item.id}_${lender.lender_id}`, 
-                       title: `Chat: ${lender.profiles?.name}`,
-                       otherUser: lender.profiles?.name
-                     }
-                  })}
+                   style={styles.completionChatBtn}
+                   onPress={() => router.push({
+                      pathname: "/(screens)/ChatRoom",
+                      params: { 
+                        roomId: `borrow_${item.id}_${lender.lender_id}`, 
+                        title: `Chat: ${lender.profiles?.name}`,
+                        otherUser: lender.profiles?.name
+                      }
+                   })}
                 >
-                  <Ionicons name="chatbubbles" size={16} color="#fff" />
+                   <Ionicons name="chatbubbles" size={16} color="#10b981" />
                 </TouchableOpacity>
               </View>
             )
@@ -333,6 +341,31 @@ export default function LendBorrowFeedScreen() {
             <Text style={[styles.tabText, activeTab === 'activity' && styles.tabTextActive]}>My Postings</Text>
           </TouchableOpacity>
         </View>
+
+        <View style={styles.filterControlRow}>
+          <View style={{ flex: 1 }} />
+          <TouchableOpacity 
+            style={[styles.filterToggleBtn, showFilters && styles.filterToggleBtnActive]} 
+            onPress={() => setShowFilters(!showFilters)}
+          >
+            <Ionicons name={showFilters ? "chevron-up" : "options-outline"} size={18} color={showFilters ? "#fff" : "#2D3748"} />
+          </TouchableOpacity>
+        </View>
+
+        {showFilters && (
+          <Animated.View entering={FadeInDown.duration(300)} style={styles.expandedFilters}>
+            <Text style={styles.filterGroupLabel}>Time Period</Text>
+            <View style={styles.miniFilterRow}>
+              {['today', 'yesterday', 'week', 'all'].map((df) => (
+                <TouchableOpacity key={df} style={[styles.datePill, dateFilter === df && styles.datePillActive]} onPress={() => setDateFilter(df as any)}>
+                  <Text style={[styles.datePillText, dateFilter === df && { color: '#fff' }]}>
+                    {df === 'week' ? 'Last 7 Days' : df.charAt(0).toUpperCase() + df.slice(1)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </Animated.View>
+        )}
       </View>
 
       {loading ? (
@@ -436,8 +469,20 @@ const styles = StyleSheet.create({
   tabItemActive: { backgroundColor: '#fff', shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 5, elevation: 2 },
   tabText: { color: '#64748b', fontSize: RFValue(12), fontWeight: '700' },
   tabTextActive: { color: '#2D3748' },
-  listPadding: { padding: 16, paddingBottom: 100 },
-  listItem: { backgroundColor: '#fff', borderRadius: 12, padding: 10, marginBottom: 8, borderWidth: 1, borderColor: '#e2e8f0' },
+  miniFilterRow: { flexDirection: 'row', gap: 8, justifyContent: 'center' },
+  datePill: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 20, backgroundColor: '#f1f5f9', borderWidth: 1, borderColor: '#e2e8f0' },
+  datePillActive: { backgroundColor: '#2D3748', borderColor: '#2D3748' },
+  datePillText: { fontSize: RFValue(9), color: '#64748b', fontWeight: '700' },
+  listContainer: { padding: 16, paddingBottom: 100 },
+  filterControlRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, marginBottom: 4 },
+  activeTags: { flexDirection: 'row', gap: 6 },
+  tagPill: { backgroundColor: '#f1f5f9', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  tagPillText: { fontSize: RFValue(10), color: '#64748b', fontWeight: '800', textTransform: 'uppercase' },
+  filterToggleBtn: { width: 36, height: 36, borderRadius: 10, backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#e2e8f0' },
+  filterToggleBtnActive: { backgroundColor: '#2D3748', borderColor: '#2D3748' },
+  expandedFilters: { backgroundColor: '#fff', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#e2e8f0', marginTop: 8 },
+  filterGroupLabel: { fontSize: RFValue(9), fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 10, marginLeft: 4 },
+  rowItem: { backgroundColor: '#fff', borderRadius: 10, paddingVertical: 8, marginBottom: 12, borderWidth: 1, borderColor: '#e2e8f0' },
   listMain: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   avatarMini: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#f1f5f9', justifyContent: 'center', alignItems: 'center' },
   avatarText: { fontSize: RFValue(16), fontWeight: '700', color: '#64748b' },
@@ -455,6 +500,7 @@ const styles = StyleSheet.create({
   statusLine: { width: 4, height: 35, borderRadius: 2 },
   activityType: { fontSize: RFValue(8), fontWeight: '900', color: '#94a3b8', letterSpacing: 0.5 },
   activityTitle: { fontSize: RFValue(14), fontWeight: '800', color: '#1e293b' },
+  activityDateLabel: { fontSize: RFValue(9), color: '#94a3b8', fontWeight: '600' },
   interactionsList: { marginTop: 8, borderTopWidth: 1, borderTopColor: '#f1f5f9', backgroundColor: '#fafafa' },
   interactionRow: { flexDirection: 'row', alignItems: 'center', padding: 8, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
   interactionUser: { flex: 1 },
@@ -479,18 +525,14 @@ const styles = StyleSheet.create({
   modalCancel: { color: '#94a3b8', fontWeight: '700', fontSize: RFValue(13) },
   modalSubmit: { backgroundColor: '#2563eb', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12, shadowColor: '#2563eb', shadowOpacity: 0.2, shadowRadius: 4, elevation: 3 },
   modalSubmitText: { color: '#fff', fontWeight: '700', fontSize: RFValue(13) },
-  completedCard: { padding: 10, backgroundColor: '#fcfdfe', borderTopWidth: 1, borderColor: '#eef2f7' },
-  completedHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
-  completedTitle: { fontSize: RFValue(10), fontWeight: '800', color: '#10b981', textTransform: 'uppercase', letterSpacing: 0.5 },
-  completedDetailsRow: { marginBottom: 10, paddingLeft: 20 },
-  completedDetailText: { fontSize: RFValue(10), color: '#64748b', marginBottom: 2 },
-  lenderInfoCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', padding: 8, borderRadius: 10, borderWidth: 1, borderColor: '#e2e8f0' },
-  lenderAvatar: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#f1f5f9', justifyContent: 'center', alignItems: 'center', marginRight: 10 },
-  lenderAvatarText: { fontSize: RFValue(12), fontWeight: '800', color: '#475569' },
-  lenderDetails: { flex: 1 },
-  lenderName: { fontSize: RFValue(13), fontWeight: '800', color: '#1e293b' },
-  lenderMetaLine: { fontSize: RFValue(10), color: '#64748b', marginTop: 2, fontWeight: '600' },
-  lenderBatchLine: { fontSize: RFValue(9), color: '#2563eb', marginTop: 1, fontWeight: '700', textTransform: 'uppercase' },
-  keepChatBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#10b981', justifyContent: 'center', alignItems: 'center' },
-
+  modalSubmitText: { color: '#fff', fontWeight: '700', fontSize: RFValue(13) },
+  completionFooter: { padding: 12, borderTopWidth: 1, borderColor: '#f1f5f9', backgroundColor: '#fcfdfd' },
+  lbStatusBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
+  lbStatusText: { fontSize: RFValue(9), fontWeight: '800', textTransform: 'capitalize' },
+  completionInner: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  completionText: { fontSize: RFValue(11), color: '#64748b', fontWeight: '500' },
+  lenderNameText: { color: '#1e293b', fontWeight: '800' },
+  compMiniDetails: { marginTop: 4, gap: 1 },
+  compMiniText: { fontSize: RFValue(8), color: '#94a3b8', fontWeight: '700' },
+  completionChatBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#f0fdf4', justifyContent: 'center', alignItems: 'center' },
 });

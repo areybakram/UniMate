@@ -308,7 +308,7 @@ const StudentHome: React.FC = () => {
                 <View style={styles.infoItem}>
                   <Ionicons name="school-outline" size={15} color="#90CDF4" />
                   <Text style={styles.infoText}>
-                    {user?.registration_number || "Welcome"}
+                   {user?.registration_number || "University ID"}
                   </Text>
                 </View>
 

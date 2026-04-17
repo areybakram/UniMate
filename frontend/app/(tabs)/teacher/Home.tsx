@@ -297,7 +297,7 @@ const TeacherHome: React.FC = () => {
                 <View style={styles.infoItem}>
                   <Ionicons name="school-outline" size={16} color="#90CDF4" />
                   <Text style={styles.infoText}>
-                    {user?.registration_number || "Faculty"}
+                    Reg: {user?.registration_number || "Faculty ID"}
                   </Text>
                 </View>
 
