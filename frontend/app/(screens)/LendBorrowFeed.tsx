@@ -473,7 +473,7 @@ const styles = StyleSheet.create({
   datePill: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 20, backgroundColor: '#f1f5f9', borderWidth: 1, borderColor: '#e2e8f0' },
   datePillActive: { backgroundColor: '#2D3748', borderColor: '#2D3748' },
   datePillText: { fontSize: RFValue(9), color: '#64748b', fontWeight: '700' },
-  listContainer: { padding: 16, paddingBottom: 100 },
+  listPadding: { padding: 16, paddingBottom: 100 },
   filterControlRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, marginBottom: 4 },
   activeTags: { flexDirection: 'row', gap: 6 },
   tagPill: { backgroundColor: '#f1f5f9', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },

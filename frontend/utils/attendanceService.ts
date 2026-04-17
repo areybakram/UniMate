@@ -1,4 +1,6 @@
 import { supabase } from "../supabaseClient";
+import { getActiveSemester } from "./semesterService";
+import { getSemesterHolidays } from "./holidayService";
 
 export interface AttendanceRecord {
   [classId: string]: "taken" | "missed";
@@ -104,24 +106,56 @@ export const calculateStats = (classes: any[], attendance: AttendanceRecord) => 
 };
 
 export const calculateOverallAttendanceRate = async (userId?: string) => {
-  const profile = await fetchProfile(userId);
-  if (!profile || !profile.attendance_data) return 0;
+  const [profile, semester] = await Promise.all([
+    fetchProfile(userId),
+    getActiveSemester()
+  ]);
 
-  const fullData = profile.attendance_data;
-  let totalTaken = 0;
-  let totalMissed = 0;
+  if (!profile || !semester) return 0;
 
-  // fullData is { "YYYY-MM-DD": { "classId": "taken" | "missed" } }
-  Object.values(fullData).forEach((dayData: any) => {
-    Object.values(dayData).forEach((status) => {
-      if (status === "taken") totalTaken++;
-      else if (status === "missed") totalMissed++;
-    });
-  });
+  const holidays = await getSemesterHolidays(semester.start_date, semester.end_date);
+  const timetableData = profile.timetable_data || [];
+  const attendanceData = profile.attendance_data || {};
+  
+  if (timetableData.length === 0) return 0;
 
-  const total = totalTaken + totalMissed;
-  if (total === 0) return 0;
-  return totalTaken / total;
+  // 1. Get all scheduled classes from Supabase matching the profile
+  const filterStr = timetableData
+    .map((c: any) => `and(course_code.ilike.${c.course_code},batch_code.ilike.${c.batch_code})`)
+    .join(",");
+
+  const { data: allTimetables } = await supabase
+    .from("timetables")
+    .select("*")
+    .or(filterStr);
+
+  const start = new Date(semester.start_date);
+  const end = new Date(); // Only calculate up to today
+  const semesterEnd = new Date(semester.end_date);
+  const limit = end < semesterEnd ? end : semesterEnd;
+
+  let totalScheduled = 0;
+  let totalAttended = 0;
+  const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+  // Iterate through every day from semester start to today
+  for (let d = new Date(start); d <= limit; d.setDate(d.getDate() + 1)) {
+    const dayName = DAYS[d.getDay()];
+    const dateKey = d.toISOString().split("T")[0];
+
+    if (dayName === "Sunday" || holidays.includes(dateKey)) continue; 
+
+    // Scheduled classes for this day of the week
+    const daySchedule = (allTimetables || []).filter(item => item.day === dayName);
+    totalScheduled += daySchedule.length;
+
+    // Attended classes for this specific date
+    const dayAttendance = attendanceData[dateKey] || {};
+    totalAttended += Object.values(dayAttendance).filter(v => v === "taken").length;
+  }
+
+  if (totalScheduled === 0) return 0;
+  return totalAttended / totalScheduled;
 };
 
 export const calculateWeeklyAttendanceTrends = async (userId?: string) => {

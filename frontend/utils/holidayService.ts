@@ -40,3 +40,18 @@ export const getUpcomingHolidays = async (): Promise<Holiday[]> => {
     return [];
   }
 };
+export const getSemesterHolidays = async (start: string, end: string): Promise<string[]> => {
+  try {
+    const { data, error } = await supabase
+      .from("holidays")
+      .select("date")
+      .gte("date", start)
+      .lte("date", end);
+
+    if (error) return [];
+    return data.map((d: any) => d.date);
+  } catch (error) {
+    console.error("Error fetching semester holidays:", error);
+    return [];
+  }
+};

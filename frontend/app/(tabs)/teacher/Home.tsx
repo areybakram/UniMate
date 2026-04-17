@@ -395,7 +395,7 @@ const TeacherHome: React.FC = () => {
                       <Text style={styles.attendancePercent}>
                         {Math.round((attendanceRate > 1 ? 1 : (attendanceRate || 0)) * 100)}%
                       </Text>
-                      <Text style={{ fontSize: 7, color: '#64748B', marginTop: -5 }}>Overall</Text>
+                      <Text style={{ fontSize: 7, color: '#64748B', marginTop: -5 }}>Semester</Text>
                     </View>
                   </View>
                 </View>

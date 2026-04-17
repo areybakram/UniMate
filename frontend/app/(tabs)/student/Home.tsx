@@ -444,7 +444,7 @@ const StudentHome: React.FC = () => {
                     <Text style={{ position: 'absolute', fontSize: 9, fontWeight: '800', color: '#10B981', bottom: 32 }}>
                       {Math.round((attendanceRate > 1 ? 1 : (attendanceRate || 0)) * 100)}%
                     </Text>
-                    <Text style={{ fontSize: 7, color: '#64748B', marginTop: -5 }}>Overall Attendance</Text>
+                    <Text style={{ fontSize: 7, color: '#64748B', marginTop: -5 }}>Semester Attendance</Text>
                   </View>
                 </View>
               </View>
