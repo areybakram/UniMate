@@ -111,6 +111,15 @@ const CustomDrawer = ({ active }: any) => {
               label="Emergency"
               onPress={() => router.push("/(screens)/emergency" as any)}
             />
+            <DrawerItem
+              icon={<MaterialCommunityIcons name="brain" size={24} color={"#2D3748"} />}
+              label="Academic Notes"
+              onPress={() => {
+                active.value = false;
+                closeDrawer();
+                router.push("/(screens)/Notes" as any);
+              }}
+            />
             {/* <DrawerItem
               icon={
                 <MaterialCommunityIcons
@@ -165,6 +174,15 @@ const CustomDrawer = ({ active }: any) => {
               icon={<Ionicons name="alert-circle-outline" size={24} color={"#2D3748"} />}
               label="Emergency"
               onPress={() => router.push("/(screens)/emergency" as any)}
+            />
+            <DrawerItem
+              icon={<MaterialCommunityIcons name="brain" size={24} color={"#2D3748"} />}
+              label="Academic Notes"
+              onPress={() => {
+                active.value = false;
+                closeDrawer();
+                router.push("/(screens)/Notes" as any);
+              }}
             />
             <DrawerItem
               icon={<Ionicons name="play-circle-outline" size={24} color={"#2D3748"} />}

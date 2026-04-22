@@ -1,5 +1,40 @@
 import axios from 'axios';
 import { Request, Response } from 'express';
+import { supabaseAdmin } from '../supabaseAdmin';
+
+export const saveLectureNotes = async (req: Request, res: Response) => {
+  try {
+    const { userId, courseId, professorName, lectureDate, notesData } = req.body;
+
+    if (!userId || !notesData) {
+      return res.status(400).json({ error: "User ID and Notes Data are required." });
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from('lecture_notes')
+      .insert([
+        {
+          user_id: userId,
+          course_id: courseId,
+          professor_name: professorName,
+          lecture_date: lectureDate || new Date().toISOString(),
+          title: notesData.title,
+          overview: notesData.overview,
+          key_concepts: notesData.key_concepts,
+          sections: notesData.sections,
+          summary: notesData.summary,
+        }
+      ])
+      .select();
+
+    if (error) throw error;
+
+    res.status(200).json({ message: "Lecture notes saved successfully", data });
+  } catch (error: any) {
+    console.error("❌ Save Notes Error:", error.message);
+    res.status(500).json({ error: "Failed to save lecture notes", details: error.message });
+  }
+};
 
 export const extractCourses = async (req: Request, res: Response) => {
   try {
@@ -106,6 +141,105 @@ export const extractCourses = async (req: Request, res: Response) => {
     res.status(500).json({ 
       error: "Failed to extract data from the document.",
       details: typeof errorDetails === 'string' ? errorDetails : JSON.stringify(errorDetails)
+    });
+  }
+};
+
+export const transcribeLecture = async (req: Request, res: Response) => {
+  try {
+    let { audioBase64, mimeType = "audio/mpeg" } = req.body;
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+    const GEMINI_MODEL = "gemini-2.5-flash"; 
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+
+    if (audioBase64?.includes("base64,")) {
+      audioBase64 = audioBase64.split("base64,")[1];
+    }
+
+    console.log(`🎙️ Attempting transcription with model: ${GEMINI_MODEL}`);
+    console.log(`📏 Audio data length: ${audioBase64?.length} chars`);
+    console.log(`📄 Mime Type: ${mimeType}`);
+
+    if (!GEMINI_API_KEY) {
+      console.error("❌ GEMINI_API_KEY is missing!");
+      return res.status(500).json({ error: "GEMINI_API_KEY is missing." });
+    }
+
+    if (!audioBase64) {
+      return res.status(400).json({ error: "No audio data provided" });
+    }
+
+    // Strip prefix if exists
+    if (audioBase64.includes("base64,")) {
+      audioBase64 = audioBase64.split("base64,")[1];
+    }
+
+    const prompt = `
+      You are an expert academic assistant. 
+      Analyze the provided audio recording of a university lecture.
+      
+      Tasks:
+      1. Transcribe the lecture accurately.
+      2. Convert the transcription into structured, professional lecture notes.
+      
+      The notes should include:
+      - Title: A suitable title for the lecture.
+      - Overview: A brief 2-3 sentence summary.
+      - Key Concepts: Bullet points of the main ideas discussed.
+      - Detailed Notes: Organized sections with subheadings.
+      - Summary: A concluding summary of the lecture.
+
+      Return the result as a raw JSON object with the following structure:
+      {
+        "title": "...",
+        "overview": "...",
+        "key_concepts": ["...", "..."],
+        "sections": [
+          { "heading": "...", "content": "..." }
+        ],
+        "summary": "..."
+      }
+
+      Return ONLY the JSON. No markdown formatting.
+    `;
+
+    const payload = {
+      contents: [
+        {
+          parts: [
+            { text: prompt },
+            {
+              inline_data: {
+                mime_type: mimeType,
+                data: audioBase64,
+              },
+            },
+          ],
+        },
+      ],
+      generation_config: {
+        response_mime_type: "application/json",
+      },
+    };
+
+    console.log("🎙️ Sending audio to Gemini for transcription...");
+    const response = await axios.post(API_URL, payload);
+    const resultText = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!resultText) {
+      throw new Error("Gemini returned an empty response.");
+    }
+
+    const cleanedText = resultText.replace(/```json|```/g, "").trim();
+    const structuredNotes = JSON.parse(cleanedText);
+
+    res.status(200).json(structuredNotes);
+  } catch (error: any) {
+    const errorData = error?.response?.data;
+    console.error("❌ Transcription Error Details:", JSON.stringify(errorData, null, 2) || error.message);
+    res.status(500).json({ 
+      error: "Failed to transcribe lecture.",
+      details: errorData || error.message 
     });
   }
 };

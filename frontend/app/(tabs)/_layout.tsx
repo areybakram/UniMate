@@ -20,6 +20,7 @@ import StudentFreeSlots from "./student/FreeSlots";
 import StudentHome from "./student/Home";
 import StudentRepository from "./student/Repository";
 import TimetableScreen from "./student/Timetable";
+// import NotesScreen from "./student/Notes";
 
 // Guard
 import GuardDashboard from "./guard/Dashboard";

@@ -95,6 +95,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               registration_number: profile?.registration_number ?? null,
             };
             setUser(usr);
+            console.log("✅ Authenticated User ID:", id);
             await AsyncStorage.setItem("user", JSON.stringify(usr));
             
             // Log app open event

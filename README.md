@@ -42,6 +42,14 @@ The most significant architectural decision in UniMate is its **fully decoupled 
 - **Database:** [Supabase](https://supabase.com/) (PostgreSQL)
 - **Strict Data Integrity:** We don't trust user input. During signup, the frontend enforces strict Regular Expressions (e.g., `FA22-BCS-110`). Furthermore, we use logic to intelligently extract hidden metadata—automatically deducing that the student's `batch` is `FA22` from the registration number without ever asking the user, ensuring the database remains completely normalized.
 
+### 5. AI Infrastructure (Gemini 2.5 Flash)
+- **Model:** [Google Gemini 2.5 Flash](https://ai.google.dev/)
+- **API Version:** `v1beta` (Supports Advanced JSON Schema Mode)
+- **Use Case:**
+    - **Automated Course Extraction:** Analyzes registration cards to extract course codes and batches.
+    - **AI Lecture Transcription:** Converts raw audio recordings into professionally structured lecture notes (Overview, Key Concepts, Detailed Sections).
+- **Configuration:** The project is strictly optimized for the **Gemini 2.5 Flash** model to ensure low-latency, free-tier compatible high-performance academic processing.
+
 ---
 
 ## ✨ Core Modules & Workflows
@@ -58,6 +66,7 @@ The application morphology adapts entirely based on the authenticated profile us
 We built major peer-to-peer economies within the app:
 - **Lost & Found:** Users report incidents. If someone finds an item, they initiate a "Claim." This action dynamically spawns a highly secure, ephemeral 1-on-1 Chat Room (powered by WebSockets) so parties can coordinate without exposing personal phone numbers. Once returned, it is marked "Handed Over" and logged.
 - **Lend & Borrow Marketplace:** A portal for sharing academic resources (calculators, books). It tracks the lifecycle of an item from "Open Request" -> "Active Offer" -> "Handed Over".
+- **AI Lecture Notes:** A premium feature allowing students to record audio lectures. The system uses Gemini 2.5 Flash to generate structured, professional study notes, including detailed summaries and key concepts, which are then presented in a rich, animated UI.
 
 ---
 

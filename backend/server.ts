@@ -25,7 +25,7 @@ if (!SUPABASE_KEY) {
 const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 app.use(cors());
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '50mb' }));
 
 const httpServer = http.createServer(app);
 const io = new Server(httpServer, {
