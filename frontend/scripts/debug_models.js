@@ -1,6 +1,7 @@
+require('dotenv').config({ path: '../.env' });
 const axios = require('axios');
 
-const API_KEY = "AIzaSyA1goTp5EUOpjc6-S3dk8Purv5AGJUNcmQ";
+const API_KEY = process.env.DEBUG_GEMINI_API_KEY;
 const URL = `https://generativelanguage.googleapis.com/v1beta/models?key=${API_KEY}`;
 
 async function listModels() {
