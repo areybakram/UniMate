@@ -1,4 +1,5 @@
 import { supabase } from "../supabaseClient";
+import { broadcastPostNotification } from "./notificationService";
 
 export interface BorrowRequest {
   id: string;
@@ -50,6 +51,14 @@ export const createBorrowRequest = async (data: Omit<BorrowRequest, "id" | "user
   ]).select().single();
 
   if (error) throw error;
+
+  // Broadcast notification to everyone
+  broadcastPostNotification(
+    `New Borrow Request: ${data.item_name}`,
+    `${data.reason.substring(0, 50)}${data.reason.length > 50 ? '...' : ''} (Duration: ${data.duration})`,
+    { requestId: result.id, type: 'lend_borrow' }
+  );
+
   return result;
 };
 

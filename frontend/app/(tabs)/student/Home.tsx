@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
   ActivityIndicator,
+  Image,
 } from "react-native";
 import Animated, {
   useAnimatedStyle,
@@ -42,7 +43,7 @@ import { LineChart, ProgressChart } from "react-native-chart-kit";
 const { width } = Dimensions.get("window");
 
 const StudentHome: React.FC = () => {
-  const { user, logout } = useContext(AuthContext) || {};
+  const { user, logout, updateProfile } = useContext(AuthContext) || {};
   const { closeDrawer } = useDrawer();
   const router = useRouter();
   const active = useSharedValue(false);
@@ -180,8 +181,15 @@ const StudentHome: React.FC = () => {
   };
 
   useEffect(() => {
-    registerForPushNotificationsAsync();
-  }, []);
+    const setupNotifications = async () => {
+      const token = await registerForPushNotificationsAsync();
+      if (token && user && user.push_token !== token && updateProfile) {
+        console.log("Saving new push token:", token);
+        await updateProfile({ push_token: token });
+      }
+    };
+    setupNotifications();
+  }, [user]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -798,6 +806,23 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 28,
     fontWeight: "bold",
+    flexShrink: 1,
+  },
+  profilePhotoContainer: {
+    borderRadius: 25,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.2)',
+    padding: 2,
+  },
+  profilePhoto: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+  },
+  emptyProfilePhoto: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   infoSection: {
     flexDirection: "column",

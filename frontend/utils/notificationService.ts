@@ -46,6 +46,10 @@ export const registerForPushNotificationsAsync = async () => {
     return null;
   }
 
+  const token = (await Notifications.getExpoPushTokenAsync({
+    projectId: '5646b1d2-5745-430b-a0ce-520902dfc91f',
+  })).data;
+
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('default', {
       name: 'default',
@@ -55,7 +59,21 @@ export const registerForPushNotificationsAsync = async () => {
     });
   }
 
-  return finalStatus;
+  return token;
+};
+
+import apiClient from './apiClient';
+
+export const broadcastPostNotification = async (title: string, body: string, data: any = {}) => {
+  try {
+    await apiClient.post(`/notifications/broadcast`, {
+      title,
+      body,
+      data: { ...data, screen: 'LendBorrowFeed' } // Default or passed
+    });
+  } catch (error) {
+    console.error('Error broadcasting notification:', error);
+  }
 };
 
 const DAY_MAP: { [key: string]: number } = {

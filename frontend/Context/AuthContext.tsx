@@ -16,6 +16,8 @@ interface User {
   chatbot_history?: any;
   batch?: string | null;
   registration_number?: string | null;
+  registrationNumber?: string | null; // Fallback
+  push_token?: string | null;
 }
 
 interface AuthContextProps {
@@ -30,6 +32,7 @@ interface AuthContextProps {
     timetable_data?: any;
     attendance_data?: any;
     chatbot_history?: any;
+    push_token?: string | null;
   }) => Promise<{ error?: any }>;
   changePassword: (newPassword: string) => Promise<{ error?: any }>;
   signIn: (
@@ -77,7 +80,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             // fetch profile from profiles table (if exists)
             const { data: profile } = await supabase
               .from("profiles")
-              .select("name, phone, Role, custom_profile_photo, timetable_data, attendance_data, chatbot_history, batch, registration_number")
+              .select("*, Role")
               .eq("id", id)
               .single();
             
@@ -92,7 +95,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               attendance_data: profile?.attendance_data ?? {},
               chatbot_history: profile?.chatbot_history ?? [],
               batch: profile?.batch ?? null,
-              registration_number: profile?.registration_number ?? null,
+              registration_number: profile?.registration_number ?? profile?.registrationNumber ?? null,
+              registrationNumber: profile?.registrationNumber ?? profile?.registration_number ?? null,
+              push_token: profile?.push_token ?? null,
             };
             setUser(usr);
             console.log("✅ Authenticated User ID:", id);
@@ -172,7 +177,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const { id, email: userEmail } = data.user;
         const { data: profile } = await supabase
           .from("profiles")
-          .select("name, phone, Role, custom_profile_photo, timetable_data, attendance_data, chatbot_history, batch, registration_number")
+          .select("*, Role")
           .eq("id", id)
           .single();
         
@@ -189,7 +194,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           attendance_data: profile?.attendance_data ?? {},
           chatbot_history: profile?.chatbot_history ?? [],
           batch: profile?.batch ?? null,
-          registration_number: profile?.registration_number ?? null,
+          registration_number: profile?.registration_number ?? profile?.registrationNumber ?? null,
+          registrationNumber: profile?.registrationNumber ?? profile?.registration_number ?? null,
+          push_token: profile?.push_token ?? null,
         };
         await AsyncStorage.setItem("user", JSON.stringify(usr));
         setUser(usr);

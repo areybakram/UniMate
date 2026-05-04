@@ -40,7 +40,7 @@ import apiClient from "../../../utils/apiClient";
 const { width } = Dimensions.get("window");
 
 const TeacherHome: React.FC = () => {
-  const { user, logout } = useContext(AuthContext) || {};
+  const { user, logout, updateProfile } = useContext(AuthContext) || {};
   const { closeDrawer } = useDrawer();
   const router = useRouter();
   const active = useSharedValue(false);
@@ -171,8 +171,15 @@ const TeacherHome: React.FC = () => {
   };
 
   useEffect(() => {
-    registerForPushNotificationsAsync();
-  }, []);
+    const setupNotifications = async () => {
+      const token = await registerForPushNotificationsAsync();
+      if (token && user && user.push_token !== token && updateProfile) {
+        console.log("Saving new teacher push token:", token);
+        await updateProfile({ push_token: token });
+      }
+    };
+    setupNotifications();
+  }, [user]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -688,6 +695,23 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: "700",
     letterSpacing: -1,
+    flexShrink: 1,
+  },
+  profilePhotoContainer: {
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.2)',
+    padding: 2,
+  },
+  profilePhoto: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+  },
+  emptyProfilePhoto: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   infoSection: {
     marginTop: 12,

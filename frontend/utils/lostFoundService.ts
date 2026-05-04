@@ -1,4 +1,5 @@
 import { supabase } from "../supabaseClient";
+import { broadcastPostNotification } from "./notificationService";
 
 export interface LostFoundPost {
   id: string;
@@ -51,6 +52,14 @@ export const createLostFoundPost = async (data: Omit<LostFoundPost, "id" | "user
   ]).select().single();
 
   if (error) throw error;
+
+  // Broadcast notification to everyone
+  broadcastPostNotification(
+    `New ${data.type.toUpperCase()} Report`,
+    `${data.item_name}: ${data.description.substring(0, 50)}${data.description.length > 50 ? '...' : ''}`,
+    { postId: result.id, type: 'lost_found' }
+  );
+
   return result;
 };
 

@@ -12,6 +12,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Image,
 } from "react-native";
 import Animated, {
   useAnimatedStyle,
@@ -24,6 +25,7 @@ import { AuthContext } from "../../../Context/AuthContext";
 import { useDrawer } from "../../../Context/DrawerContext";
 import { useNotifications } from "../../../Context/NotificationContext";
 import { supabase } from "../../../supabaseClient";
+import { registerForPushNotificationsAsync } from "../../../utils/notificationService";
 
 interface Incident {
   id: string;
@@ -38,7 +40,7 @@ interface Incident {
 const { width } = Dimensions.get("window");
 
 const GuardHome: React.FC = () => {
-  const { user, logout } = useContext(AuthContext) || {};
+  const { user, logout, updateProfile } = useContext(AuthContext) || {};
   const { closeDrawer } = useDrawer();
   const router = useRouter();
   const active = useSharedValue(false);
@@ -72,6 +74,17 @@ const GuardHome: React.FC = () => {
       subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    const setupNotifications = async () => {
+      const token = await registerForPushNotificationsAsync();
+      if (token && user && user.push_token !== token && updateProfile) {
+        console.log("Saving new guard push token:", token);
+        await updateProfile({ push_token: token });
+      }
+    };
+    if (user) setupNotifications();
+  }, [user]);
 
   const fetchStats = async () => {
     try {
@@ -391,6 +404,23 @@ const styles = StyleSheet.create({
     color: "#FFF",
     fontSize: 28,
     fontWeight: "bold",
+    flexShrink: 1,
+  },
+  profilePhotoContainer: {
+    borderRadius: 25,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.2)',
+    padding: 2,
+  },
+  profilePhoto: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+  },
+  emptyProfilePhoto: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   infoSection: {
     flexDirection: "column",

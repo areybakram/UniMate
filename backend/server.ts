@@ -8,6 +8,7 @@ import timetableRoutes from './routes/timetable';
 import lendBorrowRoutes from './routes/lendBorrow';
 import lostFoundRoutes from './routes/lostFound';
 import debugRoutes from './routes/debug';
+import notificationRoutes from './routes/notifications';
 import { createClient } from '@supabase/supabase-js';
 import { Server } from 'socket.io';
 import http from 'http';
@@ -87,6 +88,7 @@ app.use('/api/timetable', timetableRoutes);
 app.use('/api/lend-borrow', lendBorrowRoutes);
 app.use('/api/lost-found', lostFoundRoutes);
 app.use('/api/debug', debugRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', message: 'UniMate Backend is running' });

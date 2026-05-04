@@ -19,6 +19,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { AuthContext } from '@/Context/AuthContext';
 import { supabase } from '@/supabaseClient';
 import { Picker } from '@react-native-picker/picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import Animated, { 
   FadeIn, 
   FadeInDown, 
@@ -52,6 +53,18 @@ export default function LectureNotesScreen() {
   const [availableProfessors, setAvailableProfessors] = useState<string[]>([]);
   const [isLoadingProfs, setIsLoadingProfs] = useState(false);
   const [lectureDate, setLectureDate] = useState(new Date().toLocaleDateString());
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showCourseDropdown, setShowCourseDropdown] = useState(false);
+  const [showProfessorDropdown, setShowProfessorDropdown] = useState(false);
+
+  const onDateChange = (event: any, date?: Date) => {
+    setShowDatePicker(false);
+    if (date) {
+      setSelectedDate(date);
+      setLectureDate(date.toLocaleDateString());
+    }
+  };
 
   // Animation values
   const pulse = useSharedValue(1);
@@ -84,23 +97,29 @@ export default function LectureNotesScreen() {
 
       setIsLoadingProfs(true);
       try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('name, timetable_data')
-          .ilike('Role', 'teacher');
+        const courseInfo = user?.timetable_data?.find((c: any) => c.course_code === selectedCourse);
+        let courseProfs: string[] = [];
 
-        if (error) throw error;
-
-        if (data) {
-          const profs = data
-            .filter((p: any) => 
-              Array.isArray(p.timetable_data) && 
-              p.timetable_data.some((c: any) => c.course_code === selectedCourse)
-            )
-            .map((p: any) => p.name)
-            .filter(Boolean);
+        if (courseInfo && (courseInfo.batch_code || courseInfo.batch)) {
+          const batchCode = courseInfo.batch_code || courseInfo.batch;
           
-          setAvailableProfessors(profs);
+          const { data: timetableData } = await supabase
+            .from('timetables')
+            .select('teacher_name')
+            .ilike('course_code', selectedCourse)
+            .ilike('batch_code', batchCode);
+
+          if (timetableData && timetableData.length > 0) {
+            courseProfs = Array.from(new Set(timetableData.map((t: any) => t.teacher_name).filter(Boolean)));
+          }
+        }
+
+        setAvailableProfessors(courseProfs);
+        
+        if (courseProfs.length > 0 && !selectedProfessor) {
+          setSelectedProfessor(courseProfs[0]);
+        } else if (courseProfs.length === 0 && !selectedProfessor) {
+          setSelectedProfessor('');
         }
       } catch (err) {
         console.error("Fetch Profs Error:", err);
@@ -111,7 +130,6 @@ export default function LectureNotesScreen() {
 
     fetchProfessors();
   }, [selectedCourse]);
-
   useEffect(() => {
     if (isRecording) {
       pulse.value = withRepeat(
@@ -190,7 +208,7 @@ export default function LectureNotesScreen() {
         userId: user.id,
         courseId: selectedCourse,
         professorName: selectedProfessor,
-        lectureDate: new Date().toISOString(),
+        lectureDate: selectedDate.toISOString(),
         notesData: notes!
       });
       
@@ -343,79 +361,159 @@ export default function LectureNotesScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Save Lecture</Text>
-              <TouchableOpacity onPress={() => setShowSaveModal(false)}>
-                <Ionicons name="close" size={24} color="#64748b" />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Select Course</Text>
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={selectedCourse}
-                  onValueChange={(itemValue) => setSelectedCourse(itemValue)}
-                  style={styles.picker}
-                >
-                  <Picker.Item label="Choose a course..." value="" />
-                  {user?.timetable_data?.map((course: any, idx: number) => (
-                    <Picker.Item 
-                      key={idx} 
-                      label={`${course.course_code} - ${course.subject}`} 
-                      value={course.course_code} 
-                    />
-                  ))}
-                  <Picker.Item label="Others" value="Others" />
-                </Picker>
-              </View>
-            </View>
-
-            {selectedCourse && selectedCourse !== 'Others' && (
-              <View style={styles.formGroup}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <Text style={styles.label}>Instructor (Optional)</Text>
-                  {isLoadingProfs && <ActivityIndicator size="small" color="#2563eb" />}
+            {showCourseDropdown ? (
+              <View>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>Select Course</Text>
+                  <TouchableOpacity onPress={() => setShowCourseDropdown(false)}>
+                    <Ionicons name="close" size={24} color="#64748b" />
+                  </TouchableOpacity>
                 </View>
-                <View style={styles.pickerContainer}>
-                  <Picker
-                    selectedValue={selectedProfessor}
-                    onValueChange={(itemValue) => setSelectedProfessor(itemValue)}
-                    style={styles.picker}
+                <ScrollView style={{ maxHeight: 300 }} showsVerticalScrollIndicator={false}>
+                  <TouchableOpacity 
+                    style={[styles.optionItem, selectedCourse === '' && styles.optionItemActive]}
+                    onPress={() => { setSelectedCourse(''); setShowCourseDropdown(false); }}
                   >
-                    <Picker.Item label="Select Instructor" value="" />
-                    {availableProfessors.map((name, idx) => (
-                      <Picker.Item key={idx} label={name} value={name} />
-                    ))}
-                    <Picker.Item label="Professor Not Listed" value="Not Listed" />
-                  </Picker>
-                </View>
+                    <Text style={[styles.optionText, selectedCourse === '' && styles.optionTextActive]}>Choose a course...</Text>
+                    {selectedCourse === '' && <Ionicons name="checkmark" size={20} color="#2563eb" />}
+                  </TouchableOpacity>
+                  {user?.timetable_data?.map((course: any, idx: number) => (
+                    <TouchableOpacity 
+                      key={idx}
+                      style={[styles.optionItem, selectedCourse === course.course_code && styles.optionItemActive]}
+                      onPress={() => { setSelectedCourse(course.course_code); setShowCourseDropdown(false); }}
+                    >
+                      <Text style={[styles.optionText, selectedCourse === course.course_code && styles.optionTextActive]}>
+                        {course.course_code} - {course.subject}
+                      </Text>
+                      {selectedCourse === course.course_code && <Ionicons name="checkmark" size={20} color="#2563eb" />}
+                    </TouchableOpacity>
+                  ))}
+                  <TouchableOpacity 
+                    style={[styles.optionItem, selectedCourse === 'Others' && styles.optionItemActive]}
+                    onPress={() => { setSelectedCourse('Others'); setShowCourseDropdown(false); }}
+                  >
+                    <Text style={[styles.optionText, selectedCourse === 'Others' && styles.optionTextActive]}>Others</Text>
+                    {selectedCourse === 'Others' && <Ionicons name="checkmark" size={20} color="#2563eb" />}
+                  </TouchableOpacity>
+                </ScrollView>
               </View>
+            ) : showProfessorDropdown ? (
+              <View>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>Select Instructor</Text>
+                  <TouchableOpacity onPress={() => setShowProfessorDropdown(false)}>
+                    <Ionicons name="close" size={24} color="#64748b" />
+                  </TouchableOpacity>
+                </View>
+                <ScrollView style={{ maxHeight: 300 }} showsVerticalScrollIndicator={false}>
+                  <TouchableOpacity 
+                    style={[styles.optionItem, selectedProfessor === '' && styles.optionItemActive]}
+                    onPress={() => { setSelectedProfessor(''); setShowProfessorDropdown(false); }}
+                  >
+                    <Text style={[styles.optionText, selectedProfessor === '' && styles.optionTextActive]}>Select Instructor</Text>
+                    {selectedProfessor === '' && <Ionicons name="checkmark" size={20} color="#2563eb" />}
+                  </TouchableOpacity>
+                  {availableProfessors.map((name, idx) => (
+                    <TouchableOpacity 
+                      key={idx}
+                      style={[styles.optionItem, selectedProfessor === name && styles.optionItemActive]}
+                      onPress={() => { setSelectedProfessor(name); setShowProfessorDropdown(false); }}
+                    >
+                      <Text style={[styles.optionText, selectedProfessor === name && styles.optionTextActive]}>{name}</Text>
+                      {selectedProfessor === name && <Ionicons name="checkmark" size={20} color="#2563eb" />}
+                    </TouchableOpacity>
+                  ))}
+                  <TouchableOpacity 
+                    style={[styles.optionItem, selectedProfessor === 'Not Listed' && styles.optionItemActive]}
+                    onPress={() => { setSelectedProfessor('Not Listed'); setShowProfessorDropdown(false); }}
+                  >
+                    <Text style={[styles.optionText, selectedProfessor === 'Not Listed' && styles.optionTextActive]}>Other Professor</Text>
+                    {selectedProfessor === 'Not Listed' && <Ionicons name="checkmark" size={20} color="#2563eb" />}
+                  </TouchableOpacity>
+                </ScrollView>
+              </View>
+            ) : (
+              <>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>Save Lecture</Text>
+                  <TouchableOpacity onPress={() => {
+                    setShowSaveModal(false);
+                    setShowCourseDropdown(false);
+                    setShowProfessorDropdown(false);
+                  }}>
+                    <Ionicons name="close" size={24} color="#64748b" />
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Select Course</Text>
+                  <TouchableOpacity 
+                    style={styles.customPickerWrapper}
+                    onPress={() => setShowCourseDropdown(true)}
+                  >
+                    <Text style={[styles.customPickerValue, !selectedCourse && { color: '#94a3b8' }]} numberOfLines={1}>
+                      {selectedCourse ? selectedCourse : 'Choose a course...'}
+                    </Text>
+                    <Ionicons name="chevron-down" size={16} color="#94a3b8" />
+                  </TouchableOpacity>
+                </View>
+
+                {selectedCourse && selectedCourse !== 'Others' && (
+                  <View style={styles.formGroup}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                      <Text style={[styles.label, { marginBottom: 0 }]}>Instructor</Text>
+                      {isLoadingProfs && <ActivityIndicator size="small" color="#2563eb" />}
+                    </View>
+                    <TouchableOpacity 
+                      style={styles.customPickerWrapper}
+                      onPress={() => setShowProfessorDropdown(true)}
+                    >
+                      <Text style={[styles.customPickerValue, !selectedProfessor && { color: '#94a3b8' }]} numberOfLines={1}>
+                        {selectedProfessor ? selectedProfessor : 'Select Instructor'}
+                      </Text>
+                      <Ionicons name="chevron-down" size={16} color="#94a3b8" />
+                    </TouchableOpacity>
+                  </View>
+                )}
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Lecture Date</Text>
+                  <TouchableOpacity onPress={() => setShowDatePicker(true)} activeOpacity={0.7}>
+                    <View pointerEvents="none">
+                      <TextInput
+                        style={[styles.textInput, { backgroundColor: '#f8fafc', color: '#64748b' }]}
+                        value={lectureDate}
+                        editable={false}
+                      />
+                    </View>
+                  </TouchableOpacity>
+                  {showDatePicker && (
+                    <DateTimePicker
+                      value={selectedDate}
+                      mode="date"
+                      display="default"
+                      onChange={onDateChange}
+                    />
+                  )}
+                </View>
+
+                <TouchableOpacity 
+                  style={styles.finalSaveBtn}
+                  onPress={handleSaveNotes}
+                  disabled={isSaving}
+                >
+                  {isSaving ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <>
+                      <Ionicons name="cloud-upload-outline" size={20} color="#fff" />
+                      <Text style={styles.finalSaveBtnText}>Save to Archive</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </>
             )}
-
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Lecture Date</Text>
-              <TextInput
-                style={[styles.textInput, { backgroundColor: '#f8fafc', color: '#64748b' }]}
-                value={lectureDate}
-                editable={false}
-              />
-            </View>
-
-            <TouchableOpacity 
-              style={styles.finalSaveBtn}
-              onPress={handleSaveNotes}
-              disabled={isSaving}
-            >
-              {isSaving ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <>
-                  <Ionicons name="cloud-upload-outline" size={20} color="#fff" />
-                  <Text style={styles.finalSaveBtnText}>Save to Archive</Text>
-                </>
-              )}
-            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -481,14 +579,20 @@ const styles = StyleSheet.create({
 
   // Modal Styles
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, minHeight: 400 },
+  modalContent: { backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: Platform.OS === 'ios' ? 40 : 24 },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
   modalTitle: { fontSize: RFValue(18), fontWeight: '800', color: '#0f172a' },
   formGroup: { marginBottom: 20 },
   label: { fontSize: RFValue(11), fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 8, marginLeft: 4 },
-  pickerContainer: { backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#f1f5f9', borderRadius: 12, overflow: 'hidden' },
-  picker: { height: 50 },
   textInput: { borderWidth: 1, borderColor: '#f1f5f9', borderRadius: 12, padding: 12, fontSize: RFValue(14), color: '#1e293b' },
   finalSaveBtn: { backgroundColor: '#0f172a', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 16, borderRadius: 16, marginTop: 10 },
-  finalSaveBtnText: { color: '#fff', fontSize: RFValue(14), fontWeight: '700' }
+  finalSaveBtnText: { color: '#fff', fontSize: RFValue(14), fontWeight: '700' },
+  
+  // Custom Dropdown Styles
+  customPickerWrapper: { backgroundColor: '#f8fafc', borderRadius: 12, borderWidth: 1, borderColor: '#f1f5f9', height: 50, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, justifyContent: 'space-between' },
+  customPickerValue: { fontSize: RFValue(13), color: '#1e293b', fontWeight: '500', flex: 1 },
+  optionItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
+  optionItemActive: { backgroundColor: '#f0f7ff', marginHorizontal: -24, paddingHorizontal: 24 },
+  optionText: { fontSize: RFValue(13), color: '#475569', fontWeight: '500' },
+  optionTextActive: { color: '#2563eb', fontWeight: '700' },
 });
