@@ -85,6 +85,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               .eq("id", id)
               .single();
             
+            const safeDecryptHistory = (encryptedHistory: any) => {
+              if (!encryptedHistory || typeof encryptedHistory !== 'string') return [];
+              try {
+                const decrypted = decrypt(encryptedHistory);
+                return JSON.parse(decrypted);
+              } catch (e) {
+                console.warn("⚠️ Failed to decrypt/parse history (likely key mismatch):", e);
+                return [];
+              }
+            };
+
             const usr: User = {
               id,
               email: email ?? "",
@@ -94,9 +105,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               custom_profile_photo: profile?.custom_profile_photo ?? null,
               timetable_data: profile?.timetable_data ?? [],
               attendance_data: profile?.attendance_data ?? {},
-              chatbot_history: profile?.chatbot_history && typeof profile.chatbot_history === 'string' 
-                ? JSON.parse(decrypt(profile.chatbot_history)) 
-                : (profile?.chatbot_history ?? []),
+              chatbot_history: safeDecryptHistory(profile?.chatbot_history),
               batch: profile?.batch ?? null,
               registration_number: profile?.registration_number ?? profile?.registrationNumber ?? null,
               registrationNumber: profile?.registrationNumber ?? profile?.registration_number ?? null,
@@ -191,6 +200,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         console.log("SignIn Profile:", profile);
 
+        const safeDecryptHistory = (encryptedHistory: any) => {
+          if (!encryptedHistory || typeof encryptedHistory !== 'string') return [];
+          try {
+            const decrypted = decrypt(encryptedHistory);
+            return JSON.parse(decrypted);
+          } catch (e) {
+            return [];
+          }
+        };
+
         const usr: User = {
           id,
           email: userEmail ?? "",
@@ -200,9 +219,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           custom_profile_photo: profile?.custom_profile_photo ?? null,
           timetable_data: profile?.timetable_data ?? [],
           attendance_data: profile?.attendance_data ?? {},
-          chatbot_history: profile?.chatbot_history && typeof profile.chatbot_history === 'string' 
-            ? JSON.parse(decrypt(profile.chatbot_history)) 
-            : (profile?.chatbot_history ?? []),
+          chatbot_history: safeDecryptHistory(profile?.chatbot_history),
           batch: profile?.batch ?? null,
           registration_number: profile?.registration_number ?? profile?.registrationNumber ?? null,
           registrationNumber: profile?.registrationNumber ?? profile?.registration_number ?? null,

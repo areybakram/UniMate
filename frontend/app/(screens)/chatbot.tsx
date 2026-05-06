@@ -21,56 +21,42 @@ import Animated, { FadeInDown, FadeInUp, Layout } from "react-native-reanimated"
 import { queryUniMate, ChatMessage } from "../../utils/chatbotService";
 import { AuthContext } from "../../Context/AuthContext";
 import { BlurView } from "expo-blur";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { encrypt, decrypt } from "../../utils/encryption";
 
 const { width } = Dimensions.get("window");
 
 const ChatScreen: React.FC = () => {
   const router = useRouter();
-  const { user } = useContext(AuthContext) || {};
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [isReady, setIsReady] = useState<boolean>(false);
+  const { user, updateProfile } = useContext(AuthContext) || {};
+  const [messages, setMessages] = useState<ChatMessage[]>(user?.chatbot_history || []);
+  const [isReady, setIsReady] = useState<boolean>(true);
 
   const [input, setInput] = useState<string>("");
   const [isTyping, setIsTyping] = useState<boolean>(false);
   const scrollRef = useRef<ScrollView | null>(null);
 
+  // Load initial bot greeting if history is empty
   useEffect(() => {
-    const loadChatHistory = async () => {
-      try {
-        const savedMessages = await AsyncStorage.getItem("chatbot_history");
-        if (savedMessages) {
-          setMessages(JSON.parse(savedMessages));
-        } else {
-          setMessages([
-            {
-              role: "bot",
-              content: `👋 Hi ${user?.name || "there"}! I'm UniMate. Ask me anything about COMSATS Lahore academics, faculty, or campus.`,
-            },
-          ]);
-        }
-      } catch (error) {
-        console.error("Failed to load chat history:", error);
-      } finally {
-        setIsReady(true);
-      }
-    };
-    loadChatHistory();
-  }, [user]);
-
-  useEffect(() => {
-    if (isReady && messages.length > 0) {
-      AsyncStorage.setItem("chatbot_history", JSON.stringify(messages)).catch(console.error);
+    if (messages.length === 0 && user) {
+      setMessages([
+        {
+          role: "bot",
+          content: `👋 Hi ${user?.name || "there"}! I'm UniMate. Ask me anything about COMSATS Lahore academics, faculty, or campus.`,
+        },
+      ]);
     }
-  }, [messages, isReady]);
+  }, [user]);
 
   const clearChat = () => {
     const defaultMsg: ChatMessage = {
       role: "bot",
       content: `👋 Hi ${user?.name || "there"}! I'm UniMate. Ask me anything about COMSATS Lahore academics, faculty, or campus.`,
     };
-    setMessages([defaultMsg]);
-    AsyncStorage.removeItem("chatbot_history").catch(console.error);
+    const cleared = [defaultMsg];
+    setMessages(cleared);
+    if (updateProfile) {
+      updateProfile({ chatbot_history: cleared });
+    }
   };
 
   const handleSend = async () => {
@@ -86,7 +72,14 @@ const ChatScreen: React.FC = () => {
 
     try {
       const response = await queryUniMate(userQuery, messages);
-      setMessages([...newMessages, { role: "bot", content: response }]);
+      const botMsg: ChatMessage = { role: "bot", content: response };
+      const finalMessages = [...newMessages, botMsg];
+      setMessages(finalMessages);
+      
+      // Save to Supabase (via AuthContext)
+      if (updateProfile) {
+        updateProfile({ chatbot_history: finalMessages });
+      }
     } catch (error) {
       setMessages([...newMessages, { role: "bot", content: "Sorry, I'm having trouble thinking right now." }]);
     } finally {
