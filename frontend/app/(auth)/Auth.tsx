@@ -62,10 +62,10 @@ const registerSchema = yup.object().shape({
     .string()
     .oneOf([yup.ref("password")], "Passwords must match")
     .required("Confirm Password is required"),
-  registrationNumber: yup
-    .string()
-    .matches(/^[A-Z]{2}[0-9]{2}-[A-Z]{3,4}-[0-9]{3}$/, "Invalid format (e.g. FA22-BCS-110)")
-    .required("Registration Number is required"),
+  registrationNumber: yup.string().when([], {
+    is: () => true, // We'll handle validation manually or just make it optional for now
+    then: (schema) => schema.nullable(),
+  }),
 });
 
 const InputField = ({
@@ -160,7 +160,22 @@ const Auth: React.FC = () => {
           router.replace(`/(tabs)/${userRole.toLowerCase()}/Home` as any);
         }
       } else {
-        const extractedBatch = data.registrationNumber.split('-')[0].toUpperCase();
+        // Validation check for student
+        if (role === 'student' && !data.registrationNumber) {
+          Alert.alert("Validation Error", "Registration Number is required for students");
+          setLoading(false);
+          return;
+        }
+        if (role === 'student' && !/^[A-Z]{2}[0-9]{2}-[A-Z]{3,4}-[0-9]{3}$/.test(data.registrationNumber)) {
+          Alert.alert("Validation Error", "Invalid Registration Number format (e.g. FA22-BCS-110)");
+          setLoading(false);
+          return;
+        }
+
+        const extractedBatch = (role === 'student' && data.registrationNumber) 
+          ? data.registrationNumber.split('-')[0].toUpperCase() 
+          : "N/A";
+        
         const res = await auth.signUp(
           data.fullName,
           data.email,
@@ -168,7 +183,7 @@ const Auth: React.FC = () => {
           data.password,
           role,
           extractedBatch,
-          data.registrationNumber.toUpperCase()
+          (role === 'student' && data.registrationNumber) ? data.registrationNumber.toUpperCase() : "N/A"
         );
         if (res.error) {
           Alert.alert("Sign Up Failed", res.error.message || String(res.error));
@@ -289,13 +304,15 @@ const Auth: React.FC = () => {
 
                     {activeTab === "Register" && (
                       <>
-                        <InputField
-                          control={control}
-                          name="registrationNumber"
-                          placeholder="Reg No (e.g. FA22-BCS-110)"
-                          icon="id-card-outline"
-                          error={errors.registrationNumber}
-                        />
+                        {role === 'student' && (
+                          <InputField
+                            control={control}
+                            name="registrationNumber"
+                            placeholder="Reg No (e.g. FA22-BCS-110)"
+                            icon="id-card-outline"
+                            error={errors.registrationNumber}
+                          />
+                        )}
                         <InputField
                           control={control}
                           name="phoneNumber"

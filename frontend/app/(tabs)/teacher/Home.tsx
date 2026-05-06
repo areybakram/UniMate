@@ -304,7 +304,9 @@ const TeacherHome: React.FC = () => {
                 <View style={styles.infoItem}>
                   <Ionicons name="school-outline" size={16} color="#90CDF4" />
                   <Text style={styles.infoText}>
-                    Reg: {user?.registration_number || "Faculty ID"}
+                    {user?.registration_number && user.registration_number !== "N/A" 
+                      ? `Reg: ${user.registration_number}` 
+                      : user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : "Teacher"}
                   </Text>
                 </View>
 

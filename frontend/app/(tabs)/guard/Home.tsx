@@ -234,7 +234,9 @@ const GuardHome: React.FC = () => {
                   color="#90CDF4"
                 />
                 <Text style={styles.infoText}>
-                  ID: {user?.registration_number || "Service ID"}
+                  {user?.registration_number && user.registration_number !== "N/A" 
+                    ? `ID: ${user.registration_number}` 
+                    : user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : "Guard"}
                 </Text>
               </View>
 
