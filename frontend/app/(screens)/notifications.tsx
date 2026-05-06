@@ -7,16 +7,20 @@ import {
   ScrollView,
   StatusBar,
   SafeAreaView,
+  FlatList,
+  RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { useNotifications, Notification } from '../../Context/NotificationContext';
+import { ActivityIndicator } from 'react-native';
 
 const NotificationsScreen = () => {
   const router = useRouter();
-  const { notifications, unreadCount, markAllAsRead, clearAll, markAsRead } = useNotifications();
+  const { notifications, unreadCount, markAllAsRead, clearAll, markAsRead, fetchNotifications, isLoading, hasMore } = useNotifications();
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
 
   const getIcon = (type: Notification['type']) => {
     switch (type) {
@@ -26,6 +30,10 @@ const NotificationsScreen = () => {
         return { name: 'alarm', color: '#F59E0B', bg: '#FFFBEB' };
       case 'system':
         return { name: 'information-circle', color: '#8B5CF6', bg: '#F5F3FF' };
+      case 'lend_borrow':
+        return { name: 'swap-horizontal', color: '#10B981', bg: '#ECFDF5' };
+      case 'lost_found':
+        return { name: 'search-circle', color: '#EF4444', bg: '#FEF2F2' };
       default:
         return { name: 'notifications', color: '#64748B', bg: '#F1F5F9' };
     }
@@ -40,6 +48,45 @@ const NotificationsScreen = () => {
     if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
     if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
     return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  };
+
+  const onRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchNotifications(true);
+    setIsRefreshing(false);
+  };
+
+  const loadMore = () => {
+    if (!isLoading && hasMore) {
+      fetchNotifications(false);
+    }
+  };
+
+  const renderNotification = ({ item, index }: { item: Notification, index: number }) => {
+    const icon = getIcon(item.type);
+    return (
+      <Animated.View 
+        entering={FadeInDown.delay(index % 10 * 50)} // Only delay first few items
+      >
+        <TouchableOpacity 
+          style={[styles.notificationCard, !item.isRead && styles.unreadCard]}
+          onPress={() => markAsRead(item.id)}
+          activeOpacity={0.7}
+        >
+          <View style={[styles.iconContainer, { backgroundColor: icon.bg }]}>
+            <Ionicons name={icon.name as any} size={22} color={icon.color} />
+          </View>
+          <View style={styles.cardContent}>
+            <View style={styles.cardHeader}>
+              <Text style={[styles.cardTitle, !item.isRead && styles.boldText]}>{item.title}</Text>
+              <Text style={styles.timestamp}>{formatTimestamp(item.timestamp)}</Text>
+            </View>
+            <Text style={styles.cardBody} numberOfLines={2}>{item.body}</Text>
+          </View>
+          {!item.isRead && <View style={styles.unreadDot} />}
+        </TouchableOpacity>
+      </Animated.View>
+    );
   };
 
   return (
@@ -62,44 +109,33 @@ const NotificationsScreen = () => {
       </LinearGradient>
 
       {notifications.length > 0 ? (
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          <View style={styles.actionRow}>
-            <Text style={styles.countText}>{unreadCount} unread / {notifications.length} total</Text>
-            {unreadCount > 0 && (
-              <TouchableOpacity onPress={markAllAsRead}>
-                <Text style={styles.markReadText}>Mark all as read</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {notifications.map((item, index) => {
-            const icon = getIcon(item.type);
-            return (
-              <Animated.View 
-                key={item.id} 
-                entering={FadeInDown.delay(index * 50)}
-              >
-                <TouchableOpacity 
-                  style={[styles.notificationCard, !item.isRead && styles.unreadCard]}
-                  onPress={() => markAsRead(item.id)}
-                  activeOpacity={0.7}
-                >
-                  <View style={[styles.iconContainer, { backgroundColor: icon.bg }]}>
-                    <Ionicons name={icon.name as any} size={22} color={icon.color} />
-                  </View>
-                  <View style={styles.cardContent}>
-                    <View style={styles.cardHeader}>
-                      <Text style={[styles.cardTitle, !item.isRead && styles.boldText]}>{item.title}</Text>
-                      <Text style={styles.timestamp}>{formatTimestamp(item.timestamp)}</Text>
-                    </View>
-                    <Text style={styles.cardBody} numberOfLines={2}>{item.body}</Text>
-                  </View>
-                  {!item.isRead && <View style={styles.unreadDot} />}
+        <FlatList
+          data={notifications}
+          renderItem={renderNotification}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.3}
+          refreshControl={
+            <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={['#3B82F6']} />
+          }
+          ListHeaderComponent={
+            <View style={styles.actionRow}>
+              <Text style={styles.countText}>{unreadCount} unread / {notifications.length} loaded</Text>
+              {unreadCount > 0 && (
+                <TouchableOpacity onPress={markAllAsRead}>
+                  <Text style={styles.markReadText}>Mark all as read</Text>
                 </TouchableOpacity>
-              </Animated.View>
-            );
-          })}
-        </ScrollView>
+              )}
+            </View>
+          }
+          ListFooterComponent={
+            isLoading && !isRefreshing ? (
+              <ActivityIndicator style={{ marginVertical: 20 }} color="#3B82F6" />
+            ) : null
+          }
+        />
       ) : (
         <View style={styles.emptyState}>
           <View style={styles.emptyIconContainer}>

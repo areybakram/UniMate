@@ -1,12 +1,12 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
+import { supabase } from '../supabaseClient';
 
 export interface Notification {
   id: string;
   title: string;
   body: string;
-  type: 'class' | 'reminder' | 'system';
+  type: 'class' | 'reminder' | 'system' | 'lend_borrow' | 'lost_found';
   timestamp: string;
   isRead: boolean;
   data?: any;
@@ -16,6 +16,9 @@ interface NotificationContextType {
   notifications: Notification[];
   unreadCount: number;
   isNotificationsEnabled: boolean;
+  isLoading: boolean;
+  hasMore: boolean;
+  fetchNotifications: (refresh?: boolean) => Promise<void>;
   addNotification: (title: string, body: string, type: Notification['type'], data?: any) => Promise<void>;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
@@ -25,28 +28,42 @@ interface NotificationContextType {
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'unimate_notifications_history';
-const PREFERENCE_KEY = 'unimate_notifications_preference';
-
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE_INITIAL = 10;
+  const PAGE_SIZE_MORE = 5;
 
-  // Load notifications and preference from storage on mount
+  // Load initial notifications on mount
   useEffect(() => {
-    loadNotifications();
-    loadPreference();
+    // Clear any "ghost" notifications from the OS tray/queue on start
+    const clearGhostNotifications = async () => {
+      try {
+        await Notifications.dismissAllNotificationsAsync();
+        await Notifications.cancelAllScheduledNotificationsAsync();
+      } catch (e) {
+        console.log('Error clearing notifications:', e);
+      }
+    };
+    
+    clearGhostNotifications();
+    fetchNotifications(true);
 
-    // Listen for incoming notifications while the app is open
     const subscription = Notifications.addNotificationReceivedListener(notification => {
-      // Check if notifications are enabled before processing
       if (!isNotificationsEnabled) return;
-      
       const { title, body, data } = notification.request.content;
       
-      // Determine type from data or default to system
-      const type = data?.type === 'class_reminder' ? 'class' : 
-                   data?.type === 'attendance_reminder' ? 'reminder' : 'system';
+      // ONLY add to history if it's a server-side notification (has a screen or specific type)
+      // Local reminders (class_reminder, task_reminder) should only be popups
+      const isLocalReminder = data?.type === 'class_reminder' || data?.type === 'attendance_reminder' || data?.type === 'task_reminder';
+      
+      if (isLocalReminder) return;
+
+      const type = data?.type === 'lend_borrow' ? 'lend_borrow' : 
+                   data?.type === 'lost_found' ? 'lost_found' : 'system';
                    
       addNotification(title || 'New Notification', body || '', type, data);
     });
@@ -54,45 +71,89 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     return () => subscription.remove();
   }, []);
 
-  const loadNotifications = async () => {
+  const fetchNotifications = async (refresh: boolean = false) => {
+    if (isLoading || (!hasMore && !refresh)) return;
+
+    setIsLoading(true);
     try {
-      const stored = await AsyncStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        setNotifications(JSON.parse(stored));
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const currentPage = refresh ? 0 : page;
+      const currentSize = refresh ? PAGE_SIZE_INITIAL : PAGE_SIZE_MORE;
+      const from = refresh ? 0 : (PAGE_SIZE_INITIAL + (currentPage - 1) * PAGE_SIZE_MORE);
+      const to = from + currentSize - 1;
+
+      // 1. Get notifications from 7 days ago
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+      const { data: notificationsData, error: notifError } = await supabase
+        .from('notifications')
+        .select('*')
+        .gte('created_at', sevenDaysAgo.toISOString())
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+      if (notifError) throw notifError;
+      if (!notificationsData || notificationsData.length === 0) {
+        if (refresh) setNotifications([]);
+        setHasMore(false);
+        return;
+      }
+
+      // 2. Get statuses for these notifications for this user
+      const notifIds = notificationsData.map(n => n.id);
+      const { data: statusData, error: statusError } = await supabase
+        .from('notification_statuses')
+        .select('*')
+        .eq('user_id', user.id)
+        .in('notification_id', notifIds);
+
+      if (statusError) throw statusError;
+
+      // 3. Map and Filter
+      const statusesMap = new Map(statusData?.map(s => [s.notification_id, s]));
+      
+      const filteredAndMapped = notificationsData
+        .filter(n => {
+          const status = statusesMap.get(n.id);
+          return !status?.is_cleared;
+        })
+        .map(n => {
+          const status = statusesMap.get(n.id);
+          return {
+            id: n.id,
+            title: n.title,
+            body: n.body,
+            type: n.type as any,
+            timestamp: n.created_at,
+            isRead: status?.is_read || false,
+            data: n.data
+          };
+        });
+
+      if (refresh) {
+        setNotifications(filteredAndMapped);
+        setPage(1);
+        setHasMore(notificationsData.length === PAGE_SIZE_INITIAL);
+      } else {
+        setNotifications(prev => [...prev, ...filteredAndMapped]);
+        setPage(prev => prev + 1);
+        setHasMore(notificationsData.length === PAGE_SIZE_MORE);
       }
     } catch (error) {
-      console.error('Failed to load notifications:', error);
+      console.error('Failed to fetch notifications from DB:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const loadPreference = async () => {
-    try {
-      const stored = await AsyncStorage.getItem(PREFERENCE_KEY);
-      if (stored !== null) {
-        setIsNotificationsEnabled(JSON.parse(stored));
-      }
-    } catch (error) {
-      console.error('Failed to load notification preference:', error);
-    }
-  };
 
   const setNotificationsEnabled = async (value: boolean) => {
-    try {
-      await AsyncStorage.setItem(PREFERENCE_KEY, JSON.stringify(value));
-      setIsNotificationsEnabled(value);
-    } catch (error) {
-      console.error('Failed to save notification preference:', error);
-    }
+    setIsNotificationsEnabled(value);
   };
 
-  const saveNotifications = async (newNotifications: Notification[]) => {
-    try {
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(newNotifications));
-      setNotifications(newNotifications);
-    } catch (error) {
-      console.error('Failed to save notifications:', error);
-    }
-  };
 
   const addNotification = async (title: string, body: string, type: Notification['type'], data?: any) => {
     const newNotification: Notification = {
@@ -104,24 +165,68 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       isRead: false,
       data,
     };
-    const updated = [newNotification, ...notifications].slice(0, 50); // Keep last 50
-    await saveNotifications(updated);
+    setNotifications(prev => [newNotification, ...prev]);
   };
 
   const markAsRead = async (id: string) => {
-    const updated = notifications.map((n) =>
-      n.id === id ? { ...n, isRead: true } : n
-    );
-    await saveNotifications(updated);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const updated = notifications.map((n) =>
+        n.id === id ? { ...n, isRead: true } : n
+      );
+      setNotifications(updated);
+      
+      await supabase.from('notification_statuses').upsert({
+        notification_id: id,
+        user_id: user.id,
+        is_read: true
+      }, { onConflict: 'notification_id,user_id' });
+    } catch (err) {
+      console.error('Failed to mark as read in DB:', err);
+    }
   };
 
   const markAllAsRead = async () => {
-    const updated = notifications.map((n) => ({ ...n, isRead: true }));
-    await saveNotifications(updated);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const updated = notifications.map((n) => ({ ...n, isRead: true }));
+      setNotifications(updated);
+      
+      const upserts = notifications.map(n => ({
+        notification_id: n.id,
+        user_id: user.id,
+        is_read: true
+      }));
+
+      await supabase.from('notification_statuses').upsert(upserts, { onConflict: 'notification_id,user_id' });
+    } catch (err) {
+      console.error('Failed to mark all as read in DB:', err);
+    }
   };
 
   const clearAll = async () => {
-    await saveNotifications([]);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const currentIds = notifications.map(n => n.id);
+      
+      const upserts = currentIds.map(id => ({
+        notification_id: id,
+        user_id: user.id,
+        is_read: true,
+        is_cleared: true
+      }));
+
+      await supabase.from('notification_statuses').upsert(upserts, { onConflict: 'notification_id,user_id' });
+      setNotifications([]);
+    } catch (error) {
+      console.error('Failed to clear notifications in DB:', error);
+    }
   };
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
@@ -132,6 +237,9 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         notifications,
         unreadCount,
         isNotificationsEnabled,
+        isLoading,
+        hasMore,
+        fetchNotifications,
         addNotification,
         markAsRead,
         markAllAsRead,

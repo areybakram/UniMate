@@ -105,9 +105,11 @@ const StudentHome: React.FC = () => {
       const tasksData = await getTodayTasks(supaUser.id);
       setTodayTasks(tasksData);
       
-      // Schedule Task Notifications globally across the app
-      const allTasksData = await getTasks(supaUser.id);
-      await scheduleTaskReminders(allTasksData);
+      // Schedule Task Notifications ONLY if forceFresh or first load
+      if (forceFresh) {
+        const allTasksData = await getTasks(supaUser.id);
+        await scheduleTaskReminders(allTasksData);
+      }
 
       await refreshAnalytics(supaUser.id);
 
@@ -155,14 +157,16 @@ const StudentHome: React.FC = () => {
       setAttendance(attendanceData);
       setTodaySchedule(data || []);
 
-      // Schedule notifications for the full week
-      const { data: fullTimetable, error: fullError } = await supabase
-        .from("timetables")
-        .select("*")
-        .or(filterStr);
-      
-      if (!fullError && fullTimetable) {
-        await scheduleClassReminders(fullTimetable);
+      // Schedule notifications for the full week ONLY if forceFresh
+      if (forceFresh) {
+        const { data: fullTimetable, error: fullError } = await supabase
+          .from("timetables")
+          .select("*")
+          .or(filterStr);
+        
+        if (!fullError && fullTimetable) {
+          await scheduleClassReminders(fullTimetable);
+        }
       }
       
       // Always reset visible count when data is freshly fetched
@@ -196,15 +200,15 @@ const StudentHome: React.FC = () => {
       // Reset count on every refocus
       setVisibleTaskCount(3);
       if (user) {
-        fetchHomeData();
+        fetchHomeData(false); // Normal fetch (no re-scheduling)
       }
     }, [user])
   );
 
-  // Auto-fetch when session is restored or profile updates
+  // Auto-fetch when session is restored (Force schedule once on app start)
   useEffect(() => {
     if (user) {
-      fetchHomeData();
+      fetchHomeData(true); 
     }
   }, [user]);
 
