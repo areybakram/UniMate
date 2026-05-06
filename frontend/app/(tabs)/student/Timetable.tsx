@@ -155,7 +155,7 @@ const ClassCard: React.FC<ClassCardProps> = ({ item, index, isToday, isTaken, on
 };
 
 export default function TimetableScreen() {
-  const { user } = React.useContext(AuthContext) || {};
+  const { user, updateProfile } = React.useContext(AuthContext) || {};
   const [selectedDay, setSelectedDay] = useState(DAYS[new Date().getDay() - 1] || DAYS[0]);
   const [classes, setClasses] = useState<TimetableItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -268,9 +268,13 @@ export default function TimetableScreen() {
     setPersonalCourses([]);
     
     // Clear in Supabase via AuthContext
-    const { updateProfile }: any = React.useContext(AuthContext) || {};
     if (updateProfile) {
-      await updateProfile({ timetable_data: [] });
+      const { error } = await updateProfile({ timetable_data: [] });
+      if (error) {
+        console.error("❌ Failed to clear timetable in DB:", error);
+        Alert.alert("Error", "Failed to clear timetable from database.");
+        return;
+      }
     }
     
     await clearAllAttendance();
@@ -462,6 +466,30 @@ export default function TimetableScreen() {
                   No classes scheduled for {selectedDay}.
                 </Text>
               </View>
+            )}
+
+            {/* SMALLER ENROLLMENT BANNER */}
+            {!isPersonalized && personalCourses.length === 0 && (
+              <TouchableOpacity 
+                style={styles.compactEnrollBanner}
+                onPress={() => router.push("/(screens)/Enrollment")}
+              >
+                <LinearGradient
+                  colors={["#3b82f6", "#2563eb"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.compactEnrollGradient}
+                >
+                  <View style={styles.compactEnrollContent}>
+                    <Ionicons name="sparkles" size={18} color="#fff" />
+                    <View style={{ flex: 1, marginLeft: 10 }}>
+                      <Text style={styles.compactEnrollTitle}>Personalize Your Timetable</Text>
+                      <Text style={styles.compactEnrollSub}>Upload card to see your specific classes</Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color="#fff" opacity={0.7} />
+                  </View>
+                </LinearGradient>
+              </TouchableOpacity>
             )}
 
             {/* RESET HINT / BUTTON */}
@@ -797,17 +825,32 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 40,
   },
-  emptyTitle: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: "#475569",
+  compactEnrollBanner: {
     marginTop: 20,
+    borderRadius: 16,
+    overflow: "hidden",
+    elevation: 4,
+    shadowColor: "#3b82f6",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
-  emptySubtitle: {
-    fontSize: 14,
-    color: "#94a3b8",
-    textAlign: "center",
-    marginTop: 8,
+  compactEnrollGradient: {
+    padding: 16,
+  },
+  compactEnrollContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  compactEnrollTitle: {
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: "800",
+  },
+  compactEnrollSub: {
+    color: "rgba(255,255,255,0.8)",
+    fontSize: 12,
+    fontWeight: "500",
   },
   resetPersonalBtn: {
     flexDirection: "row",

@@ -3,8 +3,12 @@ import Fuse from "fuse.js";
 import dataset from "./comsats_data.js";
 
 const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
+const OPENROUTER_API_KEY = process.env.EXPO_PUBLIC_OPENROUTER_API_KEY;
 const GEMINI_MODEL = "gemini-2.5-flash";
+const OPENROUTER_MODEL = "openrouter/auto";
+
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 const fuse = new Fuse(dataset, {
   keys: ["question", "name", "department", "designation", "area", "category"],
@@ -63,20 +67,55 @@ export const queryUniMate = async (query: string, history: ChatMessage[]) => {
         temperature: 0.7,
         topP: 0.95,
         topK: 40,
-        maxOutputTokens: 1024,
+        maxOutputTokens: 4096,
       },
     };
 
-    const response = await axios.post(API_URL, payload);
-    const resultText = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    try {
+      console.log("🚀 Attempting Chat Primary AI (Gemini)...");
+      const response = await axios.post(API_URL, payload);
+      const resultText = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!resultText) throw new Error("Empty response from Gemini");
+      return resultText;
+    } catch (error: any) {
+      console.warn("⚠️ Chat Primary AI failed. Attempting Fallback (OpenRouter)...");
+      
+      if (!OPENROUTER_API_KEY) {
+        throw new Error("OpenRouter API Key missing.");
+      }
 
-    if (!resultText) {
-      throw new Error("Gemini returned an empty response.");
+      // Convert Gemini history/payload to OpenAI format for OpenRouter
+      const messages = history
+        .filter((msg, index) => !(index === 0 && msg.role === "bot"))
+        .map(msg => ({
+          role: msg.role === "user" ? "user" : "assistant",
+          content: msg.content,
+        }));
+      
+      messages.push({ role: "user", content: systemPrompt });
+
+      const orResponse = await axios.post(OPENROUTER_URL, {
+        model: OPENROUTER_MODEL,
+        messages: messages,
+        temperature: 0.7,
+        max_tokens: 4096,
+      }, {
+        headers: {
+          "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "https://unimate.app",
+          "X-Title": "UniMate Chatbot"
+        },
+        timeout: 25000
+      });
+
+      const orResult = orResponse.data?.choices?.[0]?.message?.content;
+      if (!orResult) throw new Error("Empty response from OpenRouter");
+      console.log("✅ Chat Fallback Success!");
+      return orResult;
     }
-
-    return resultText;
   } catch (error: any) {
-    console.error("Gemini RAG Error:", error?.response?.data || error.message);
-    return "I am having trouble connecting to the system right now. Please try again or visit Student Services.";
+    console.error("AI Service Error:", error?.response?.data || error.message);
+    return "I am having some trouble connecting to my brain right now. Please try again in a moment.";
   }
 };

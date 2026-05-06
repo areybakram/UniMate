@@ -2,6 +2,87 @@ import axios from 'axios';
 import { Request, Response } from 'express';
 import { supabaseAdmin } from '../supabaseAdmin';
 
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+const GEMINI_MODEL = "gemini-2.5-flash";
+const OPENROUTER_MODEL = "openrouter/auto";
+
+const callAIWithFallback = async (payload: any, isImage: boolean = false, isAudio: boolean = false) => {
+  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+  const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+
+  try {
+    console.log("🚀 Attempting Primary AI (Gemini)...");
+    const response = await axios.post(API_URL, payload);
+    const result = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!result) throw new Error("Empty response from Gemini");
+    return result;
+  } catch (error: any) {
+    console.warn("⚠️ Primary AI (Gemini) failed or timed out. Attempting Fallback (OpenRouter)...");
+    
+    if (!OPENROUTER_API_KEY) {
+      console.error("❌ Fallback failed: OPENROUTER_API_KEY missing.");
+      throw error;
+    }
+
+    const textPart = payload.contents[0].parts.find((p: any) => p.text)?.text || "";
+    const dataPart = payload.contents[0].parts.find((p: any) => p.inline_data)?.inline_data;
+
+    let messages: any[] = [];
+    if (dataPart) {
+      if (isImage) {
+        messages = [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: textPart },
+              {
+                type: "image_url",
+                image_url: { url: `data:${dataPart.mime_type};base64,${dataPart.data}` }
+              }
+            ]
+          }
+        ];
+      } else {
+        // Fallback for other data types (like audio) - OpenRouter vision-compatible models often handle this
+        messages = [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: textPart },
+              {
+                type: "image_url", // Some OR models use this for generic binary data or just fail
+                image_url: { url: `data:${dataPart.mime_type};base64,${dataPart.data}` }
+              }
+            ]
+          }
+        ];
+      }
+    } else {
+      messages = [{ role: "user", content: textPart }];
+    }
+
+    const orResponse = await axios.post(OPENROUTER_URL, {
+      model: OPENROUTER_MODEL,
+      messages: messages,
+      response_format: { type: "json_object" }
+    }, {
+      headers: {
+        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://unimate.app", // Required for some free models
+        "X-Title": "UniMate"
+      },
+      timeout: 30000
+    });
+
+    const orResult = orResponse.data?.choices?.[0]?.message?.content;
+    if (!orResult) throw new Error("Empty response from OpenRouter");
+    console.log("✅ Fallback (OpenRouter) Success!");
+    return orResult;
+  }
+};
+
 export const saveLectureNotes = async (req: Request, res: Response) => {
   try {
     const { userId, courseId, professorName, lectureDate, notesData } = req.body;
@@ -39,9 +120,6 @@ export const saveLectureNotes = async (req: Request, res: Response) => {
 export const extractCourses = async (req: Request, res: Response) => {
   try {
     let { base64Image, role } = req.body; // role can be 'student' or 'teacher'
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-    const GEMINI_MODEL = "gemini-2.5-flash";
-    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
     if (!GEMINI_API_KEY) {
       console.error("❌ GEMINI_API_KEY is missing from environment variables.");
@@ -100,19 +178,18 @@ export const extractCourses = async (req: Request, res: Response) => {
       ],
       generation_config: {
         response_mime_type: "application/json",
+        maxOutputTokens: 4096,
       },
     };
 
-    const response = await axios.post(API_URL, payload);
-    let resultText = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-    if (!resultText) {
-      console.error("❌ Gemini Error: Empty response body", response.data);
-      throw new Error("Gemini returned an empty response.");
+    const responseText = await callAIWithFallback(payload, true);
+    
+    if (!responseText) {
+      throw new Error("AI returned an empty response.");
     }
 
     // Strip markdown formatting (```json ... ```) if exists
-    const cleanedText = resultText.replace(/```json|```/g, "").trim();
+    const cleanedText = responseText.replace(/```json|```/g, "").trim();
     const extractedData = JSON.parse(cleanedText);
 
     // Sanitize batch codes for students or teachers
@@ -219,18 +296,18 @@ export const transcribeLecture = async (req: Request, res: Response) => {
       ],
       generation_config: {
         response_mime_type: "application/json",
+        maxOutputTokens: 4096,
       },
     };
 
-    console.log("🎙️ Sending audio to Gemini for transcription...");
-    const response = await axios.post(API_URL, payload);
-    const resultText = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    console.log("🎙️ Sending audio to AI for transcription...");
+    const responseText = await callAIWithFallback(payload, false, true);
 
-    if (!resultText) {
-      throw new Error("Gemini returned an empty response.");
+    if (!responseText) {
+      throw new Error("AI returned an empty response.");
     }
 
-    const cleanedText = resultText.replace(/```json|```/g, "").trim();
+    const cleanedText = responseText.replace(/```json|```/g, "").trim();
     const structuredNotes = JSON.parse(cleanedText);
 
     res.status(200).json(structuredNotes);

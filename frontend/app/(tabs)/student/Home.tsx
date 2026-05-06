@@ -635,6 +635,25 @@ const StudentHome: React.FC = () => {
               <View style={styles.emptyState}>
                 <Ionicons name="calendar-outline" size={40} color="#CBD5E0" />
                 <Text style={styles.emptyText}>No classes scheduled for today.</Text>
+                
+                {/* COMPACT ENROLL PROMPT */}
+                {(user as any)?.timetable_data?.length === 0 && (
+                  <TouchableOpacity 
+                    style={styles.compactHomeEnroll}
+                    onPress={() => router.push("/(screens)/Enrollment")}
+                  >
+                    <View style={styles.compactHomeEnrollContent}>
+                      <View style={styles.compactHomeEnrollIcon}>
+                        <Ionicons name="sparkles" size={16} color="#3b82f6" />
+                      </View>
+                      <View style={{ flex: 1, marginLeft: 12 }}>
+                        <Text style={styles.compactHomeEnrollTitle}>Personalize Schedule</Text>
+                        <Text style={styles.compactHomeEnrollSub}>Sync your card for AI insights</Text>
+                      </View>
+                      <Ionicons name="chevron-forward" size={16} color="#94a3b8" />
+                    </View>
+                  </TouchableOpacity>
+                )}
               </View>
             )}
           </View>
@@ -1059,6 +1078,37 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E2E8F0",
     borderStyle: "dashed",
+  },
+  compactHomeEnroll: {
+    marginTop: 20,
+    backgroundColor: "#f8fafc",
+    borderRadius: 16,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    width: "100%",
+  },
+  compactHomeEnrollContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  compactHomeEnrollIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: "#eff6ff",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  compactHomeEnrollTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#1e293b",
+  },
+  compactHomeEnrollSub: {
+    fontSize: 11,
+    color: "#64748b",
+    fontWeight: "500",
   },
   emptyText: {
     marginTop: 12,
