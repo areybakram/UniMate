@@ -1,5 +1,6 @@
 import { supabase } from "../supabaseClient";
 import { broadcastPostNotification } from "./notificationService";
+import { encrypt, decrypt } from "./encryption";
 
 export interface LostFoundPost {
   id: string;
@@ -113,7 +114,7 @@ export const getMyClaims = async (userId: string): Promise<LostFoundClaim[]> => 
     .order("created_at", { ascending: false });
 
   if (error) throw error;
-  return data as any;
+  return (data || []).map((c: any) => ({ ...c, message: decrypt(c.message) })) as any;
 };
 
 export const markAsResolved = async (postId: string, recipientId: string) => {
@@ -138,7 +139,7 @@ export const getClaimsByPostId = async (postId: string): Promise<LostFoundClaim[
     .order("created_at", { ascending: false });
 
   if (error) throw error;
-  return data as any;
+  return (data || []).map((c: any) => ({ ...c, message: decrypt(c.message) })) as any;
 };
 
 export const createClaim = async (postId: string, message: string) => {
@@ -149,7 +150,7 @@ export const createClaim = async (postId: string, message: string) => {
     {
       post_id: postId,
       claimer_id: user.id,
-      message,
+      message: encrypt(message),
       status: "pending",
     }
   ]).select().single();

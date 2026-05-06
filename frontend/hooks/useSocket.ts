@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
+import { encrypt } from '../utils/encryption';
 
 // Use host IP if testing on physical device, otherwise localhost
 const SOCKET_URL = 'http://172.16.7.33:5001'; 
@@ -36,7 +37,11 @@ export const useSocket = (roomId?: string) => {
 
   const sendMessage = (data: { roomId: string; senderId: string; text: string; timestamp: string }) => {
     if (socket) {
-      socket.emit('send_message', data);
+      const encryptedData = {
+        ...data,
+        text: encrypt(data.text)
+      };
+      socket.emit('send_message', encryptedData);
     }
   };
 

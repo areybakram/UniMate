@@ -1,5 +1,6 @@
 import { supabase } from "../supabaseClient";
 import { broadcastPostNotification } from "./notificationService";
+import { encrypt, decrypt } from "./encryption";
 
 export interface BorrowRequest {
   id: string;
@@ -112,7 +113,7 @@ export const getMyOffers = async (userId: string): Promise<BorrowOffer[]> => {
     .order("created_at", { ascending: false });
 
   if (error) throw error;
-  return data as any;
+  return (data || []).map((o: any) => ({ ...o, message: decrypt(o.message) })) as any;
 };
 
 export const markAsHandedOver = async (requestId: string, recipientId: string) => {
@@ -136,7 +137,7 @@ export const getOffersByRequestId = async (requestId: string): Promise<BorrowOff
     .order("created_at", { ascending: false });
 
   if (error) throw error;
-  return data as any;
+  return (data || []).map((o: any) => ({ ...o, message: decrypt(o.message) })) as any;
 };
 
 export const createOffer = async (requestId: string, message: string) => {
@@ -147,7 +148,7 @@ export const createOffer = async (requestId: string, message: string) => {
     {
       request_id: requestId,
       lender_id: user.id,
-      message,
+      message: encrypt(message),
       status: "pending",
     }
   ]).select().single();

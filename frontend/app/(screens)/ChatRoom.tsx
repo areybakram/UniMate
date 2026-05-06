@@ -19,6 +19,7 @@ import { RFValue } from 'react-native-responsive-fontsize';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { SlideInRight, SlideInLeft } from 'react-native-reanimated';
 import { getChatHistory } from '@/utils/chatService';
+import { decrypt } from '@/utils/encryption';
 
 const { width } = Dimensions.get('window');
 
@@ -54,7 +55,7 @@ export default function ChatRoomScreen() {
         const mappedHistory = history.map(m => ({
           id: m.id,
           senderId: m.sender_id,
-          text: m.text,
+          text: decrypt(m.text),
           timestamp: m.created_at
         }));
         setMessages(mappedHistory);
@@ -80,7 +81,7 @@ export default function ChatRoomScreen() {
             return [...prev, {
                 id: msg.id,
                 senderId: msg.senderId,
-                text: msg.text,
+                text: decrypt(msg.text),
                 timestamp: msg.timestamp
             }];
         });
