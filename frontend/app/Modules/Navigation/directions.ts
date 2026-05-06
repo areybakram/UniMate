@@ -10,7 +10,7 @@ export const getDirections = async (
   origin: { latitude: number; longitude: number },
   destination: { latitude: number; longitude: number },
 ) => {
-  const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&key=${API_KEY}`;
+  const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&mode=walking&key=${API_KEY}`;
 
   const response = await axios.get(url);
   if (!response.data.routes.length) throw new Error("No route found");

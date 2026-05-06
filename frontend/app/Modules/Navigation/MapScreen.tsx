@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
 import { useLocation } from "../../../Context/LocationContext";
 import { getDirections } from "./directions";
@@ -78,11 +79,66 @@ const universityPoints: Point[] = [
     longitude: 74.2092,
     icon: "car-outline",
   },
+  {
+    name: "EE Dept",
+    latitude: 31.4025,
+    longitude: 74.2115,
+    icon: "flash-outline",
+  },
+  {
+    name: "Arch. Block",
+    latitude: 31.4015,
+    longitude: 74.2125,
+    icon: "brush-outline",
+  },
+  {
+    name: "Pharmacy",
+    latitude: 31.399,
+    longitude: 74.212,
+    icon: "medical-outline",
+  },
+  {
+    name: "Chemical Eng.",
+    latitude: 31.400,
+    longitude: 74.213,
+    icon: "flask-outline",
+  },
+  {
+    name: "Girls Hostel",
+    latitude: 31.398,
+    longitude: 74.2115,
+    icon: "home-outline",
+  },
+  {
+    name: "Boys Hostel",
+    latitude: 31.3975,
+    longitude: 74.2125,
+    icon: "home-outline",
+  },
+  {
+    name: "Football Ground",
+    latitude: 31.403,
+    longitude: 74.21,
+    icon: "football-outline",
+  },
+  {
+    name: "Cricket Ground",
+    latitude: 31.4035,
+    longitude: 74.211,
+    icon: "trophy-outline",
+  },
+  {
+    name: "IRCBM",
+    latitude: 31.401,
+    longitude: 74.214,
+    icon: "flask-outline",
+  },
 ];
 
 const MapScreen: React.FC = () => {
   const { userLocation, fetchUserLocation } = useLocation();
   const [destination, setDestination] = useState<Point | null>(null);
+  const [recentLocations, setRecentLocations] = useState<Point[]>([]);
   const [routeCoords, setRouteCoords] = useState<
     Array<{ latitude: number; longitude: number }>
   >([]);
@@ -95,10 +151,34 @@ const MapScreen: React.FC = () => {
 
   useEffect(() => {
     fetchUserLocation();
+    loadRecentLocations();
   }, []);
+
+  const loadRecentLocations = async () => {
+    try {
+      const saved = await AsyncStorage.getItem("recent_locations");
+      if (saved) {
+        setRecentLocations(JSON.parse(saved));
+      }
+    } catch (e) {
+      console.error("Failed to load recents", e);
+    }
+  };
+
+  const saveRecentLocation = async (point: Point) => {
+    try {
+      const filtered = recentLocations.filter((p) => p.name !== point.name);
+      const updated = [point, ...filtered].slice(0, 5);
+      setRecentLocations(updated);
+      await AsyncStorage.setItem("recent_locations", JSON.stringify(updated));
+    } catch (e) {
+      console.error("Failed to save recent", e);
+    }
+  };
 
   const handleNavigate = async (target: Point) => {
     setDestination(target);
+    saveRecentLocation(target);
     if (!userLocation) return;
 
     setIsLoadingRoute(true);
@@ -185,6 +265,7 @@ const MapScreen: React.FC = () => {
               longitude: point.longitude,
             }}
             title={point.name}
+            onPress={() => handleNavigate(point)}
             pinColor={destination?.name === point.name ? "#3B82F6" : "#EF4444"}
           />
         ))}
@@ -256,6 +337,45 @@ const MapScreen: React.FC = () => {
             );
           })}
         </ScrollView>
+
+        {recentLocations.length > 0 && (
+          <>
+            <Text style={[styles.panelTitle, { marginTop: 15, marginBottom: 8, fontSize: 14 }]}>
+              Recent
+            </Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.chipContainer}
+            >
+              {recentLocations.map((point) => {
+                const isSelected = destination?.name === point.name;
+                return (
+                  <TouchableOpacity
+                    key={`recent-${point.name}`}
+                    style={[styles.chip, isSelected && styles.chipSelected, { paddingVertical: 8 }]}
+                    onPress={() => handleNavigate(point)}
+                  >
+                    <Ionicons
+                      name={point.icon as any}
+                      size={16}
+                      color={isSelected ? "#fff" : "#64748B"}
+                    />
+                    <Text
+                      style={[
+                        styles.chipText,
+                        isSelected && styles.chipTextSelected,
+                        { fontSize: 12 },
+                      ]}
+                    >
+                      {point.name}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </>
+        )}
         {isLoadingRoute && (
           <Text style={styles.routingText}>Calculating best route...</Text>
         )}
