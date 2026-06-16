@@ -7,7 +7,8 @@ import {
   getAvailableBatches,
   getTeacherSchedule,
   getTimeSlots,
-  getRoomStatus
+  getRoomStatus,
+  getLabsForCourses
 } from '../controllers/timetableController';
 
 const router = Router();
@@ -35,6 +36,10 @@ router.get('/time-slots', getTimeSlots);
 // @route   POST /api/timetable/room-status
 // @desc    Get status (free/occupied) for all rooms at a given day + time
 router.post('/room-status', getRoomStatus);
+
+// @route   POST /api/timetable/labs
+// @desc    Get lab entries for specific courses (uses Excel flat parser)
+router.post('/labs', getLabsForCourses);
 
 // @route   POST /api/timetable/personalized
 // @desc    Get filtered results for a specific set of courses

@@ -237,6 +237,47 @@ export const getTeacherSchedule = (req: Request, res: Response) => {
   }
 };
 
+export const getLabsForCourses = (req: Request, res: Response) => {
+  try {
+    const { courses } = req.body;
+    if (!courses || !Array.isArray(courses)) {
+      return res.status(400).json({ error: "Invalid courses data" });
+    }
+
+    const flatData = parseFlatSchedule();
+
+    const labEntries = flatData.filter(d => {
+      const subject = d.subject || '';
+      if (!subject.startsWith('Lab-')) return false;
+
+      return courses.some(c => {
+        const courseMatch = d.course_code.toUpperCase() === c.course_code.trim().toUpperCase();
+        const batchMatch =
+          d.batch_code.toUpperCase() === (c.batch_code || c.batch || '').trim().toUpperCase();
+        return courseMatch && batchMatch;
+      });
+    });
+
+    const results = labEntries.map(d => ({
+      id: `${d.course_code}-${d.batch_code}-${d.day}-${d.start_time}-lab`,
+      subject: d.subject,
+      course_code: d.course_code,
+      teacher_name: d.teacher_name,
+      teacher_dept: d.teacher_dept,
+      batch_code: d.batch_code,
+      day: d.day,
+      start_time: d.start_time,
+      end_time: d.end_time,
+      room: d.room,
+    }));
+
+    res.status(200).json(results);
+  } catch (error: any) {
+    console.error("❌ Labs Fetch Error:", error);
+    res.status(500).json({ error: "Failed to fetch lab entries." });
+  }
+};
+
 export const getPersonalizedTimetable = (req: Request, res: Response) => {
   try {
     const { courses } = req.body; // Array of { course_code, batch_code }

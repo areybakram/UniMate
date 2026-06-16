@@ -202,27 +202,113 @@ export default function TimetableScreen() {
       let query = supabase.from("timetables").select("*").eq("day", selectedDay);
 
       if (isPersonalized && personalCourses.length > 0) {
-        // Query master timetable for specific assigned courses
-        // Use exact matching on course_code and batch_code for precision
-        const filterParts = personalCourses.map((c: any) => 
-          `and(course_code.ilike.${c.course_code.trim()},batch_code.ilike.${(c.batch_code || c.batch || "").trim()})`
-        );
-        
-        const { data: allPersonalData, error: allErr } = await supabase
+        // Get unique batch codes from extracted courses
+        const batchCodes = [
+          ...new Set(
+            personalCourses
+              .map((c: any) => (c.batch_code || c.batch || "").trim())
+              .filter(Boolean)
+          ),
+        ];
+
+        if (batchCodes.length === 0) {
+          setClasses([]);
+          setUnmatchedCourses(personalCourses);
+          setIsLoading(false);
+          return;
+        }
+
+        // Fetch ALL entries for the student's batch(es)
+        const { data: batchData, error: batchErr } = await supabase
           .from("timetables")
           .select("*")
-          .or(filterParts.join(","));
+          .in("batch_code", batchCodes);
 
-        if (allErr) throw allErr;
+        if (batchErr) throw batchErr;
 
-        // Check for missing matches
-        const foundCourseCodes = new Set(allPersonalData?.map((c: any) => c.course_code.toUpperCase()));
-        const missing = personalCourses.filter((pc: any) => !foundCourseCodes.has(pc.course_code.toUpperCase()));
+        // Match personal courses by course_code OR subject name
+        // (registration card AI may extract different course codes than the DB)
+        const matchedSet = new Map<string, any>();
+
+        for (const pc of personalCourses) {
+          const regCode = (pc.course_code || "").trim().toUpperCase();
+          const regSubject = (pc.subject || "").trim().toLowerCase();
+          const regBatch = (pc.batch_code || pc.batch || "").trim().toUpperCase();
+
+          for (const entry of batchData || []) {
+            const entryBatch = (entry.batch_code || "").trim().toUpperCase();
+            if (entryBatch !== regBatch) continue;
+
+            const entrySubject = (entry.subject || "").trim().toLowerCase();
+            // Strip "Lab-" prefix for subject comparison
+            const cleanSubject = entrySubject.replace(/^lab-/, "");
+
+            // Try course_code match first, then subject name match
+            const codeMatch = entry.course_code.trim().toUpperCase() === regCode;
+            const subjectMatch = regSubject.length > 0 && (
+              cleanSubject === regSubject ||
+              cleanSubject.includes(regSubject) ||
+              regSubject.includes(cleanSubject)
+            );
+
+            if (codeMatch || subjectMatch) {
+              const key = `${entry.course_code}|${entry.batch_code}|${entry.day}|${(entry.start_time || "").slice(0, 5)}`;
+              if (!matchedSet.has(key)) {
+                matchedSet.set(key, { ...entry });
+              }
+            }
+          }
+        }
+
+        let allEntries = [...matchedSet.values()];
+
+        // Also find lab entries for the same batch whose theory subject
+        // matches any already matched entry (catches labs even if course_code differs)
+        const matchedSubjects = new Set(
+          allEntries
+            .filter(e => !(e.subject || "").trim().toLowerCase().startsWith("lab-"))
+            .map(e => (e.subject || "").trim().toLowerCase())
+        );
+
+        for (const entry of batchData || []) {
+          const entrySubject = (entry.subject || "").trim().toLowerCase();
+          if (!entrySubject.startsWith("lab-")) continue;
+
+          const theoryPart = entrySubject.replace(/^lab-/, "").trim();
+          const isRelated = [...matchedSubjects].some(s =>
+            s.includes(theoryPart) || theoryPart.includes(s)
+          );
+
+          if (isRelated) {
+            const key = `${entry.course_code}|${entry.batch_code}|${entry.day}|${(entry.start_time || "").slice(0, 5)}`;
+            if (!matchedSet.has(key)) {
+              matchedSet.set(key, { ...entry });
+            }
+          }
+        }
+
+        allEntries = [...matchedSet.values()];
+
+        // Check for unmatched personal courses
+        // Use the SAME logic as the matching above: course_code OR flexible subject match
+        const missing = personalCourses.filter((pc: any) => {
+          const pcCode = (pc.course_code || "").trim().toUpperCase();
+          const pcSubject = (pc.subject || "").trim().toLowerCase();
+          const pcBatch = (pc.batch_code || pc.batch || "").trim().toUpperCase();
+          return !allEntries.some((e: any) => {
+            if ((e.batch_code || "").trim().toUpperCase() !== pcBatch) return false;
+            const codeMatch = e.course_code.trim().toUpperCase() === pcCode;
+            const eSubject = (e.subject || "").trim().toLowerCase().replace(/^lab-/, "");
+            const subjectMatch = eSubject === pcSubject || eSubject.includes(pcSubject) || pcSubject.includes(eSubject);
+            return codeMatch || subjectMatch;
+          });
+        });
         setUnmatchedCourses(missing);
 
-        const dayClasses = allPersonalData?.filter((c: any) => c.day === selectedDay).sort((a: any, b: any) => 
-          a.start_time.localeCompare(b.start_time)
-        );
+        // Filter by selected day and sort
+        const dayClasses = allEntries
+          .filter((c: any) => c.day === selectedDay)
+          .sort((a: any, b: any) => a.start_time.localeCompare(b.start_time));
         setClasses(dayClasses || []);
       } else {
         const { data, error } = await query
