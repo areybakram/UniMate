@@ -1,7 +1,16 @@
 import { Request, Response } from 'express';
-import { parseSchedule } from '../services/timetableService';
+import { parseSchedule, parseFlatSchedule } from '../services/timetableService';
+import { MASTER_CLASSROOMS, normalizeRoom } from '../data/classrooms';
 
 const ALLOWED_MAX_TIME = "8:30"; // university cutoff
+
+const DAY_ORDER = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+function sortTimeRanges(a: string, b: string) {
+  const aStart = a.split('-')[0]?.trim() || '';
+  const bStart = b.split('-')[0]?.trim() || '';
+  return aStart.localeCompare(bStart);
+}
 
 function timeToMinutes(t: string) {
   if (!t || typeof t !== "string") return NaN;
@@ -116,6 +125,69 @@ export const getFreeSlots = (req: Request, res: Response) => {
     res.status(200).json(newSections);
   } catch (error: any) {
     res.status(500).json({ error: "Failed to calculate free slots." });
+  }
+};
+
+export const getTimeSlots = (_req: Request, res: Response) => {
+  try {
+    const flatData = parseFlatSchedule();
+    const uniqueTimings = Array.from(new Set(flatData.map(d => d.timings).filter(Boolean))).sort(sortTimeRanges);
+    res.status(200).json(uniqueTimings);
+  } catch (error: any) {
+    res.status(500).json({ error: "Failed to fetch time slots." });
+  }
+};
+
+export const getRoomStatus = (req: Request, res: Response) => {
+  try {
+    const { day, time } = req.body;
+    if (!day || !time) {
+      return res.status(400).json({ error: "day and time are required" });
+    }
+
+    const [selectedStart, selectedEnd] = time.split('-').map((t: string) => t.trim());
+    if (!selectedStart || !selectedEnd) {
+      return res.status(400).json({ error: "Invalid time format. Use HH:MM-HH:MM" });
+    }
+
+    const flatData = parseFlatSchedule();
+
+    const occupiedEntries = flatData.filter(d =>
+      d.day === day &&
+      d.start_time === selectedStart &&
+      d.end_time === selectedEnd &&
+      d.room
+    );
+
+    const occupiedMap = new Map<string, typeof occupiedEntries[0]>();
+    for (const entry of occupiedEntries) {
+      const norm = normalizeRoom(entry.room);
+      if (!occupiedMap.has(norm)) {
+        occupiedMap.set(norm, entry);
+      }
+    }
+
+    const results = MASTER_CLASSROOMS.map(room => {
+      const norm = normalizeRoom(room);
+      const entry = occupiedMap.get(norm);
+      if (entry) {
+        return {
+          room,
+          status: 'occupied',
+          course_code: entry.course_code,
+          subject: entry.subject,
+          teacher_name: entry.teacher_name,
+          batch_code: entry.batch_code,
+          class_dept: entry.class_dept
+        };
+      }
+      return { room, status: 'free' };
+    });
+
+    res.status(200).json(results);
+  } catch (error: any) {
+    console.error("❌ Room Status Error:", error);
+    res.status(500).json({ error: "Failed to fetch room status." });
   }
 };
 

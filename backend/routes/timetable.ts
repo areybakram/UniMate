@@ -1,5 +1,14 @@
 import { Router } from 'express';
-import { getFullSchedule, getBatchTimetable, getFreeSlots, getPersonalizedTimetable, getAvailableBatches, getTeacherSchedule } from '../controllers/timetableController';
+import {
+  getFullSchedule,
+  getBatchTimetable,
+  getFreeSlots,
+  getPersonalizedTimetable,
+  getAvailableBatches,
+  getTeacherSchedule,
+  getTimeSlots,
+  getRoomStatus
+} from '../controllers/timetableController';
 
 const router = Router();
 
@@ -18,6 +27,14 @@ router.get('/batch/:batchCode', getBatchTimetable);
 // @route   GET /api/timetable/free-slots
 // @desc    Calculate and return free slots for all tables
 router.get('/free-slots', getFreeSlots);
+
+// @route   GET /api/timetable/time-slots
+// @desc    Get all unique time ranges from timetable
+router.get('/time-slots', getTimeSlots);
+
+// @route   POST /api/timetable/room-status
+// @desc    Get status (free/occupied) for all rooms at a given day + time
+router.post('/room-status', getRoomStatus);
 
 // @route   POST /api/timetable/personalized
 // @desc    Get filtered results for a specific set of courses

@@ -16,6 +16,31 @@ function isTimeRow(row: any[]) {
   return Array.isArray(row) && row.reduce((c, v) => c + (isTime(v) ? 1 : 0), 0) >= 6;
 }
 
+export function parseFlatSchedule() {
+  const workbook = XLSX.readFile(EXCEL_PATH);
+  const sheetName = workbook.SheetNames[0];
+  const worksheet = workbook.Sheets[sheetName];
+  const data: any[] = XLSX.utils.sheet_to_json(worksheet);
+
+  return data.map((row: any) => {
+    const timings: string = row.Timings || '';
+    const [startStr, endStr] = timings.split('-').map((t: string) => t?.trim());
+    return {
+      class_dept: row['Class Dept'] || '',
+      batch_code: row.Classes || '',
+      subject: row.Subject || '',
+      course_code: row['Course Code'] || '',
+      teacher_dept: row['Teacher Dept'] || '',
+      teacher_name: (row.Teacher || '').replace('VF-', '').trim(),
+      day: row.Day || '',
+      timings,
+      start_time: startStr || '',
+      end_time: endStr || '',
+      room: row.Room || ''
+    };
+  });
+}
+
 export function parseSchedule() {
   const workbook = XLSX.readFile(EXCEL_PATH);
   const sheetName = workbook.SheetNames[0];
