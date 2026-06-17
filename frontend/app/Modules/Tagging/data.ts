@@ -37,11 +37,11 @@ const buildings: Building[] = [
       "High-speed internet connectivity",
       "Student common areas",
     ],
-    mainImage: require("../../../assets/buildings/n-block-main.jpg"),
+    mainImage: require("../../../assets/University_Images/N Block/N Block main building .jpg"),
     extraImages: [
-      require("../../../assets/buildings/n-block-extra-1.jpg"),
-      require("../../../assets/buildings/n-block-extra-2.jpg"),
-      require("../../../assets/buildings/n-block-extra-3.jpg"),
+      require("../../../assets/University_Images/N Block/N Block 1.jpg"),
+      require("../../../assets/University_Images/N Block/N Block 2.jpg"),
+      require("../../../assets/University_Images/N Block/N Block 3.jpg"),
     ],
   },
   {
@@ -63,9 +63,9 @@ const buildings: Building[] = [
       "Project workspaces",
       "Faculty consultation rooms",
     ],
-    mainImage: require("../../../assets/buildings/k-block-main.jpeg"),
+    mainImage: require("../../../assets/University_Images/K Block/K block main building .jpeg"),
     extraImages: [
-      require("../../../assets/buildings/k-block-extra-1.jpeg"),
+      require("../../../assets/University_Images/K Block/K Block 1.jpeg"),
     ],
   },
   {
@@ -87,10 +87,10 @@ const buildings: Building[] = [
       "Dedicated faculty research areas",
       "Undergraduate and graduate facilities",
     ],
-    mainImage: require("../../../assets/buildings/physics-block-main.jpeg"),
+    mainImage: require("../../../assets/University_Images/A Block (Physics Department)/A Block main building .jpeg"),
     extraImages: [
-      require("../../../assets/buildings/physics-block-extra-1.jpeg"),
-      require("../../../assets/buildings/physics-block-extra-2.jpeg"),
+      require("../../../assets/University_Images/A Block (Physics Department)/A Block 1.jpeg"),
+      require("../../../assets/University_Images/A Block (Physics Department)/A Block 2.jpeg"),
     ],
   },
   {
@@ -111,11 +111,11 @@ const buildings: Building[] = [
       "Affordable meal options",
       "Student gathering space",
     ],
-    mainImage: require("../../../assets/buildings/cafeteria-main.jpeg"),
+    mainImage: require("../../../assets/University_Images/Cafeteria/Cafeteria main building .jpeg"),
     extraImages: [
-      require("../../../assets/buildings/cafeteria-extra-1.jpeg"),
-      require("../../../assets/buildings/cafeteria-extra-2.jpeg"),
-      require("../../../assets/buildings/cafeteria-extra-3.jpg"),
+      require("../../../assets/University_Images/Cafeteria/Cafeteria 1.jpeg"),
+      require("../../../assets/University_Images/Cafeteria/Cafeteria 2.jpeg"),
+      require("../../../assets/University_Images/Cafeteria/Coffee Shop.jpg"),
     ],
   },
   {
@@ -136,9 +136,9 @@ const buildings: Building[] = [
       "Spectator seating",
       "Floodlights for evening matches",
     ],
-    mainImage: require("../../../assets/buildings/cricket-ground-main.jpg"),
+    mainImage: require("../../../assets/University_Images/Stadium.jpg"),
     extraImages: [
-      require("../../../assets/buildings/cricket-ground-extra-1.jpg"),
+      require("../../../assets/University_Images/Stadium 2.jpg"),
     ],
   },
   {
@@ -160,12 +160,12 @@ const buildings: Building[] = [
       "Meeting and conference rooms",
       "Student advisory services",
     ],
-    mainImage: require("../../../assets/buildings/faculty-block-main.jpeg"),
+    mainImage: require("../../../assets/University_Images/Faculty Block/Faculty block main building .jpeg"),
     extraImages: [
-      require("../../../assets/buildings/faculty-block-extra-1.jpeg"),
-      require("../../../assets/buildings/faculty-block-extra-2.jpeg"),
-      require("../../../assets/buildings/faculty-block-extra-3.jpeg"),
-      require("../../../assets/buildings/faculty-block-extra-4.jpeg"),
+      require("../../../assets/University_Images/Faculty Block/Faculty Block 1.jpeg"),
+      require("../../../assets/University_Images/Faculty Block/Faculty Block 2.jpeg"),
+      require("../../../assets/University_Images/Faculty Block/Faculty Block 3.jpeg"),
+      require("../../../assets/University_Images/Faculty Block/Faculty Block.jpeg"),
     ],
   },
 ];
