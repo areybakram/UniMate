@@ -30,7 +30,8 @@ interface Building {
   departments?: string;
   facilities?: string;
   features?: string[];
-  images: any[];
+  mainImage: any;
+  extraImages: any[];
 }
 
 interface NaturalSize {
@@ -47,6 +48,7 @@ export default function MapTaggerScreen() {
   const [selectedBuilding, setSelectedBuilding] = useState<Building | null>(
     null,
   );
+  const [showExtraImages, setShowExtraImages] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
 
   const { containerWidth, containerHeight } = useMemo(() => {
@@ -178,27 +180,53 @@ export default function MapTaggerScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Images carousel */}
-            {selectedBuilding.images?.length > 0 && (
-              <ScrollView
-                horizontal
-                pagingEnabled
-                showsHorizontalScrollIndicator={false}
-                style={styles.imageCarousel}
-              >
-                {selectedBuilding.images.map((img: any, idx: number) => (
-                  <Image
-                    key={idx}
-                    source={img}
-                    style={{
-                      width: screenWidth - 32,
-                      height: 180,
-                      borderRadius: 12,
-                    }}
-                    resizeMode="cover"
-                  />
-                ))}
-              </ScrollView>
+            {/* Main image */}
+            <Image
+              source={selectedBuilding.mainImage}
+              style={{
+                width: screenWidth - 32,
+                height: 200,
+                borderRadius: 12,
+              }}
+              resizeMode="cover"
+            />
+
+            {/* Extra images */}
+            {selectedBuilding.extraImages?.length > 0 && (
+              <>
+                <TouchableOpacity
+                  style={styles.exploreBtn}
+                  onPress={() => setShowExtraImages(!showExtraImages)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.exploreBtnText}>
+                    {showExtraImages ? "Hide" : "Explore More"} (
+                    {selectedBuilding.extraImages.length} photos)
+                  </Text>
+                </TouchableOpacity>
+
+                {showExtraImages && (
+                  <ScrollView
+                    horizontal
+                    pagingEnabled
+                    showsHorizontalScrollIndicator={false}
+                    style={styles.imageCarousel}
+                  >
+                    {selectedBuilding.extraImages.map((img: any, idx: number) => (
+                      <Image
+                        key={idx}
+                        source={img}
+                        style={{
+                          width: screenWidth - 32,
+                          height: 180,
+                          borderRadius: 12,
+                        }}
+                        resizeMode="cover"
+                      />
+                    ))}
+                  </ScrollView>
+                )}
+              </>
             )}
 
             {/* About */}
@@ -417,6 +445,18 @@ const styles = StyleSheet.create({
   imageCarousel: {
     borderRadius: 12,
     overflow: "hidden",
+  },
+  exploreBtn: {
+    backgroundColor: "#2D3748",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  exploreBtnText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
   },
 
   // Section

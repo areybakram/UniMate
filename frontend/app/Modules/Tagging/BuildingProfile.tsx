@@ -1,11 +1,13 @@
 "use client";
 
 import { useLocalSearchParams } from "expo-router";
+import { useState } from "react";
 import {
   Image,
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   useWindowDimensions,
   View,
 } from "react-native";
@@ -13,7 +15,8 @@ import buildings from "./data";
 
 export default function BuildingProfileScreen() {
   const params = useLocalSearchParams() as { id: string };
-  const id = params.id; // now this will be building1
+  const id = params.id;
+  const [showExtraImages, setShowExtraImages] = useState(false);
 
   console.log("id", id);
   const building = buildings.find((b) => b.id === id);
@@ -32,20 +35,42 @@ export default function BuildingProfileScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {building.images?.length > 0 && (
-        <ScrollView
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}>
-          {building.images.map((img, index) => (
-            <Image
-              key={index}
-              source={img}
-              style={{ width, height: 300 }}
-              resizeMode="cover"
-            />
-          ))}
-        </ScrollView>
+      <Image
+        source={building.mainImage}
+        style={{ width, height: 300 }}
+        resizeMode="cover"
+      />
+
+      {building.extraImages?.length > 0 && (
+        <>
+          <TouchableOpacity
+            style={styles.exploreBtn}
+            onPress={() => setShowExtraImages(!showExtraImages)}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.exploreBtnText}>
+              {showExtraImages ? "Hide" : "Explore More"} (
+              {building.extraImages.length} photos)
+            </Text>
+          </TouchableOpacity>
+
+          {showExtraImages && (
+            <ScrollView
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+            >
+              {building.extraImages.map((img, index) => (
+                <Image
+                  key={index}
+                  source={img}
+                  style={{ width, height: 300 }}
+                  resizeMode="cover"
+                />
+              ))}
+            </ScrollView>
+          )}
+        </>
       )}
 
       <View style={styles.hero}>
@@ -114,6 +139,20 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   text: { color: "#d1d5db", fontSize: 14, lineHeight: 20 },
+  exploreBtn: {
+    backgroundColor: "#0284c7",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    alignItems: "center",
+    marginHorizontal: 16,
+    marginBottom: 16,
+  },
+  exploreBtnText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
+  },
   errorContainer: {
     flex: 1,
     alignItems: "center",

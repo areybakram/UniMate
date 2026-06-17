@@ -1,3 +1,4 @@
+import DropdownModal from "@/components/DropdownModal";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
@@ -14,7 +15,6 @@ import {
   View,
 } from "react-native";
 import apiClient from "../../../utils/apiClient";
-import DropdownModal from "@/components/DropdownModal";
 
 const { width } = Dimensions.get("window");
 
@@ -192,8 +192,12 @@ const FreeSlots = () => {
             ))}
           </ScrollView>
         </View>
+      </LinearGradient>
 
-        {/* Stats Bar — inside header gradient */}
+      {/* Body */}
+      <View style={styles.body}>
+
+        {/* Stats Bar */}
         <View style={styles.statsRow}>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{roomData.length}</Text>
@@ -201,24 +205,20 @@ const FreeSlots = () => {
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={[styles.statValue, { color: "#60a5fa" }]}>{freeCount}</Text>
+            <Text style={[styles.statValue, { color: "#3b82f6" }]}>{freeCount}</Text>
             <Text style={styles.statLabel}>Available</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={[styles.statValue, { color: "#60a5fa" }]}>{occupiedCount}</Text>
+            <Text style={[styles.statValue, { color: "#3b82f6" }]}>{occupiedCount}</Text>
             <Text style={styles.statLabel}>Occupied</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={[styles.statValue, { color: "#60a5fa" }]}>{freePercent}%</Text>
+            <Text style={[styles.statValue, { color: "#3b82f6" }]}>{freePercent}%</Text>
             <Text style={styles.statLabel}>Free Rate</Text>
           </View>
         </View>
-      </LinearGradient>
-
-      {/* Body */}
-      <View style={styles.body}>
 
         {/* Filter Tabs */}
         <View style={styles.filterRow}>
@@ -471,17 +471,22 @@ const styles = StyleSheet.create({
   // ─── Body ─────────────────────────────────────────────────
   body: {
     flex: 1,
+    marginTop: 8,
   },
 
   // ─── Stats bar ────────────────────────────────────────────
   statsRow: {
     flexDirection: "row",
-    backgroundColor: "transparent",
+    backgroundColor: "#fff",
     paddingVertical: 16,
     paddingHorizontal: 20,
-    marginTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: "rgba(255,255,255,0.08)",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e2e8f0",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
   },
   statItem: {
     flex: 1,
@@ -490,20 +495,20 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 20,
     fontWeight: "800",
-    color: "#f1f5f9",
+    color: "#0f172a",
     letterSpacing: -0.5,
   },
   statLabel: {
     fontSize: 10,
     fontWeight: "600",
-    color: "#475569",
+    color: "#94a3b8",
     marginTop: 3,
     letterSpacing: 0.3,
     textTransform: "uppercase",
   },
   statDivider: {
     width: 1,
-    backgroundColor: "rgba(255,255,255,0.1)",
+    backgroundColor: "#e2e8f0",
     marginVertical: 4,
   },
 

@@ -25,7 +25,6 @@ import TimetableScreen from "./student/Timetable";
 // Guard
 import GuardDashboard from "./guard/Dashboard";
 import GuardHome from "./guard/Home";
-import GuardLogs from "./guard/Logs";
 
 // Teacher
 import TeacherHome from "./teacher/Home";
@@ -99,7 +98,7 @@ const TabsLayout = () => {
         {role === "guard" && (
           <>
             <Tab.Screen name="Alerts" component={GuardDashboard} />
-            <Tab.Screen name="Logs" component={GuardLogs} />
+            {/* <Tab.Screen name="Logs" component={GuardLogs} /> */}
           </>
         )}
 

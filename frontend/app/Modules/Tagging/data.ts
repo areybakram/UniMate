@@ -11,7 +11,8 @@ interface Building {
   departments?: string;
   facilities?: string;
   features?: string[];
-  images: any;
+  mainImage: any;
+  extraImages: any[];
 }
 
 // Normalized coordinates (x, y) in range [0, 1] relative to image dimensions
@@ -36,10 +37,11 @@ const buildings: Building[] = [
       "High-speed internet connectivity",
       "Student common areas",
     ],
-    images: [
-      require("../../../assets/buildings/n-block-1.jpg"),
-      require("../../../assets/buildings/n-block-2.jpg"),
-      require("../../../assets/buildings/n-block-3.jpg"),
+    mainImage: require("../../../assets/buildings/n-block-main.jpg"),
+    extraImages: [
+      require("../../../assets/buildings/n-block-extra-1.jpg"),
+      require("../../../assets/buildings/n-block-extra-2.jpg"),
+      require("../../../assets/buildings/n-block-extra-3.jpg"),
     ],
   },
   {
@@ -61,9 +63,9 @@ const buildings: Building[] = [
       "Project workspaces",
       "Faculty consultation rooms",
     ],
-    images: [
-      require("../../../assets/buildings/k-block-1.jpg"),
-      require("../../../assets/buildings/k-block-2.jpg"),
+    mainImage: require("../../../assets/buildings/k-block-main.jpeg"),
+    extraImages: [
+      require("../../../assets/buildings/k-block-extra-1.jpeg"),
     ],
   },
   {
@@ -85,10 +87,10 @@ const buildings: Building[] = [
       "Dedicated faculty research areas",
       "Undergraduate and graduate facilities",
     ],
-    images: [
-      require("../../../assets/buildings/physics-block-1.jpg"),
-      require("../../../assets/buildings/physics-block-2.jpg"),
-      require("../../../assets/buildings/physics-block-3.jpg"),
+    mainImage: require("../../../assets/buildings/physics-block-main.jpeg"),
+    extraImages: [
+      require("../../../assets/buildings/physics-block-extra-1.jpeg"),
+      require("../../../assets/buildings/physics-block-extra-2.jpeg"),
     ],
   },
   {
@@ -109,9 +111,11 @@ const buildings: Building[] = [
       "Affordable meal options",
       "Student gathering space",
     ],
-    images: [
-      require("../../../assets/buildings/cafeteria-1.jpg"),
-      require("../../../assets/buildings/cafeteria-2.jpg"),
+    mainImage: require("../../../assets/buildings/cafeteria-main.jpeg"),
+    extraImages: [
+      require("../../../assets/buildings/cafeteria-extra-1.jpeg"),
+      require("../../../assets/buildings/cafeteria-extra-2.jpeg"),
+      require("../../../assets/buildings/cafeteria-extra-3.jpg"),
     ],
   },
   {
@@ -132,9 +136,9 @@ const buildings: Building[] = [
       "Spectator seating",
       "Floodlights for evening matches",
     ],
-    images: [
-      require("../../../assets/buildings/cricket-ground-1.jpg"),
-      require("../../../assets/buildings/cricket-ground-2.jpg"),
+    mainImage: require("../../../assets/buildings/cricket-ground-main.jpg"),
+    extraImages: [
+      require("../../../assets/buildings/cricket-ground-extra-1.jpg"),
     ],
   },
   {
@@ -156,9 +160,12 @@ const buildings: Building[] = [
       "Meeting and conference rooms",
       "Student advisory services",
     ],
-    images: [
-      require("../../../assets/buildings/faculty-block-1.jpg"),
-      require("../../../assets/buildings/faculty-block-2.jpg"),
+    mainImage: require("../../../assets/buildings/faculty-block-main.jpeg"),
+    extraImages: [
+      require("../../../assets/buildings/faculty-block-extra-1.jpeg"),
+      require("../../../assets/buildings/faculty-block-extra-2.jpeg"),
+      require("../../../assets/buildings/faculty-block-extra-3.jpeg"),
+      require("../../../assets/buildings/faculty-block-extra-4.jpeg"),
     ],
   },
 ];
