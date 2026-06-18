@@ -61,6 +61,8 @@ export default ({ config }) => ({
     router: {},
     eas: {
       projectId: "5646b1d2-5745-430b-a0ce-520902dfc91f"
-    }
+    },
+    apiUrl: process.env.EXPO_PUBLIC_API_URL,
+    socketUrl: process.env.EXPO_PUBLIC_SOCKET_URL
   }
 });

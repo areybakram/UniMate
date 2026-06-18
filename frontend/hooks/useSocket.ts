@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { encrypt } from '../utils/encryption';
-
-// Use host IP if testing on physical device, otherwise localhost
-const SOCKET_URL = 'http://172.16.7.33:5001'; 
+import { SOCKET_URL } from '../constants/config';
 
 export const useSocket = (roomId?: string) => {
   const [socket, setSocket] = useState<Socket | null>(null);
