@@ -2,7 +2,7 @@ import { AuthProvider } from "@/Context/AuthContext";
 import { DrawerProvider } from "@/Context/DrawerContext";
 import { useFonts } from "expo-font";
 import { SplashScreen, Stack } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { LocationProvider } from "../Context/LocationContext";
 import { NotificationProvider } from "../Context/NotificationContext";
 // import GlobalProvider from '../context/GlobalProvider'
@@ -10,10 +10,20 @@ import { NotificationProvider } from "../Context/NotificationContext";
 SplashScreen.preventAutoHideAsync();
 
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { Text, View } from "react-native";
+
+function ErrorFallback({ error }: { error: Error }) {
+  return (
+    <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 20, backgroundColor: "#fff" }}>
+      <Text style={{ fontSize: 18, fontWeight: "bold", marginBottom: 8, color: "#333" }}>Something went wrong</Text>
+      <Text style={{ fontSize: 13, color: "#666", textAlign: "center" }}>{error.message}</Text>
+    </View>
+  );
+}
 
 const _layout = () => {
-  console.log("Rendering _layout");
-  const [fontsLoaded, error] = useFonts({
+  const [fatalError, setFatalError] = useState<Error | null>(null);
+  const [fontsLoaded, fontError] = useFonts({
     "Poppins-Black": require("../assets/fonts/Poppins-Black.ttf"),
     "Poppins-Bold": require("../assets/fonts/Poppins-Bold.ttf"),
     "Poppins-ExtraBold": require("../assets/fonts/Poppins-ExtraBold.ttf"),
@@ -26,11 +36,19 @@ const _layout = () => {
   });
 
   useEffect(() => {
-    if (error) throw error;
-    if (fontsLoaded) SplashScreen.hideAsync();
-  }, [fontsLoaded, error]);
+    if (fontError) {
+      console.warn("Font loading error (non-fatal):", fontError);
+    }
+    if (fontsLoaded || fontError) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded, fontError]);
 
-  if (!fontsLoaded && !error) return null;
+  if (fatalError) {
+    return <ErrorFallback error={fatalError} />;
+  }
+
+  if (!fontsLoaded && !fontError) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

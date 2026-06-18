@@ -7,7 +7,7 @@ export default ({ config }) => ({
   icon: "./assets/icons/gradstudent.png",
   scheme: "unimate",
   userInterfaceStyle: "automatic",
-  newArchEnabled: true,
+  newArchEnabled: false,
   ios: {
     supportsTablet: true,
     config: {

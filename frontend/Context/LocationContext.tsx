@@ -143,22 +143,28 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Optional: automatic tracking if you want continuous updates
   useEffect(() => {
     let subscription: Location.LocationSubscription | null = null;
+    let cancelled = false;
 
     const startTracking = async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') return;
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted' || cancelled) return;
 
-      subscription = await Location.watchPositionAsync(
-        { accuracy: Location.Accuracy.High, distanceInterval: 5 },
-        (loc) => {
-          setUserLocation({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
-        }
-      );
+        subscription = await Location.watchPositionAsync(
+          { accuracy: Location.Accuracy.High, distanceInterval: 5 },
+          (loc) => {
+            setUserLocation({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+          }
+        );
+      } catch (e) {
+        console.warn("Location tracking failed (non-fatal):", e);
+      }
     };
 
     startTracking();
 
     return () => {
+      cancelled = true;
       subscription?.remove();
     };
   }, []);

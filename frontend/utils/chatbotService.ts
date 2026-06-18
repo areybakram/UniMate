@@ -2,8 +2,8 @@ import axios from "axios";
 import Fuse from "fuse.js";
 import dataset from "./comsats_data.js";
 
-const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
-const OPENROUTER_API_KEY = process.env.EXPO_PUBLIC_OPENROUTER_API_KEY;
+const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY || "";
+const OPENROUTER_API_KEY = process.env.EXPO_PUBLIC_OPENROUTER_API_KEY || "";
 const GEMINI_MODEL = "gemini-2.5-flash";
 const OPENROUTER_MODEL = "openrouter/auto";
 
