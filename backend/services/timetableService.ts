@@ -1,7 +1,23 @@
 import * as XLSX from "xlsx";
 import path from "path";
+import fs from "fs";
 
-const EXCEL_PATH = path.join(__dirname, "../data/final_timetable_with_lab_codes.xlsx");
+function getExcelPath(): string {
+  const relativePath = path.join("data", "final_timetable_with_lab_codes.xlsx");
+
+  // Local dev: __dirname -> services/, need ../data/
+  const localPath = path.join(__dirname, "..", relativePath);
+  if (fs.existsSync(localPath)) return localPath;
+
+  // Vercel serverless: process.cwd() is the function root (backend/)
+  const vercelPath = path.join(process.cwd(), relativePath);
+  if (fs.existsSync(vercelPath)) return vercelPath;
+
+  // Fallback (likely still works in most cases)
+  return localPath;
+}
+
+const EXCEL_PATH = getExcelPath();
 const DAYS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
 
 function normalizeTitle(s: string) {

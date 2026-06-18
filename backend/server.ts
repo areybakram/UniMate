@@ -1,22 +1,13 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import express from 'express';
-import cors from 'cors';
-import aiRoutes from './routes/ai';
-import timetableRoutes from './routes/timetable';
-import lendBorrowRoutes from './routes/lendBorrow';
-import lostFoundRoutes from './routes/lostFound';
-import debugRoutes from './routes/debug';
-import notificationRoutes from './routes/notifications';
-import { createClient } from '@supabase/supabase-js';
-import { Server } from 'socket.io';
+import app from './api/index';
 import http from 'http';
+import { Server } from 'socket.io';
+import { createClient } from '@supabase/supabase-js';
 
-const app = express();
 const PORT = process.env.PORT || 5001;
 
-// Initialize Supabase Admin
 const SUPABASE_URL = process.env.SUPABASE_URL || "https://stzbxkqqfjtpbfruqaag.supabase.co"; 
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || ""; 
 
@@ -24,9 +15,6 @@ if (!SUPABASE_KEY) {
   console.warn("⚠️ Warning: No Supabase Key found. Persistence will fail.");
 }
 const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-app.use(cors());
-app.use(express.json({ limit: '50mb' }));
 
 const httpServer = http.createServer(app);
 const io = new Server(httpServer, {
@@ -77,21 +65,6 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log('👤 User disconnected');
   });
-});
-
-// Routes
-app.get('/', (req, res) => {
-  res.status(200).send('🚀 UniMate API is running perfectly!');
-});
-app.use('/api/ai', aiRoutes);
-app.use('/api/timetable', timetableRoutes);
-app.use('/api/lend-borrow', lendBorrowRoutes);
-app.use('/api/lost-found', lostFoundRoutes);
-app.use('/api/debug', debugRoutes);
-app.use('/api/notifications', notificationRoutes);
-
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'OK', message: 'UniMate Backend is running' });
 });
 
 httpServer.listen(Number(PORT), '0.0.0.0', () => {

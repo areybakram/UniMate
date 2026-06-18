@@ -6,7 +6,8 @@
   "scripts": {
     "start": "ts-node server.ts",
     "dev": "ts-node-dev --respawn --transpile-only server.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "vercel-build": "tsc"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.103.0",
