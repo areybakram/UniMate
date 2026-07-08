@@ -1,115 +1,367 @@
-# UniMate Campus Hub 🏛️🚀
+# UniMate Campus Hub
 
-Welcome to the **UniMate Campus Hub** repository. UniMate is a comprehensive, production-grade campus management application designed to unify and streamline the academic and administrative experience for university stakeholders, including Students, Teachers, and Security Teams.
+> **Status:** Active Development
 
-> 🛠️ **Status:** Active Development (Work in Progress)
-> _Note: This application is currently undergoing active development and continuous integration of advanced features. The architecture is designed to scale and represent a complete, industry-standard solution._
+UniMate Campus Hub is a modern campus management application built to simplify academic and administrative activities for university stakeholders. The platform provides a unified mobile experience for students, teachers, and campus security personnel through role-based access, intelligent automation, real-time communication, and cloud-based infrastructure.
 
----
-
-## 🌟 Project Overview
-
-**UniMate is not just a UI mockup. It is a fully decoupled, micro-service-inspired mobile ecosystem that leverages automated AI processing, WebSocket-driven real-time coordination, and strict database normalization to solve complex campus logistics at scale.**
-
-The project showcases industry-standard practices in UI/UX design, state management, real-time communication, and data synchronization.
-
-### 🎯 Key Objectives
-- **Centralized Ecosystem:** Provide a single hub for academic tracking, campus navigation, and community interaction.
-- **Role-Based Workflows:** Deliver customized, dynamic experiences tailored to specific user roles (Students, Teachers, Guards).
-- **Intelligent Automation:** Leverage backend AI processing for automated tasks (e.g., intelligent context extraction from academic data).
-- **Real-Time Connectivity:** Foster campus community through instant communication modules (Lost & Found, Lend & Borrow, Emergency).
+The project is being developed as a production-oriented application following modern software engineering principles, scalable architecture, and industry best practices.
 
 ---
 
-## 🏗️ Technical Architecture & Advanced Concepts
+# Table of Contents
 
-The most significant architectural decision in UniMate is its **fully decoupled design**. Instead of tightly packing all logic into the React Native mobile app (which bloats app size and drains battery), we split the system into specialized tiers:
-
-### 1. The Client (Frontend)
-- **Framework:** [React Native](https://reactnative.dev/) powered by [Expo](https://expo.dev/)
-- **Responsibility:** Exclusively renders the UI, manages local state, and provides a smooth 60fps user experience using our custom "Slate" design language.
-- **Offline-First State Management:** Using `AsyncStorage`, the app caches heavy payloads (like the user's Timetable, Analytics, and Profile Data). When opened offline, it loads instantly using cached data. Once connection is restored, it quietly syncs with the database in the background.
-
-### 2. The Brain (Backend) & Computational Offloading
-- **Environment:** [Node.js](https://nodejs.org/) & [Express.js](https://expressjs.com/)
-- **Advanced Concept (Computational Offloading):** Parsing complex Excel timetables or using AI to scan Student ID cards requires massive computational power. Instead of forcing the mobile processor to do this, the frontend securely offloads the raw data to the Express backend. The server crunches the data, runs intensive AI heuristics, structures it into optimized JSON, and sends only the lightweight result back to the phone.
-
-### 3. The Real-Time Engine (WebSockets + REST)
-- **Technology:** [Socket.io](https://socket.io/)
-- **Advanced Concept (Hybrid Syncing):** For 1-on-1 chatting in the Lost & Found module, when a user sends a message, it is instantly relayed via WebSocket for zero-latency UI updates. Simultaneously, the Node.js backend intercepts that payload and silently executes a background worker thread to persist the message into the PostgreSQL database. This guarantees instant responsiveness while ensuring zero data loss if a client disconnects.
-
-### 4. The Vault (Database & Auth)
-- **Database:** [Supabase](https://supabase.com/) (PostgreSQL)
-- **Strict Data Integrity:** We don't trust user input. During signup, the frontend enforces strict Regular Expressions (e.g., `FA22-BCS-110`). Furthermore, we use logic to intelligently extract hidden metadata—automatically deducing that the student's `batch` is `FA22` from the registration number without ever asking the user, ensuring the database remains completely normalized.
-
-### 5. AI Infrastructure (Gemini 2.5 Flash)
-- **Model:** [Google Gemini 2.5 Flash](https://ai.google.dev/)
-- **API Version:** `v1beta` (Supports Advanced JSON Schema Mode)
-- **Use Case:**
-    - **Automated Course Extraction:** Analyzes registration cards to extract course codes and batches.
-    - **AI Lecture Transcription:** Converts raw audio recordings into professionally structured lecture notes (Overview, Key Concepts, Detailed Sections).
-- **Configuration:** The project is strictly optimized for the **Gemini 2.5 Flash** model to ensure low-latency, free-tier compatible high-performance academic processing.
+- Project Overview
+- Features
+- System Architecture
+- Technology Stack
+- Core Modules
+- Security & Authentication
+- AI Integration
+- Project Structure
+- Getting Started
+- Development Roadmap
 
 ---
 
-## ✨ Core Modules & Workflows
+# Project Overview
 
-### 👥 Dynamic Role-Based Access Control (RBAC)
-The application morphology adapts entirely based on the authenticated profile using a centralized Context:
-- **Student Dashboard:** Timetable tracking, personalized task managers, attendance analytics, and quick tools.
-- **Teacher Dashboard:** Streamlined access to faculty tools and simplified class/notification management.
-- **Guard Dashboard:** Security-first interface highlighting relevant campus alerts and monitoring nodes.
+Universities typically rely on multiple disconnected systems for navigation, communication, academic resources, and student services. UniMate aims to centralize these services into a single mobile platform.
 
-*We serve three entirely different applications from a single, highly-maintainable codebase.*
+The application is designed with a decoupled architecture where the mobile application, backend services, AI processing, and database operate independently while communicating through secure APIs and real-time services.
 
-### 🤝 Campus Community Utilities
-We built major peer-to-peer economies within the app:
-- **Lost & Found:** Users report incidents. If someone finds an item, they initiate a "Claim." This action dynamically spawns a highly secure, ephemeral 1-on-1 Chat Room (powered by WebSockets) so parties can coordinate without exposing personal phone numbers. Once returned, it is marked "Handed Over" and logged.
-- **Lend & Borrow Marketplace:** A portal for sharing academic resources (calculators, books). It tracks the lifecycle of an item from "Open Request" -> "Active Offer" -> "Handed Over".
-- **AI Lecture Notes:** A premium feature allowing students to record audio lectures. The system uses Gemini 2.5 Flash to generate structured, professional study notes, including detailed summaries and key concepts, which are then presented in a rich, animated UI.
+The primary goals of the project are:
+
+- Centralize campus services into a single application
+- Provide role-specific experiences for different users
+- Enable real-time communication
+- Integrate AI to automate academic workflows
+- Build a scalable and maintainable production-ready system
 
 ---
 
-## 🎨 Premium UI/UX Polish
+# Features
 
-A production app must feel native. We achieved this through:
-- **Keyboard-Aware Logic:** Mapped `Keyboard.dismiss` to `TouchableWithoutFeedback` backdrop wrappings. Tapping anywhere outside an active text input gracefully hides the keyboard, matching native iOS/Android expectations.
-- **Auto-Formatting:** Input fields automatically capitalize academic IDs to explicitly ensure the user doesn't accidentally trigger validation errors.
-- **Dynamic UI Context:** Home screen headers intelligently drop generic titles and perfectly display the student's exact Registration Number (e.g., `FA22-BCS-110`) mapped directly from the database context.
+## Role-Based Access Control
+
+Different dashboards and functionality are provided based on authenticated user roles.
+
+### Student
+
+- Smart timetable management
+- Campus navigation
+- Lost & Found
+- Lend & Borrow marketplace
+- AI-generated lecture notes
+- Academic resources
+- Emergency contacts
+
+### Teacher
+
+- Faculty dashboard
+- Class management
+- Notifications
+- Academic resources
+
+### Security Staff
+
+- Security dashboard
+- Campus monitoring
+- Emergency management
+- Incident reporting
 
 ---
 
-## 🚀 Getting Started (Local Development)
+# System Architecture
 
-### Prerequisites
-- Node.js (v18+)
-- Expo CLI (`npm install -g expo-cli`)
-- Supabase Project credentials
+UniMate follows a multi-tier architecture that separates responsibilities across different services.
 
-### 1. Backend Setup
+## Mobile Application
+
+**Framework**
+
+- React Native
+- Expo
+
+**Responsibilities**
+
+- User Interface
+- Local state management
+- Authentication
+- Offline caching
+- API communication
+
+The application follows an offline-first approach by caching frequently used data locally using AsyncStorage. Cached data is synchronized automatically whenever an internet connection becomes available.
+
+---
+
+## Backend Services
+
+**Technology**
+
+- Node.js
+- Express.js
+
+The backend is responsible for:
+
+- Business logic
+- Authentication
+- API endpoints
+- AI request processing
+- Data validation
+- File processing
+
+Computationally expensive tasks such as document parsing and AI processing are executed on the server rather than on the mobile device.
+
+---
+
+## Database
+
+**Platform**
+
+- Supabase
+- PostgreSQL
+
+The database manages:
+
+- User accounts
+- Timetables
+- Community posts
+- Chat data
+- Notifications
+- Academic resources
+
+Data validation is enforced at both the client and server levels to maintain data integrity.
+
+---
+
+## Real-Time Communication
+
+**Technology**
+
+- Socket.IO
+
+Real-time communication is used for:
+
+- Chat messaging
+- Live notifications
+- Community interactions
+- Emergency updates
+
+REST APIs handle persistent operations while Socket.IO delivers instant updates.
+
+---
+
+# AI Integration
+
+UniMate integrates Google's Gemini 2.5 Flash model to automate several academic tasks.
+
+Current AI features include:
+
+- Registration card information extraction
+- Course identification
+- Lecture transcription
+- Structured lecture note generation
+- Academic content summarization
+
+AI processing is performed on the backend, allowing the mobile application to remain lightweight and responsive.
+
+---
+
+# Technology Stack
+
+## Mobile
+
+- React Native
+- Expo
+- Expo Router
+- TypeScript
+- NativeWind
+- React Native Paper
+
+## Backend
+
+- Node.js
+- Express.js
+- Socket.IO
+
+## Database
+
+- Supabase
+- PostgreSQL
+
+## AI
+
+- Google Gemini 2.5 Flash
+
+## Other Services
+
+- Google Maps API
+- AsyncStorage
+
+---
+
+# Core Modules
+
+## Smart Timetable
+
+- Digital timetable management
+- Offline access
+- Automatic synchronization
+
+---
+
+## Campus Navigation
+
+- Interactive campus map
+- Building information
+- Navigation assistance
+
+---
+
+## Lost & Found
+
+Students can report lost items and communicate with finders through private real-time chat without exposing personal contact information.
+
+---
+
+## Lend & Borrow
+
+A community marketplace where students can lend or borrow academic resources such as books, calculators, and laboratory equipment.
+
+---
+
+## AI Lecture Notes
+
+Students can upload or record lectures, which are processed using AI to generate structured study notes including:
+
+- Overview
+- Key concepts
+- Detailed explanations
+- Organized sections
+
+---
+
+## Emergency Services
+
+Provides quick access to emergency contacts and campus security communication.
+
+---
+
+# Security & Authentication
+
+The application implements multiple security measures including:
+
+- Role-Based Access Control (RBAC)
+- Secure authentication
+- Input validation
+- Server-side verification
+- Protected API routes
+- Database integrity constraints
+
+---
+
+# Project Structure
+
+```
+UniMate/
+│
+├── frontend/
+│   ├── app/
+│   ├── components/
+│   ├── contexts/
+│   ├── hooks/
+│   ├── services/
+│   ├── assets/
+│   └── utils/
+│
+├── backend/
+│   ├── routes/
+│   ├── controllers/
+│   ├── middleware/
+│   ├── services/
+│   ├── sockets/
+│   └── utils/
+│
+└── README.md
+```
+
+---
+
+# Getting Started
+
+## Prerequisites
+
+- Node.js 18 or later
+- npm
+- Expo CLI
+- Supabase project
+- Google Maps API Key
+- Gemini API Key
+
+---
+
+## Backend
+
 ```bash
 cd backend
+
 npm install
-# Create a .env file containing your SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY
-npm start
+
+npm run dev
 ```
 
-### 2. Frontend Setup
+Create a `.env` file and configure the required environment variables.
+
+Example:
+
+```env
+SUPABASE_URL=
+SUPABASE_SERVICE_ROLE_KEY=
+GEMINI_API_KEY=
+```
+
+---
+
+## Frontend
+
 ```bash
 cd frontend
+
 npm install
-npx expo start -c
+
+npx expo start
 ```
 
----
+Run the application using:
 
-## 📅 Roadmap & Ongoing Work
-The UniMate platform is a living ecosystem. Active development is underway for:
-- [ ] Transitioning all keystores to secure production environment variables.
-- [ ] Deepening backend AI integration for advanced timetable/document parsing and automated advisement.
-- [ ] Finalizing full end-to-end encryption for peer-to-peer chat modules.
-- [ ] Polishing production builds for App Store and Play Store distribution.
+- Android Emulator
+- iOS Simulator
+- Physical Android Device
+- Physical iOS Device
 
 ---
 
-*Designed and developed to set a new technical standard for campus management infrastructure.*
+# Development Roadmap
+
+Current development priorities include:
+
+- Production deployment
+- Enhanced AI capabilities
+- End-to-end encrypted messaging
+- Advanced timetable automation
+- Push notifications
+- Improved analytics
+- Performance optimization
+- Play Store and App Store release
+
+---
+
+# Development Status
+
+UniMate is currently under active development. Features are continuously being implemented, improved, and tested. The architecture is designed to support future scalability and additional campus services.
+
+---
+
+# License
+
+This project is currently intended for academic and portfolio purposes. Licensing information will be added upon public release.
