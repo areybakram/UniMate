@@ -1,3 +1,12 @@
 {
-  "expo": {}
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "46ab5bbc-1fcb-4a29-92cb-0f117bfe587f"
+      }
+    },
+    "android": {
+      "package": "com.areebakram01.unimatemonorepo"
+    }
+  }
 }
