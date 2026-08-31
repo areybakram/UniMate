@@ -52,7 +52,9 @@ export default ({ config }) => ({
     ],
     "@react-native-community/datetimepicker",
     "expo-font",
-    "expo-web-browser"
+    "expo-web-browser",
+    "expo-notifications",
+    "expo-location"
   ],
   experiments: {
     typedRoutes: true
