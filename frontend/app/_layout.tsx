@@ -1,3 +1,4 @@
+import "../global.css";
 import { AuthProvider } from "@/Context/AuthContext";
 import { DrawerProvider } from "@/Context/DrawerContext";
 import { useFonts } from "expo-font";
