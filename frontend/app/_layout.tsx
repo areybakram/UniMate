@@ -40,7 +40,7 @@ const _layout = () => {
       console.warn("Font loading error (non-fatal):", fontError);
     }
     if (fontsLoaded || fontError) {
-      SplashScreen.hideAsync();
+      SplashScreen.hideAsync().catch(() => {});
     }
   }, [fontsLoaded, fontError]);
 
@@ -48,6 +48,7 @@ const _layout = () => {
     return <ErrorFallback error={fatalError} />;
   }
 
+  // Allow app to continue rendering if fonts fail or load
   if (!fontsLoaded && !fontError) return null;
 
   return (

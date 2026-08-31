@@ -4,7 +4,7 @@ export default ({ config }) => ({
   slug: "UniMate",
   version: "1.0.0",
   orientation: "portrait",
-  icon: "./assets/icons/gradstudent.png",
+  icon: "./assets/Icons/gradstudent.png",
   scheme: "unimate",
   userInterfaceStyle: "automatic",
   newArchEnabled: false,
@@ -19,7 +19,7 @@ export default ({ config }) => ({
   },
   android: {
     adaptiveIcon: {
-      foregroundImage: "./assets/icons/gradstudent.png",
+      foregroundImage: "./assets/Icons/gradstudent.png",
       backgroundColor: "#ffffff"
     },
     edgeToEdgeEnabled: true,
@@ -37,14 +37,14 @@ export default ({ config }) => ({
   web: {
     bundler: "metro",
     output: "static",
-    favicon: "./assets/icons/gradstudent.png"
+    favicon: "./assets/Icons/gradstudent.png"
   },
   plugins: [
     "expo-router",
     [
       "expo-splash-screen",
       {
-        "image": "./assets/icons/gradstudent.png",
+        "image": "./assets/Icons/gradstudent.png",
         "imageWidth": 200,
         "resizeMode": "contain",
         "backgroundColor": "#ffffff"
